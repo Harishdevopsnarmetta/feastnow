@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FeastNow 🍽</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#fff9f4;
+  --card:#ffffff;
+  --deep:#1a0a00;
+  --orange:#ff6b2b;
+  --orange2:#ff9a5c;
+  --green:#2ecc71;
+  --text:#2d1a0e;
+  --muted:#9a7c6e;
+  --border:#f0e0d6;
+  --sidebar:#1a0a00;
+  --r:16px;
+}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow:hidden}
+#app{width:100%;height:100dvh;position:relative;overflow:hidden}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease;transform:translateY(16px);background:var(--bg);overflow-y:auto}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:48px;background:#1a0a00;overflow:hidden}
+.auth-hero{position:absolute;inset:0;background:linear-gradient(135deg,#3d1a00 0%,#7a3500 40%,#c45e00 100%);opacity:1}
+.auth-hero-emoji{position:absolute;inset:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;padding:20px;opacity:.18;font-size:3rem;z-index:1}
+.auth-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,#1a0a00 40%,transparent 100%)}
+.auth-content{position:relative;z-index:2;width:100%;padding:0 28px;text-align:center}
+.auth-logo{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.auth-logo span{color:var(--orange)}
+.auth-sub{color:rgba(255,255,255,.65);font-size:.9rem;margin:10px 0 36px;font-weight:300}
+.google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;background:#fff;border:none;border-radius:50px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:1rem;color:#1a1a1a;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.3);transition:transform .15s,box-shadow .15s;margin-bottom:14px}
+.google-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.google-icon{width:22px;height:22px}
+.guest-btn{width:100%;padding:14px;background:transparent;border:1.5px solid rgba(255,255,255,.25);border-radius:50px;color:rgba(255,255,255,.75);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:.9rem;cursor:pointer;transition:background .2s}
+.guest-btn:active{background:rgba(255,255,255,.1)}
+.auth-terms{color:rgba(255,255,255,.35);font-size:.72rem;margin-top:20px;line-height:1.5}
+
+/* ── GOOGLE POPUP ── */
+#google-popup{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
+#google-popup.open{display:flex}
+.gpop-card{width:100%;max-width:420px;background:#fff;border-radius:28px 28px 0 0;padding:28px 24px 40px;animation:slideUp .35s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.gpop-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.gpop-logo{font-family:'Playfair Display',serif;font-weight:900;font-size:1.1rem;color:var(--deep)}
+.gpop-logo span{color:var(--orange)}
+.gpop-title{font-size:1rem;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+.gpop-sub{font-size:.8rem;color:#666}
+.account-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.account-row{display:flex;align-items:center;gap:14px;padding:14px;border:1.5px solid #e8e8e8;border-radius:14px;cursor:pointer;transition:background .15s}
+.account-row:active{background:#f5f5f5}
+.account-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;font-size:1.2rem;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-weight:700;flex-shrink:0}
+.account-info{flex:1}
+.account-name{font-weight:600;font-size:.92rem;color:#1a1a1a}
+.account-email{font-size:.76rem;color:#666}
+.gpop-divider{text-align:center;color:#999;font-size:.78rem;margin-bottom:14px;position:relative}
+.gpop-divider::before,.gpop-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e8e8e8}
+.gpop-divider::before{left:0}.gpop-divider::after{right:0}
+.gpop-manual{display:flex;flex-direction:column;gap:10px}
+.gpop-input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.gpop-input:focus{border-color:var(--orange)}
+.gpop-signin-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--orange),var(--orange2));border:none;border-radius:50px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer;margin-top:4px}
+.gpop-cancel{width:100%;padding:12px;background:none;border:none;color:#888;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;cursor:pointer;margin-top:6px}
+
+/* ── HOME SCREEN ── */
+#home-screen{padding-bottom:80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:52px 20px 16px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-greet{font-size:.78rem;color:var(--muted);font-weight:400}
+.topbar-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;color:var(--deep)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:1.3rem;position:relative;padding:6px}
+.cart-badge{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;color:#fff;font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none}
+.cart-badge.show{display:flex}
+.ham-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:6px}
+.ham-line{width:22px;height:2px;background:var(--deep);border-radius:2px;transition:all .3s}
+
+/* ── SEARCH ── */
+.search-wrap{padding:16px 20px 0}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:50px;padding:12px 18px;box-shadow:0 2px 12px rgba(255,107,43,.06)}
+.search-box input{flex:1;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;color:var(--text);background:none}
+.search-box input::placeholder{color:var(--muted)}
+
+/* ── BANNER ── */
+.banner-scroll{display:flex;gap:14px;padding:18px 20px;overflow-x:auto;scrollbar-width:none}
+.banner-scroll::-webkit-scrollbar{display:none}
+.banner{flex:0 0 280px;height:150px;border-radius:20px;overflow:hidden;position:relative;cursor:pointer}
+.banner img{width:100%;height:100%;object-fit:cover}
+.banner-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(26,10,0,.75) 0%,transparent 70%)}
+.banner-text{position:absolute;left:18px;top:50%;transform:translateY(-50%)}
+.banner-tag{background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:50px;display:inline-block;margin-bottom:6px;letter-spacing:.05em}
+.banner-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:#fff;font-weight:700;line-height:1.2}
+.banner-sub{font-size:.72rem;color:rgba(255,255,255,.75);margin-top:4px}
+
+/* ── CATEGORIES ── */
+.section{padding:0 20px;margin-bottom:6px}
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;color:var(--deep)}
+.see-all{font-size:.78rem;color:var(--orange);font-weight:600}
+.cats{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 20px;margin-bottom:20px}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.cat-icon{width:58px;height:58px;border-radius:16px;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.6rem;transition:all .2s}
+.cat.active .cat-icon{background:var(--orange);border-color:var(--orange)}
+.cat-label{font-size:.7rem;font-weight:600;color:var(--muted)}
+.cat.active .cat-label{color:var(--orange)}
+
+/* ── FOOD EMOJI CARDS (offline) ── */
+.food-emoji-card{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;overflow:hidden}
+.food-emoji-card::before{content:'';position:absolute;inset:0;opacity:.9}
+.fe-pizza::before{background:linear-gradient(135deg,#ff6b2b,#ff9a5c)}
+.fe-burger::before{background:linear-gradient(135deg,#c0392b,#e74c3c)}
+.fe-biryani::before{background:linear-gradient(135deg,#f39c12,#e67e22)}
+.fe-noodles::before{background:linear-gradient(135deg,#27ae60,#2ecc71)}
+.fe-dessert::before{background:linear-gradient(135deg,#8e44ad,#9b59b6)}
+.fe-drinks::before{background:linear-gradient(135deg,#2980b9,#3498db)}
+.fe-default::before{background:linear-gradient(135deg,#16a085,#1abc9c)}
+.food-emoji-card span{position:relative;z-index:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
+/* banner gradient fallbacks */
+.banner-grad-1{background:linear-gradient(135deg,#ff6b2b,#c0392b)!important}
+.banner-grad-2{background:linear-gradient(135deg,#2c3e50,#e74c3c)!important}
+.banner-grad-3{background:linear-gradient(135deg,#134e5e,#71b280)!important}
+.banner img{display:none!important}
+.banner-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.4;position:absolute;right:10px;top:0;bottom:0}
+
+.food-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 20px}
+.food-card{background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.05);transition:transform .15s}
+.food-card:active{transform:scale(.97)}
+.food-img-wrap{position:relative;height:130px;overflow:hidden}
+.food-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.food-card:hover .food-img-wrap img{transform:scale(1.05)}
+.food-badge{position:absolute;top:10px;left:10px;background:var(--orange);color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:50px}
+.food-badge.veg{background:#2ecc71}
+.food-fav{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.9);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;border:none}
+.food-info{padding:10px 12px 12px}
+.food-name{font-family:'Playfair Display',serif;font-weight:700;font-size:.95rem;color:var(--deep);margin-bottom:3px;line-height:1.2}
+.food-rest{font-size:.7rem;color:var(--muted);margin-bottom:6px}
+.food-meta{display:flex;align-items:center;justify-content:space-between}
+.food-price{font-weight:700;font-size:.95rem;color:var(--orange)}
+.food-rating{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:2px}
+.add-btn{width:28px;height:28px;background:var(--orange);border:none;border-radius:8px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.add-btn:active{transform:scale(.9)}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;padding:10px 0 22px;z-index:10;box-shadow:0 -4px 20px rgba(0,0,0,.08)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted);transition:color .2s}
+.nav-item.active{color:var(--orange)}
+.nav-icon{font-size:1.25rem}
+.nav-label{font-size:.62rem;font-weight:600}
+
+/* ── SIDEBAR ── */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(2px)}
+#overlay.open{opacity:1;pointer-events:all}
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:290px;background:var(--sidebar);z-index:101;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+#sidebar.open{transform:translateX(0)}
+.sb-top{padding:56px 24px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:14px;border:3px solid rgba(255,255,255,.15)}
+.sb-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;color:#fff}
+.sb-email{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:3px}
+.sb-body{flex:1;padding:16px 0;overflow-y:auto}
+.sb-section-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);padding:10px 24px 6px}
+.sb-item{display:flex;align-items:center;gap:14px;padding:14px 24px;color:rgba(255,255,255,.75);cursor:pointer;transition:background .15s;font-size:.92rem}
+.sb-item:active{background:rgba(255,255,255,.07)}
+.sb-item .sb-icon{font-size:1.1rem;width:22px;text-align:center}
+.sb-item.danger{color:#ff6b6b}
+.sb-bottom{padding:16px 24px 32px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-version{font-size:.7rem;color:rgba(255,255,255,.2);text-align:center}
+
+/* ── CART PANEL ── */
+#cart-panel{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;justify-content:flex-end}
+#cart-panel.open{display:flex}
+.cart-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+.cart-sheet{position:relative;z-index:1;background:var(--bg);border-radius:28px 28px 0 0;max-height:80dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s ease}
+.cart-head{padding:20px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cart-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem}
+.cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
+.cart-items{flex:1;overflow-y:auto;padding:14px 20px}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:14px;margin-bottom:10px;border:1px solid var(--border)}
+.cart-item-img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.cart-item-info{flex:1}
+.cart-item-name{font-weight:600;font-size:.88rem;color:var(--deep)}
+.cart-item-price{font-size:.8rem;color:var(--orange);font-weight:600;margin-top:2px}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-btn{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--border);background:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--deep)}
+.qty-num{font-weight:700;font-size:.9rem;min-width:16px;text-align:center}
+.cart-footer{padding:16px 20px 32px;border-top:1px solid var(--border)}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cart-total-label{font-size:.85rem;color:var(--muted)}
+.cart-total-val{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;color:var(--deep)}
+.checkout-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--orange),var(--orange2));border:none;border-radius:50px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,43,.35)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);padding:10px 20px;border-radius:50px;font-size:.82rem;color:#fff;white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── EMPTY CART ── */
+.empty-cart{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-cart-icon{font-size:3rem;margin-bottom:10px}
+.empty-cart p{font-size:.88rem}
+
+/* ── ANIM ── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.food-card{animation:fadeInUp .4s ease backwards}
+.food-card:nth-child(1){animation-delay:.05s}
+.food-card:nth-child(2){animation-delay:.1s}
+.food-card:nth-child(3){animation-delay:.15s}
+.food-card:nth-child(4){animation-delay:.2s}
+.food-card:nth-child(5){animation-delay:.25s}
+.food-card:nth-child(6){animation-delay:.3s}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════ AUTH SCREEN ══════ -->
+<div class="screen active" id="auth-screen">
+  <div class="auth-hero"></div>
+  <div class="auth-hero-emoji">🍕🍔🍛🍜🍰🥤🌮🍣🍱🥗🍝🥩🍗🍤🧆🥘</div>
+  <div class="auth-hero-overlay"></div>
+  <div class="auth-content">
+    <div class="auth-logo">Feast<span>Now</span></div>
+    <div class="auth-sub">Delicious food, delivered fast 🚀</div>
+
+    <button class="google-btn" onclick="openGooglePopup()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </button>
+    <button class="guest-btn" onclick="signInGuest()">Browse as Guest</button>
+    <div class="auth-terms">By continuing, you agree to our Terms of Service &amp; Privacy Policy</div>
+  </div>
+</div>
+
+<!-- ══════ HOME SCREEN ══════ -->
+<div class="screen" id="home-screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-greet">Good afternoon 👋</div>
+      <div class="topbar-name" id="top-name">Loading...</div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="openCart()">
+        🛒
+        <span class="cart-badge" id="cart-badge">0</span>
+      </button>
+      <button class="ham-btn" onclick="openSidebar()">
+        <div class="ham-line"></div>
+        <div class="ham-line" style="width:16px"></div>
+        <div class="ham-line"></div>
+      </button>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Search dishes, restaurants..." id="search-input" oninput="filterFood()">
+    </div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="banner-scroll">
+  <div class="banner banner-grad-1">
+      <div class="banner-inner">🍕</div>
+      <div class="banner-overlay"></div>
+      <div class="banner-text">
+        <div class="banner-tag">🔥 HOT DEAL</div>
+        <div class="banner-title">50% Off<br>Today Only!</div>
+        <div class="banner-sub">On all pizzas</div>
+      </div>
+    </div>
+    <div class="banner banner-grad-2">
+      <div class="banner-inner">🍔</div>
+      <div class="banner-overlay"></div>
+      <div class="banner-text">
+        <div class="banner-tag">🌟 NEW</div>
+        <div class="banner-title">Gourmet<br>Burgers</div>
+        <div class="banner-sub">Free delivery</div>
+      </div>
+    </div>
+    <div class="banner banner-grad-3">
+      <div class="banner-inner">🍜</div>
+      <div class="banner-overlay"></div>
+      <div class="banner-text">
+        <div class="banner-tag">🍜 SPECIAL</div>
+        <div class="banner-title">Asian<br>Fusion</div>
+        <div class="banner-sub">Chef's picks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="cats" id="cats">
+    <div class="cat active" onclick="filterCat('all',this)">
+      <div class="cat-icon">🍽</div><div class="cat-label">All</div>
+    </div>
+    <div class="cat" onclick="filterCat('pizza',this)">
+      <div class="cat-icon">🍕</div><div class="cat-label">Pizza</div>
+    </div>
+    <div class="cat" onclick="filterCat('burger',this)">
+      <div class="cat-icon">🍔</div><div class="cat-label">Burgers</div>
+    </div>
+    <div class="cat" onclick="filterCat('biryani',this)">
+      <div class="cat-icon">🍛</div><div class="cat-label">Biryani</div>
+    </div>
+    <div class="cat" onclick="filterCat('noodles',this)">
+      <div class="cat-icon">🍜</div><div class="cat-label">Noodles</div>
+    </div>
+    <div class="cat" onclick="filterCat('dessert',this)">
+      <div class="cat-icon">🍰</div><div class="cat-label">Desserts</div>
+    </div>
+    <div class="cat" onclick="filterCat('drinks',this)">
+      <div class="cat-icon">🥤</div><div class="cat-label">Drinks</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-row">
+      <div class="section-title" id="food-section-title">Popular Near You</div>
+      <div class="see-all">See all →</div>
+    </div>
+  </div>
+  <div class="food-grid" id="food-grid"></div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item" onclick="showToast('🔍 Search coming soon!')"><div class="nav-icon">🔍</div><div class="nav-label">Explore</div></div>
+    <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
+    <div class="nav-item" onclick="showToast('❤️ Favourites coming soon!')"><div class="nav-icon">❤️</div><div class="nav-label">Favourites</div></div>
+    <div class="nav-item" onclick="openSidebar()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══════ GOOGLE POPUP ══════ -->
+<div id="google-popup" onclick="closeGooglePopup(event)">
+  <div class="gpop-card">
+    <div class="gpop-header">
+      <svg width="22" height="22" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <div class="gpop-logo">Feast<span>Now</span></div>
+    </div>
+    <div class="gpop-title">Sign in with Google</div>
+    <div class="gpop-sub">Choose an account to continue to FeastNow</div>
+
+    <div class="account-list" style="margin-top:18px" id="saved-accounts">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="gpop-divider">or sign in with email</div>
+    <div class="gpop-manual">
+      <input class="gpop-input" type="text" id="g-name" placeholder="Full Name">
+      <input class="gpop-input" type="email" id="g-email" placeholder="Gmail address">
+      <button class="gpop-signin-btn" onclick="doGoogleLogin()">Sign In</button>
+      <button class="gpop-cancel" onclick="closeGooglePopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SIDEBAR ══════ -->
+<div id="overlay" onclick="closeSidebar()"></div>
+<div id="sidebar">
+  <div class="sb-top">
+    <div class="sb-avatar" id="sb-avatar">😊</div>
+    <div class="sb-name" id="sb-name">Guest User</div>
+    <div class="sb-email" id="sb-email">guest@feastnow.app</div>
+  </div>
+  <div class="sb-body">
+    <div class="sb-section-label">Menu</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">🏠</span> Home</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">📦</span> My Orders</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">❤️</span> Favourites</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">🏠</span> Saved Addresses</div>
+    <div class="sb-section-label">Account</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">👤</span> Edit Profile</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">💳</span> Payment Methods</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">🎁</span> Refer & Earn</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">⚙️</span> Settings</div>
+    <div class="sb-section-label">Support</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">💬</span> Help & Support</div>
+    <div class="sb-item danger" onclick="doLogout()"><span class="sb-icon">🚪</span> Sign Out</div>
+  </div>
+  <div class="sb-bottom"><div class="sb-version">FeastNow v2.0 · Made with ❤️</div></div>
+</div>
+
+<!-- ══════ CART PANEL ══════ -->
+<div id="cart-panel">
+  <div class="cart-overlay" onclick="closeCart()"></div>
+  <div class="cart-sheet">
+    <div class="cart-head">
+      <div class="cart-title">🛒 Your Cart</div>
+      <button class="cart-close" onclick="closeCart()">×</button>
+    </div>
+    <div class="cart-items" id="cart-items-list"></div>
+    <div class="cart-footer" id="cart-footer" style="display:none">
+      <div class="cart-total-row">
+        <div class="cart-total-label">Subtotal</div>
+        <div class="cart-total-val" id="cart-subtotal">₹0</div>
+      </div>
+      <div class="cart-total-row" style="margin-top:-8px;margin-bottom:14px">
+        <div class="cart-total-label">Delivery Fee</div>
+        <div style="font-size:.85rem;color:var(--green);font-weight:600">FREE 🎉</div>
+      </div>
+      <button class="checkout-btn" onclick="doCheckout()">Proceed to Checkout →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── DATA ───
+const FOOD_DATA = [
+  {id:1,name:'Margherita Pizza',rest:'Pizza Palace',cat:'pizza',price:299,rating:4.5,emoji:'🍕',emojiClass:'fe-pizza',badge:'Bestseller',veg:true},
+  {id:2,name:'Smoky BBQ Burger',rest:'BurgerCo',cat:'burger',price:249,rating:4.3,emoji:'🍔',emojiClass:'fe-burger',badge:'Hot 🔥',veg:false},
+  {id:3,name:'Hyderabadi Biryani',rest:'Bawarchi',cat:'biryani',price:199,rating:4.8,emoji:'🍛',emojiClass:'fe-biryani',badge:'#1 Rated',veg:false},
+  {id:4,name:'Hakka Noodles',rest:'Wok Express',cat:'noodles',price:149,rating:4.2,emoji:'🍜',emojiClass:'fe-noodles',badge:'Veg',veg:true},
+  {id:5,name:'Chocolate Lava Cake',rest:'Sweet Spot',cat:'dessert',price:129,rating:4.7,emoji:'🍰',emojiClass:'fe-dessert',badge:'Must Try',veg:true},
+  {id:6,name:'Mango Lassi',rest:'Desi Drinks',cat:'drinks',price:79,rating:4.6,emoji:'🥭',emojiClass:'fe-drinks',badge:'Fresh',veg:true},
+  {id:7,name:'Pepperoni Pizza',rest:'Pizza Palace',cat:'pizza',price:349,rating:4.4,emoji:'🍕',emojiClass:'fe-pizza',badge:'Spicy 🌶',veg:false},
+  {id:8,name:'Crispy Chicken Burger',rest:'BurgerCo',cat:'burger',price:279,rating:4.5,emoji:'🍗',emojiClass:'fe-burger',badge:'New',veg:false},
+  {id:9,name:'Veg Biryani',rest:'Paradise',cat:'biryani',price:169,rating:4.3,emoji:'🍚',emojiClass:'fe-biryani',badge:'Veg',veg:true},
+  {id:10,name:'Cold Coffee',rest:'Café Mocha',cat:'drinks',price:99,rating:4.5,emoji:'☕',emojiClass:'fe-drinks',badge:'Chilled ❄️',veg:true},
+  {id:11,name:'Paneer Tikka',rest:'Spice Garden',cat:'biryani',price:179,rating:4.6,emoji:'🧆',emojiClass:'fe-biryani',badge:'Veg',veg:true},
+  {id:12,name:'Gulab Jamun',rest:'Sweet Spot',cat:'dessert',price:89,rating:4.8,emoji:'🍮',emojiClass:'fe-dessert',badge:'Classic',veg:true},
+];
+
+const SAMPLE_ACCOUNTS = [
+  {name:'Harish Kumar',email:'harish.kumar@gmail.com',avatar:'H'},
+  {name:'Demo User',email:'demo.user@gmail.com',avatar:'D'},
+];
+
+let cart = [];
+let currentCat = 'all';
+let currentUser = null;
+
+// ─── STORAGE ───
+const SK = 'fn_session', UK = 'fn_users', CK = 'fn_cart';
+const getSess = () => { try{return JSON.parse(localStorage.getItem(SK))}catch{return null} };
+const saveSess = u => localStorage.setItem(SK, JSON.stringify(u));
+const clearSess = () => localStorage.removeItem(SK);
+const getUsers = () => { try{return JSON.parse(localStorage.getItem(UK))||[]}catch{return []} };
+const saveUsers = u => localStorage.setItem(UK, JSON.stringify(u));
+const getCart = () => { try{return JSON.parse(localStorage.getItem(CK))||[]}catch{return []} };
+const saveCart = c => localStorage.setItem(CK, JSON.stringify(c));
+
+// ─── SCREEN ───
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── TOAST ───
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ─── GOOGLE POPUP ───
+function openGooglePopup(){
+  const popup=document.getElementById('google-popup');
+  popup.classList.add('open');
+  const users = getUsers();
+  const all = [...SAMPLE_ACCOUNTS, ...users.filter(u=>!SAMPLE_ACCOUNTS.find(s=>s.email===u.email))];
+  const el = document.getElementById('saved-accounts');
+  el.innerHTML = all.map(u=>`
+    <div class="account-row" onclick="quickSignIn('${u.name}','${u.email}')">
+      <div class="account-avatar">${u.avatar||u.name.charAt(0).toUpperCase()}</div>
+      <div class="account-info">
+        <div class="account-name">${u.name}</div>
+        <div class="account-email">${u.email}</div>
+      </div>
+      <span style="color:#999;font-size:1rem">›</span>
+    </div>`).join('');
+}
+function closeGooglePopup(e){
+  if(!e||e.target===document.getElementById('google-popup'))
+    document.getElementById('google-popup').classList.remove('open');
+}
+
+function quickSignIn(name, email){
+  document.getElementById('google-popup').classList.remove('open');
+  loginUser({name, email, avatar: name.charAt(0).toUpperCase(), provider:'google'});
+}
+
+function doGoogleLogin(){
+  const name = document.getElementById('g-name').value.trim();
+  const email = document.getElementById('g-email').value.trim().toLowerCase();
+  if(!name||!email||!email.includes('@')) return showToast('⚠️ Enter valid name & Gmail');
+  document.getElementById('google-popup').classList.remove('open');
+  loginUser({name, email, avatar: name.charAt(0).toUpperCase(), provider:'google'});
+}
+
+function loginUser(user){
+  user.loginTime = new Date().toLocaleString();
+  user.id = user.id || Date.now();
+  const users = getUsers();
+  const idx = users.findIndex(u=>u.email===user.email);
+  if(idx>=0) users[idx]={...users[idx],...user};
+  else users.push(user);
+  saveUsers(users);
+  saveSess(user);
+  currentUser = user;
+  cart = getCart();
+  loadHome(user);
+  showScreen('home-screen');
+  showToast(`🎉 Welcome, ${user.name.split(' ')[0]}!`);
+}
+
+function signInGuest(){
+  const guest={name:'Guest',email:'guest@feastnow.app',avatar:'😊',provider:'guest',id:'guest'};
+  currentUser=guest; cart=getCart();
+  loadHome(guest); showScreen('home-screen');
+}
+
+// ─── SIDEBAR ───
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ─── LOGOUT ───
+function doLogout(){
+  closeSidebar(); clearSess(); cart=[];
+  showToast('👋 See you soon!');
+  setTimeout(()=>showScreen('auth-screen'),400);
+}
+
+// ─── LOAD HOME ───
+function loadHome(user){
+  document.getElementById('top-name').textContent = user.name.split(' ')[0];
+  document.getElementById('sb-name').textContent = user.name;
+  document.getElementById('sb-email').textContent = user.email;
+  document.getElementById('sb-avatar').textContent = user.avatar||user.name.charAt(0).toUpperCase();
+  renderFoods(FOOD_DATA);
+  updateCartBadge();
+}
+
+// ─── FOOD RENDER ───
+function renderFoods(items){
+  const grid = document.getElementById('food-grid');
+  if(!items.length){
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:8px">🍽</div>
+      <div>No dishes found</div></div>`;
+    return;
+  }
+  grid.innerHTML = items.map(f=>`
+    <div class="food-card">
+      <div class="food-img-wrap">
+        <div class="food-emoji-card ${f.emojiClass||'fe-default'}"><span>${f.emoji||'🍽'}</span></div>
+        <div class="food-badge ${f.veg?'veg':''}">${f.veg?'🟢 Veg':f.badge}</div>
+        <button class="food-fav" onclick="toggleFav(this)">🤍</button>
+      </div>
+      <div class="food-info">
+        <div class="food-name">${f.name}</div>
+        <div class="food-rest">📍 ${f.rest}</div>
+        <div class="food-meta">
+          <div>
+            <div class="food-price">₹${f.price}</div>
+            <div class="food-rating">⭐ ${f.rating}</div>
+          </div>
+          <button class="add-btn" onclick="addToCart(${f.id})">+</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleFav(btn){ btn.textContent = btn.textContent==='🤍'?'❤️':'🤍'; }
+
+// ─── FILTER ───
+function filterCat(cat, el){
+  currentCat=cat;
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const filtered = FOOD_DATA.filter(f=>(cat==='all'||f.cat===cat)&&(!q||f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q)));
+  document.getElementById('food-section-title').textContent = cat==='all'?'Popular Near You':`${el.querySelector('.cat-label').textContent} 🍽`;
+  renderFoods(filtered);
+}
+
+function filterFood(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const filtered = FOOD_DATA.filter(f=>(currentCat==='all'||f.cat===currentCat)&&(!q||f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q)));
+  renderFoods(filtered);
+}
+
+// ─── CART ───
+function addToCart(id){
+  const food = FOOD_DATA.find(f=>f.id===id);
+  if(!food) return;
+  const ex = cart.find(c=>c.id===id);
+  if(ex) ex.qty++;
+  else cart.push({...food, qty:1});
+  saveCart(cart);
+  updateCartBadge();
+  showToast(`✅ ${food.name} added to cart`);
+}
+
+function updateCartBadge(){
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById('cart-badge');
+  badge.textContent = total;
+  badge.classList.toggle('show', total>0);
+}
+
+function openCart(){
+  document.getElementById('cart-panel').classList.add('open');
+  renderCart();
+}
+function closeCart(){ document.getElementById('cart-panel').classList.remove('open'); }
+
+function renderCart(){
+  const list = document.getElementById('cart-items-list');
+  const footer = document.getElementById('cart-footer');
+  if(!cart.length){
+    list.innerHTML=`<div class="empty-cart"><div class="empty-cart-icon">🛒</div><p>Your cart is empty.<br>Add some delicious items!</p></div>`;
+    footer.style.display='none'; return;
+  }
+  list.innerHTML = cart.map(i=>`
+    <div class="cart-item">
+      <div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:linear-gradient(135deg,var(--orange),var(--orange2));border-radius:10px;flex-shrink:0;width:52px;height:52px">${i.emoji||'🍽'}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${i.name}</div>
+        <div class="cart-item-price">₹${i.price} × ${i.qty}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
+        <div class="qty-num">${i.qty}</div>
+        <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
+      </div>
+    </div>`).join('');
+  const sub = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('cart-subtotal').textContent = `₹${sub}`;
+  footer.style.display='block';
+}
+
+function changeQty(id, delta){
+  const idx = cart.findIndex(c=>c.id===id);
+  if(idx<0) return;
+  cart[idx].qty += delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  saveCart(cart);
+  updateCartBadge();
+  renderCart();
+}
+
+function doCheckout(){
+  if(!currentUser||currentUser.id==='guest'){
+    closeCart();
+    showToast('🔐 Sign in to place order!');
+    setTimeout(openGooglePopup,600); return;
+  }
+  showToast('🎉 Order placed! Delivery in 30 min');
+  cart=[]; saveCart(cart); updateCartBadge(); closeCart();
+}
+
+// ─── AUTO LOGIN ───
+window.addEventListener('DOMContentLoaded',()=>{
+  const sess = getSess();
+  if(sess){ currentUser=sess; cart=getCart(); loadHome(sess); showScreen('home-screen'); }
+});
+</script>
+</body>
+</html>
