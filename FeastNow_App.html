@@ -4,102 +4,90 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FeastNow 🍽</title>
+
+<!-- Real Google Identity Services SDK -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#fff9f4;
-  --card:#ffffff;
-  --deep:#1a0a00;
-  --orange:#ff6b2b;
-  --orange2:#ff9a5c;
-  --green:#2ecc71;
-  --text:#2d1a0e;
-  --muted:#9a7c6e;
-  --border:#f0e0d6;
-  --sidebar:#1a0a00;
-  --r:16px;
+  --bg:#fff9f4;--card:#ffffff;--deep:#1a0a00;
+  --orange:#ff6b2b;--orange2:#ff9a5c;--green:#2ecc71;
+  --text:#2d1a0e;--muted:#9a7c6e;--border:#f0e0d6;
+  --sidebar:#1a0a00;--r:16px;
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow:hidden}
 #app{width:100%;height:100dvh;position:relative;overflow:hidden}
 
-/* ── SCREENS ── */
+/* SCREENS */
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease;transform:translateY(16px);background:var(--bg);overflow-y:auto}
 .screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
 
-/* ── AUTH SCREEN ── */
+/* AUTH */
 #auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:48px;background:#1a0a00;overflow:hidden}
-.auth-hero{position:absolute;inset:0;background:linear-gradient(135deg,#3d1a00 0%,#7a3500 40%,#c45e00 100%);opacity:1}
-.auth-hero-emoji{position:absolute;inset:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;padding:20px;opacity:.18;font-size:3rem;z-index:1}
-.auth-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,#1a0a00 40%,transparent 100%)}
+.auth-hero{position:absolute;inset:0;background:linear-gradient(135deg,#3d1a00 0%,#7a3500 40%,#c45e00 100%)}
+.auth-hero-emoji{position:absolute;inset:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;padding:20px;opacity:.15;font-size:3rem;z-index:1;pointer-events:none}
+.auth-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,#1a0a00 45%,transparent 100%)}
 .auth-content{position:relative;z-index:2;width:100%;padding:0 28px;text-align:center}
-.auth-logo{font-family:'Playfair Display',serif;font-size:2.6rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.auth-logo{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
 .auth-logo span{color:var(--orange)}
-.auth-sub{color:rgba(255,255,255,.65);font-size:.9rem;margin:10px 0 36px;font-weight:300}
-.google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;background:#fff;border:none;border-radius:50px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:1rem;color:#1a1a1a;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.3);transition:transform .15s,box-shadow .15s;margin-bottom:14px}
-.google-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(0,0,0,.2)}
-.google-icon{width:22px;height:22px}
-.guest-btn{width:100%;padding:14px;background:transparent;border:1.5px solid rgba(255,255,255,.25);border-radius:50px;color:rgba(255,255,255,.75);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:.9rem;cursor:pointer;transition:background .2s}
-.guest-btn:active{background:rgba(255,255,255,.1)}
-.auth-terms{color:rgba(255,255,255,.35);font-size:.72rem;margin-top:20px;line-height:1.5}
+.auth-sub{color:rgba(255,255,255,.65);font-size:.9rem;margin:10px 0 40px;font-weight:300;letter-spacing:.02em}
 
-/* ── GOOGLE POPUP ── */
-#google-popup{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
-#google-popup.open{display:flex}
-.gpop-card{width:100%;max-width:420px;background:#fff;border-radius:28px 28px 0 0;padding:28px 24px 40px;animation:slideUp .35s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.gpop-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.gpop-logo{font-family:'Playfair Display',serif;font-weight:900;font-size:1.1rem;color:var(--deep)}
-.gpop-logo span{color:var(--orange)}
-.gpop-title{font-size:1rem;font-weight:600;color:#1a1a1a;margin-bottom:4px}
-.gpop-sub{font-size:.8rem;color:#666}
-.account-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-.account-row{display:flex;align-items:center;gap:14px;padding:14px;border:1.5px solid #e8e8e8;border-radius:14px;cursor:pointer;transition:background .15s}
-.account-row:active{background:#f5f5f5}
-.account-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;font-size:1.2rem;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-weight:700;flex-shrink:0}
-.account-info{flex:1}
-.account-name{font-weight:600;font-size:.92rem;color:#1a1a1a}
-.account-email{font-size:.76rem;color:#666}
-.gpop-divider{text-align:center;color:#999;font-size:.78rem;margin-bottom:14px;position:relative}
-.gpop-divider::before,.gpop-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#e8e8e8}
-.gpop-divider::before{left:0}.gpop-divider::after{right:0}
-.gpop-manual{display:flex;flex-direction:column;gap:10px}
-.gpop-input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
-.gpop-input:focus{border-color:var(--orange)}
-.gpop-signin-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--orange),var(--orange2));border:none;border-radius:50px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer;margin-top:4px}
-.gpop-cancel{width:100%;padding:12px;background:none;border:none;color:#888;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;cursor:pointer;margin-top:6px}
+/* GOOGLE SIGN IN BUTTON */
+.google-signin-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px}
+.real-google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 20px;background:#fff;border:none;border-radius:50px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:1rem;color:#1a1a1a;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.35);transition:transform .15s,box-shadow .15s}
+.real-google-btn:active{transform:scale(.97)}
+.guest-btn{width:100%;padding:14px;background:transparent;border:1.5px solid rgba(255,255,255,.3);border-radius:50px;color:rgba(255,255,255,.8);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:.9rem;cursor:pointer}
+.auth-terms{color:rgba(255,255,255,.3);font-size:.7rem;margin-top:18px;line-height:1.6}
 
-/* ── HOME SCREEN ── */
-#home-screen{padding-bottom:80px}
+/* LOADING OVERLAY */
+#loading{position:fixed;inset:0;background:rgba(26,10,0,.85);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loading.show{display:flex}
+.spinner{width:44px;height:44px;border:3px solid rgba(255,107,43,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:#fff;font-size:.9rem;font-weight:500}
+
+/* ONE TAP container positioning */
+#g_id_onload{position:fixed;top:0;right:0;z-index:10000}
+
+/* TOPBAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:52px 20px 16px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
 .topbar-left{display:flex;flex-direction:column}
-.topbar-greet{font-size:.78rem;color:var(--muted);font-weight:400}
+.topbar-greet{font-size:.78rem;color:var(--muted)}
 .topbar-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1.25rem;color:var(--deep)}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:10px}
 .icon-btn{background:none;border:none;cursor:pointer;font-size:1.3rem;position:relative;padding:6px}
-.cart-badge{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;color:#fff;font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none}
+.cart-badge{position:absolute;top:0;right:0;width:18px;height:18px;background:var(--orange);border-radius:50%;color:#fff;font-size:.6rem;font-weight:700;display:none;align-items:center;justify-content:center}
 .cart-badge.show{display:flex}
 .ham-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:6px}
-.ham-line{width:22px;height:2px;background:var(--deep);border-radius:2px;transition:all .3s}
+.ham-line{width:22px;height:2px;background:var(--deep);border-radius:2px}
 
-/* ── SEARCH ── */
+/* USER AVATAR in topbar */
+.topbar-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--orange);cursor:pointer}
+.topbar-avatar-text{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--orange)}
+
+/* SEARCH */
 .search-wrap{padding:16px 20px 0}
 .search-box{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--border);border-radius:50px;padding:12px 18px;box-shadow:0 2px 12px rgba(255,107,43,.06)}
 .search-box input{flex:1;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;color:var(--text);background:none}
 .search-box input::placeholder{color:var(--muted)}
 
-/* ── BANNER ── */
+/* BANNER */
 .banner-scroll{display:flex;gap:14px;padding:18px 20px;overflow-x:auto;scrollbar-width:none}
 .banner-scroll::-webkit-scrollbar{display:none}
 .banner{flex:0 0 280px;height:150px;border-radius:20px;overflow:hidden;position:relative;cursor:pointer}
-.banner img{width:100%;height:100%;object-fit:cover}
-.banner-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(26,10,0,.75) 0%,transparent 70%)}
+.banner-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(26,10,0,.8) 0%,rgba(26,10,0,.2) 100%)}
 .banner-text{position:absolute;left:18px;top:50%;transform:translateY(-50%)}
-.banner-tag{background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:50px;display:inline-block;margin-bottom:6px;letter-spacing:.05em}
+.banner-tag{background:var(--orange);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:50px;display:inline-block;margin-bottom:6px}
 .banner-title{font-family:'Playfair Display',serif;font-size:1.15rem;color:#fff;font-weight:700;line-height:1.2}
 .banner-sub{font-size:.72rem;color:rgba(255,255,255,.75);margin-top:4px}
+.banner-grad-1{background:linear-gradient(135deg,#ff6b2b,#c0392b)}
+.banner-grad-2{background:linear-gradient(135deg,#2c3e50,#e74c3c)}
+.banner-grad-3{background:linear-gradient(135deg,#134e5e,#71b280)}
+.banner-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5.5rem;opacity:.35;position:absolute;right:-10px}
 
-/* ── CATEGORIES ── */
+/* CATEGORIES */
 .section{padding:0 20px;margin-bottom:6px}
 .section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .section-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;color:var(--deep)}
@@ -112,7 +100,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .cat-label{font-size:.7rem;font-weight:600;color:var(--muted)}
 .cat.active .cat-label{color:var(--orange)}
 
-/* ── FOOD EMOJI CARDS (offline) ── */
+/* FOOD CARDS */
 .food-emoji-card{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;overflow:hidden}
 .food-emoji-card::before{content:'';position:absolute;inset:0;opacity:.9}
 .fe-pizza::before{background:linear-gradient(135deg,#ff6b2b,#ff9a5c)}
@@ -123,19 +111,15 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .fe-drinks::before{background:linear-gradient(135deg,#2980b9,#3498db)}
 .fe-default::before{background:linear-gradient(135deg,#16a085,#1abc9c)}
 .food-emoji-card span{position:relative;z-index:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}
-/* banner gradient fallbacks */
-.banner-grad-1{background:linear-gradient(135deg,#ff6b2b,#c0392b)!important}
-.banner-grad-2{background:linear-gradient(135deg,#2c3e50,#e74c3c)!important}
-.banner-grad-3{background:linear-gradient(135deg,#134e5e,#71b280)!important}
-.banner img{display:none!important}
-.banner-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:5rem;opacity:.4;position:absolute;right:10px;top:0;bottom:0}
 
 .food-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 20px}
-.food-card{background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.05);transition:transform .15s}
+.food-card{background:var(--card);border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.05);transition:transform .15s;animation:fadeInUp .4s ease backwards}
 .food-card:active{transform:scale(.97)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.food-card:nth-child(1){animation-delay:.05s}.food-card:nth-child(2){animation-delay:.1s}
+.food-card:nth-child(3){animation-delay:.15s}.food-card:nth-child(4){animation-delay:.2s}
+.food-card:nth-child(5){animation-delay:.25s}.food-card:nth-child(6){animation-delay:.3s}
 .food-img-wrap{position:relative;height:130px;overflow:hidden}
-.food-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
-.food-card:hover .food-img-wrap img{transform:scale(1.05)}
 .food-badge{position:absolute;top:10px;left:10px;background:var(--orange);color:#fff;font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:50px}
 .food-badge.veg{background:#2ecc71}
 .food-fav{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.9);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;border:none}
@@ -144,26 +128,29 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .food-rest{font-size:.7rem;color:var(--muted);margin-bottom:6px}
 .food-meta{display:flex;align-items:center;justify-content:space-between}
 .food-price{font-weight:700;font-size:.95rem;color:var(--orange)}
-.food-rating{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:2px}
-.add-btn{width:28px;height:28px;background:var(--orange);border:none;border-radius:8px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.food-rating{font-size:.7rem;color:var(--muted)}
+.add-btn{width:28px;height:28px;background:var(--orange);border:none;border-radius:8px;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .add-btn:active{transform:scale(.9)}
 
-/* ── BOTTOM NAV ── */
+/* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;padding:10px 0 22px;z-index:10;box-shadow:0 -4px 20px rgba(0,0,0,.08)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted);transition:color .2s}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--muted)}
 .nav-item.active{color:var(--orange)}
 .nav-icon{font-size:1.25rem}
 .nav-label{font-size:.62rem;font-weight:600}
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(2px)}
 #overlay.open{opacity:1;pointer-events:all}
 #sidebar{position:fixed;left:0;top:0;bottom:0;width:290px;background:var(--sidebar);z-index:101;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
 #sidebar.open{transform:translateX(0)}
 .sb-top{padding:56px 24px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sb-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:14px;border:3px solid rgba(255,255,255,.15)}
+.sb-avatar-wrap{margin-bottom:14px}
+.sb-avatar-img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--orange)}
+.sb-avatar-txt{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;border:3px solid rgba(255,255,255,.2)}
 .sb-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;color:#fff}
 .sb-email{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:3px}
+.sb-provider{display:inline-flex;align-items:center;gap:4px;margin-top:8px;background:rgba(255,255,255,.08);padding:4px 10px;border-radius:50px;font-size:.7rem;color:rgba(255,255,255,.6)}
 .sb-body{flex:1;padding:16px 0;overflow-y:auto}
 .sb-section-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);padding:10px 24px 6px}
 .sb-item{display:flex;align-items:center;gap:14px;padding:14px 24px;color:rgba(255,255,255,.75);cursor:pointer;transition:background .15s;font-size:.92rem}
@@ -173,87 +160,81 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .sb-bottom{padding:16px 24px 32px;border-top:1px solid rgba(255,255,255,.08)}
 .sb-version{font-size:.7rem;color:rgba(255,255,255,.2);text-align:center}
 
-/* ── CART PANEL ── */
+/* CART */
 #cart-panel{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;justify-content:flex-end}
 #cart-panel.open{display:flex}
 .cart-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
 .cart-sheet{position:relative;z-index:1;background:var(--bg);border-radius:28px 28px 0 0;max-height:80dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .cart-head{padding:20px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .cart-title{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem}
 .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted)}
 .cart-items{flex:1;overflow-y:auto;padding:14px 20px}
 .cart-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border-radius:14px;margin-bottom:10px;border:1px solid var(--border)}
-.cart-item-img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.cart-item-emoji{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:linear-gradient(135deg,var(--orange),var(--orange2));flex-shrink:0}
 .cart-item-info{flex:1}
 .cart-item-name{font-weight:600;font-size:.88rem;color:var(--deep)}
 .cart-item-price{font-size:.8rem;color:var(--orange);font-weight:600;margin-top:2px}
 .qty-ctrl{display:flex;align-items:center;gap:8px}
-.qty-btn{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--border);background:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--deep)}
+.qty-btn{width:26px;height:26px;border-radius:8px;border:1.5px solid var(--border);background:none;font-size:1rem;cursor:pointer;color:var(--deep)}
 .qty-num{font-weight:700;font-size:.9rem;min-width:16px;text-align:center}
 .cart-footer{padding:16px 20px 32px;border-top:1px solid var(--border)}
 .cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .cart-total-label{font-size:.85rem;color:var(--muted)}
 .cart-total-val{font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;color:var(--deep)}
 .checkout-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--orange),var(--orange2));border:none;border-radius:50px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,43,.35)}
+.empty-cart{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-cart-icon{font-size:3rem;margin-bottom:10px}
 
-/* ── TOAST ── */
+/* TOAST */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);padding:10px 20px;border-radius:50px;font-size:.82rem;color:#fff;white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── EMPTY CART ── */
-.empty-cart{text-align:center;padding:40px 20px;color:var(--muted)}
-.empty-cart-icon{font-size:3rem;margin-bottom:10px}
-.empty-cart p{font-size:.88rem}
-
-/* ── ANIM ── */
-@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.food-card{animation:fadeInUp .4s ease backwards}
-.food-card:nth-child(1){animation-delay:.05s}
-.food-card:nth-child(2){animation-delay:.1s}
-.food-card:nth-child(3){animation-delay:.15s}
-.food-card:nth-child(4){animation-delay:.2s}
-.food-card:nth-child(5){animation-delay:.25s}
-.food-card:nth-child(6){animation-delay:.3s}
+#home-screen{padding-bottom:80px}
 </style>
 </head>
 <body>
 <div id="app">
 
-<!-- ══════ AUTH SCREEN ══════ -->
+<!-- ══ AUTH SCREEN ══ -->
 <div class="screen active" id="auth-screen">
   <div class="auth-hero"></div>
-  <div class="auth-hero-emoji">🍕🍔🍛🍜🍰🥤🌮🍣🍱🥗🍝🥩🍗🍤🧆🥘</div>
+  <div class="auth-hero-emoji">🍕🍔🍛🍜🍰🥤🌮🍣🍱🥗🍝🥩🍗🍤🧆🥘🫕🥙</div>
   <div class="auth-hero-overlay"></div>
   <div class="auth-content">
     <div class="auth-logo">Feast<span>Now</span></div>
     <div class="auth-sub">Delicious food, delivered fast 🚀</div>
+    <div class="google-signin-wrap">
 
-    <button class="google-btn" onclick="openGooglePopup()">
-      <svg class="google-icon" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Continue with Google
-    </button>
-    <button class="guest-btn" onclick="signInGuest()">Browse as Guest</button>
-    <div class="auth-terms">By continuing, you agree to our Terms of Service &amp; Privacy Policy</div>
+      <!-- REAL Google Sign-In Button -->
+      <button class="real-google-btn" onclick="triggerGoogleSignIn()">
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <button class="guest-btn" onclick="signInGuest()">Browse as Guest</button>
+      <div class="auth-terms">By signing in, you agree to our Terms of Service &amp; Privacy Policy.<br>Your real Google account will be used.</div>
+    </div>
   </div>
 </div>
 
-<!-- ══════ HOME SCREEN ══════ -->
+<!-- ══ HOME SCREEN ══ -->
 <div class="screen" id="home-screen">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="topbar-greet">Good afternoon 👋</div>
-      <div class="topbar-name" id="top-name">Loading...</div>
+      <div class="topbar-greet" id="top-greet">Good day 👋</div>
+      <div class="topbar-name" id="top-name">Welcome</div>
     </div>
     <div class="topbar-right">
       <button class="icon-btn" onclick="openCart()">
-        🛒
-        <span class="cart-badge" id="cart-badge">0</span>
+        🛒<span class="cart-badge" id="cart-badge">0</span>
       </button>
+      <div id="topbar-avatar-wrap" onclick="openSidebar()"></div>
       <button class="ham-btn" onclick="openSidebar()">
         <div class="ham-line"></div>
         <div class="ham-line" style="width:16px"></div>
@@ -269,9 +250,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     </div>
   </div>
 
-  <!-- BANNER -->
   <div class="banner-scroll">
-  <div class="banner banner-grad-1">
+    <div class="banner banner-grad-1">
       <div class="banner-inner">🍕</div>
       <div class="banner-overlay"></div>
       <div class="banner-text">
@@ -300,29 +280,14 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     </div>
   </div>
 
-  <!-- CATEGORIES -->
   <div class="cats" id="cats">
-    <div class="cat active" onclick="filterCat('all',this)">
-      <div class="cat-icon">🍽</div><div class="cat-label">All</div>
-    </div>
-    <div class="cat" onclick="filterCat('pizza',this)">
-      <div class="cat-icon">🍕</div><div class="cat-label">Pizza</div>
-    </div>
-    <div class="cat" onclick="filterCat('burger',this)">
-      <div class="cat-icon">🍔</div><div class="cat-label">Burgers</div>
-    </div>
-    <div class="cat" onclick="filterCat('biryani',this)">
-      <div class="cat-icon">🍛</div><div class="cat-label">Biryani</div>
-    </div>
-    <div class="cat" onclick="filterCat('noodles',this)">
-      <div class="cat-icon">🍜</div><div class="cat-label">Noodles</div>
-    </div>
-    <div class="cat" onclick="filterCat('dessert',this)">
-      <div class="cat-icon">🍰</div><div class="cat-label">Desserts</div>
-    </div>
-    <div class="cat" onclick="filterCat('drinks',this)">
-      <div class="cat-icon">🥤</div><div class="cat-label">Drinks</div>
-    </div>
+    <div class="cat active" onclick="filterCat('all',this)"><div class="cat-icon">🍽</div><div class="cat-label">All</div></div>
+    <div class="cat" onclick="filterCat('pizza',this)"><div class="cat-icon">🍕</div><div class="cat-label">Pizza</div></div>
+    <div class="cat" onclick="filterCat('burger',this)"><div class="cat-icon">🍔</div><div class="cat-label">Burgers</div></div>
+    <div class="cat" onclick="filterCat('biryani',this)"><div class="cat-icon">🍛</div><div class="cat-label">Biryani</div></div>
+    <div class="cat" onclick="filterCat('noodles',this)"><div class="cat-icon">🍜</div><div class="cat-label">Noodles</div></div>
+    <div class="cat" onclick="filterCat('dessert',this)"><div class="cat-icon">🍰</div><div class="cat-label">Desserts</div></div>
+    <div class="cat" onclick="filterCat('drinks',this)"><div class="cat-icon">🥤</div><div class="cat-label">Drinks</div></div>
   </div>
 
   <div class="section">
@@ -335,7 +300,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
   <div class="bottom-nav">
     <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-    <div class="nav-item" onclick="showToast('🔍 Search coming soon!')"><div class="nav-icon">🔍</div><div class="nav-label">Explore</div></div>
+    <div class="nav-item" onclick="showToast('🔍 Explore coming soon!')"><div class="nav-icon">🔍</div><div class="nav-label">Explore</div></div>
     <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
     <div class="nav-item" onclick="showToast('❤️ Favourites coming soon!')"><div class="nav-icon">❤️</div><div class="nav-label">Favourites</div></div>
     <div class="nav-item" onclick="openSidebar()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
@@ -344,49 +309,21 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 </div><!-- /app -->
 
-<!-- ══════ GOOGLE POPUP ══════ -->
-<div id="google-popup" onclick="closeGooglePopup(event)">
-  <div class="gpop-card">
-    <div class="gpop-header">
-      <svg width="22" height="22" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      <div class="gpop-logo">Feast<span>Now</span></div>
-    </div>
-    <div class="gpop-title">Sign in with Google</div>
-    <div class="gpop-sub">Choose an account to continue to FeastNow</div>
-
-    <div class="account-list" style="margin-top:18px" id="saved-accounts">
-      <!-- filled by JS -->
-    </div>
-
-    <div class="gpop-divider">or sign in with email</div>
-    <div class="gpop-manual">
-      <input class="gpop-input" type="text" id="g-name" placeholder="Full Name">
-      <input class="gpop-input" type="email" id="g-email" placeholder="Gmail address">
-      <button class="gpop-signin-btn" onclick="doGoogleLogin()">Sign In</button>
-      <button class="gpop-cancel" onclick="closeGooglePopup()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ SIDEBAR ══════ -->
+<!-- ══ SIDEBAR ══ -->
 <div id="overlay" onclick="closeSidebar()"></div>
 <div id="sidebar">
   <div class="sb-top">
-    <div class="sb-avatar" id="sb-avatar">😊</div>
-    <div class="sb-name" id="sb-name">Guest User</div>
+    <div class="sb-avatar-wrap" id="sb-avatar-wrap"></div>
+    <div class="sb-name" id="sb-name">Guest</div>
     <div class="sb-email" id="sb-email">guest@feastnow.app</div>
+    <div class="sb-provider" id="sb-provider">👤 Guest</div>
   </div>
   <div class="sb-body">
     <div class="sb-section-label">Menu</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">🏠</span> Home</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">📦</span> My Orders</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">❤️</span> Favourites</div>
-    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">🏠</span> Saved Addresses</div>
+    <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">📍</span> Saved Addresses</div>
     <div class="sb-section-label">Account</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">👤</span> Edit Profile</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">💳</span> Payment Methods</div>
@@ -396,10 +333,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="sb-item" onclick="closeSidebar()"><span class="sb-icon">💬</span> Help & Support</div>
     <div class="sb-item danger" onclick="doLogout()"><span class="sb-icon">🚪</span> Sign Out</div>
   </div>
-  <div class="sb-bottom"><div class="sb-version">FeastNow v2.0 · Made with ❤️</div></div>
+  <div class="sb-bottom"><div class="sb-version">FeastNow v3.0 · Real Google Auth ✅</div></div>
 </div>
 
-<!-- ══════ CART PANEL ══════ -->
+<!-- ══ CART ══ -->
 <div id="cart-panel">
   <div class="cart-overlay" onclick="closeCart()"></div>
   <div class="cart-sheet">
@@ -422,11 +359,46 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
   </div>
 </div>
 
+<!-- LOCAL FILE WARNING -->
+<div id="local-warning" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="width:100%;max-width:420px;background:#fff;border-radius:28px 28px 0 0;padding:32px 24px 44px;animation:slideUp .3s ease">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:3rem;margin-bottom:10px">⚠️</div>
+      <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1.3rem;color:#1a0a00;margin-bottom:8px">Google Auth needs hosting</div>
+      <div style="font-size:.85rem;color:#666;line-height:1.6">You're opening this file directly on your device.<br>Google Sign-In only works when the app is hosted online.</div>
+    </div>
+    <div style="background:#fff9f4;border:1.5px solid #f0e0d6;border-radius:16px;padding:16px;margin-bottom:20px">
+      <div style="font-weight:700;font-size:.85rem;color:#1a0a00;margin-bottom:10px">✅ How to fix — 3 easy steps:</div>
+      <div style="font-size:.82rem;color:#555;line-height:1.9">
+        1️⃣ Go to <b>github.com/harishdevopsnarmetta/feastnow</b><br>
+        2️⃣ Upload this <b>index.html</b> file there<br>
+        3️⃣ Open <b>harishdevopsnarmetta.github.io/feastnow</b>
+      </div>
+    </div>
+    <div style="font-size:.78rem;color:#999;text-align:center;margin-bottom:16px">Or use Guest mode to browse without sign-in</div>
+    <button onclick="closeLocalWarning();signInGuest();" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff6b2b,#ff9a5c);border:none;border-radius:50px;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:10px">Continue as Guest →</button>
+    <button onclick="closeLocalWarning()" style="width:100%;padding:12px;background:none;border:1.5px solid #e8e8e8;border-radius:50px;color:#888;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;cursor:pointer">Close</button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="loading"><div class="spinner"></div><div class="loading-text">Signing you in...</div></div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- ══ REAL GOOGLE ONE TAP (hidden, triggers popup) ══ -->
+<div id="g_id_onload"
+  data-client_id="435708658011-frif4tv8shqov6uhnh1b007bqeir45hh.apps.googleusercontent.com"
+  data-callback="handleGoogleCredential"
+  data-auto_prompt="false">
+</div>
+
 <script>
-// ─── DATA ───
+// ─── GOOGLE CLIENT ID ───
+const GOOGLE_CLIENT_ID = '435708658011-frif4tv8shqov6uhnh1b007bqeir45hh.apps.googleusercontent.com';
+
+// ─── FOOD DATA ───
 const FOOD_DATA = [
   {id:1,name:'Margherita Pizza',rest:'Pizza Palace',cat:'pizza',price:299,rating:4.5,emoji:'🍕',emojiClass:'fe-pizza',badge:'Bestseller',veg:true},
   {id:2,name:'Smoky BBQ Burger',rest:'BurgerCo',cat:'burger',price:249,rating:4.3,emoji:'🍔',emojiClass:'fe-burger',badge:'Hot 🔥',veg:false},
@@ -442,24 +414,16 @@ const FOOD_DATA = [
   {id:12,name:'Gulab Jamun',rest:'Sweet Spot',cat:'dessert',price:89,rating:4.8,emoji:'🍮',emojiClass:'fe-dessert',badge:'Classic',veg:true},
 ];
 
-const SAMPLE_ACCOUNTS = [
-  {name:'Harish Kumar',email:'harish.kumar@gmail.com',avatar:'H'},
-  {name:'Demo User',email:'demo.user@gmail.com',avatar:'D'},
-];
-
-let cart = [];
-let currentCat = 'all';
-let currentUser = null;
-
-// ─── STORAGE ───
-const SK = 'fn_session', UK = 'fn_users', CK = 'fn_cart';
-const getSess = () => { try{return JSON.parse(localStorage.getItem(SK))}catch{return null} };
-const saveSess = u => localStorage.setItem(SK, JSON.stringify(u));
-const clearSess = () => localStorage.removeItem(SK);
-const getUsers = () => { try{return JSON.parse(localStorage.getItem(UK))||[]}catch{return []} };
-const saveUsers = u => localStorage.setItem(UK, JSON.stringify(u));
-const getCart = () => { try{return JSON.parse(localStorage.getItem(CK))||[]}catch{return []} };
-const saveCart = c => localStorage.setItem(CK, JSON.stringify(c));
+// ─── STATE ───
+let cart = [], currentUser = null, currentCat = 'all';
+const SK='fn_session', CK='fn_cart', UK='fn_users';
+const getSess=()=>{try{return JSON.parse(localStorage.getItem(SK))}catch{return null}};
+const saveSess=u=>localStorage.setItem(SK,JSON.stringify(u));
+const clearSess=()=>localStorage.removeItem(SK);
+const getCart=()=>{try{return JSON.parse(localStorage.getItem(CK))||[]}catch{return[]}};
+const saveCart=c=>localStorage.setItem(CK,JSON.stringify(c));
+const getUsers=()=>{try{return JSON.parse(localStorage.getItem(UK))||[]}catch{return[]}};
+const saveUsers=u=>localStorage.setItem(UK,JSON.stringify(u));
 
 // ─── SCREEN ───
 function showScreen(id){
@@ -471,103 +435,205 @@ function showScreen(id){
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  setTimeout(()=>t.classList.remove('show'),2400);
 }
 
-// ─── GOOGLE POPUP ───
-function openGooglePopup(){
-  const popup=document.getElementById('google-popup');
-  popup.classList.add('open');
-  const users = getUsers();
-  const all = [...SAMPLE_ACCOUNTS, ...users.filter(u=>!SAMPLE_ACCOUNTS.find(s=>s.email===u.email))];
-  const el = document.getElementById('saved-accounts');
-  el.innerHTML = all.map(u=>`
-    <div class="account-row" onclick="quickSignIn('${u.name}','${u.email}')">
-      <div class="account-avatar">${u.avatar||u.name.charAt(0).toUpperCase()}</div>
-      <div class="account-info">
-        <div class="account-name">${u.name}</div>
-        <div class="account-email">${u.email}</div>
-      </div>
-      <span style="color:#999;font-size:1rem">›</span>
-    </div>`).join('');
-}
-function closeGooglePopup(e){
-  if(!e||e.target===document.getElementById('google-popup'))
-    document.getElementById('google-popup').classList.remove('open');
+// ─── LOADING ───
+function showLoading(v){ document.getElementById('loading').classList.toggle('show',v); }
+
+// ─── TRIGGER REAL GOOGLE SIGN IN ───
+function triggerGoogleSignIn(){
+  // Detect if running locally (file://) — Google Auth can't work there
+  const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  if(isLocal){
+    showLocalWarning();
+    return;
+  }
+
+  // SDK not yet loaded — retry up to 3 seconds
+  if(typeof google === 'undefined'){
+    showLoading(true);
+    let tries = 0;
+    const wait = setInterval(()=>{
+      tries++;
+      if(typeof google !== 'undefined'){
+        clearInterval(wait);
+        showLoading(false);
+        runGoogleAuth();
+      } else if(tries > 15){
+        clearInterval(wait);
+        showLoading(false);
+        showToast('⚠️ Could not reach Google. Check internet connection.');
+      }
+    }, 200);
+    return;
+  }
+  runGoogleAuth();
 }
 
-function quickSignIn(name, email){
-  document.getElementById('google-popup').classList.remove('open');
-  loginUser({name, email, avatar: name.charAt(0).toUpperCase(), provider:'google'});
+function runGoogleAuth(){
+  showLoading(true);
+  try{
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt((notification)=>{
+      showLoading(false);
+      if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+        // One Tap not shown — use OAuth popup instead
+        openOAuthPopup();
+      }
+    });
+  }catch(e){
+    showLoading(false);
+    showToast('❌ Google Auth error. Try again.');
+    console.error(e);
+  }
 }
 
-function doGoogleLogin(){
-  const name = document.getElementById('g-name').value.trim();
-  const email = document.getElementById('g-email').value.trim().toLowerCase();
-  if(!name||!email||!email.includes('@')) return showToast('⚠️ Enter valid name & Gmail');
-  document.getElementById('google-popup').classList.remove('open');
-  loginUser({name, email, avatar: name.charAt(0).toUpperCase(), provider:'google'});
+// ─── LOCAL FILE WARNING POPUP ───
+function showLocalWarning(){
+  document.getElementById('local-warning').style.display='flex';
+}
+function closeLocalWarning(){
+  document.getElementById('local-warning').style.display='none';
 }
 
+// ─── OAUTH POPUP FALLBACK ───
+function openOAuthPopup(){
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'profile email',
+    callback:(resp)=>{
+      if(resp.access_token) fetchGoogleProfile(resp.access_token);
+    }
+  });
+  client.requestAccessToken();
+}
+
+// ─── FETCH PROFILE WITH ACCESS TOKEN ───
+async function fetchGoogleProfile(token){
+  showLoading(true);
+  try{
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{
+      headers:{Authorization:'Bearer '+token}
+    });
+    const data = await r.json();
+    loginUser({
+      id: data.sub,
+      name: data.name,
+      email: data.email,
+      photo: data.picture,
+      provider: 'google',
+    });
+  }catch(e){
+    showLoading(false);
+    showToast('❌ Failed to get profile. Try again.');
+  }
+}
+
+// ─── HANDLE JWT CREDENTIAL (One Tap) ───
+function handleGoogleCredential(response){
+  showLoading(true);
+  try{
+    // Decode JWT payload (middle part)
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    loginUser({
+      id: payload.sub,
+      name: payload.name,
+      email: payload.email,
+      photo: payload.picture,
+      provider: 'google',
+    });
+  }catch(e){
+    showLoading(false);
+    showToast('❌ Sign in failed. Try again.');
+  }
+}
+
+// ─── LOGIN USER ───
 function loginUser(user){
   user.loginTime = new Date().toLocaleString();
-  user.id = user.id || Date.now();
   const users = getUsers();
-  const idx = users.findIndex(u=>u.email===user.email);
+  const idx = users.findIndex(u=>u.id===user.id);
   if(idx>=0) users[idx]={...users[idx],...user};
   else users.push(user);
   saveUsers(users);
   saveSess(user);
   currentUser = user;
   cart = getCart();
+  showLoading(false);
   loadHome(user);
   showScreen('home-screen');
   showToast(`🎉 Welcome, ${user.name.split(' ')[0]}!`);
 }
 
+// ─── GUEST ───
 function signInGuest(){
-  const guest={name:'Guest',email:'guest@feastnow.app',avatar:'😊',provider:'guest',id:'guest'};
-  currentUser=guest; cart=getCart();
-  loadHome(guest); showScreen('home-screen');
-}
-
-// ─── SIDEBAR ───
-function openSidebar(){
-  document.getElementById('sidebar').classList.add('open');
-  document.getElementById('overlay').classList.add('open');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
+  currentUser={name:'Guest',email:'guest@feastnow.app',photo:null,provider:'guest',id:'guest'};
+  cart=getCart();
+  loadHome(currentUser);
+  showScreen('home-screen');
+  showToast('👀 Browsing as Guest');
 }
 
 // ─── LOGOUT ───
 function doLogout(){
-  closeSidebar(); clearSess(); cart=[];
-  showToast('👋 See you soon!');
+  closeSidebar();
+  if(typeof google!=='undefined') try{ google.accounts.id.disableAutoSelect(); }catch(e){}
+  clearSess(); cart=[];
+  showToast('👋 Signed out!');
   setTimeout(()=>showScreen('auth-screen'),400);
+}
+
+// ─── GREET ───
+function getGreeting(){
+  const h=new Date().getHours();
+  if(h<12)return'Good morning ☀️';
+  if(h<17)return'Good afternoon 👋';
+  return'Good evening 🌙';
 }
 
 // ─── LOAD HOME ───
 function loadHome(user){
+  document.getElementById('top-greet').textContent = getGreeting();
   document.getElementById('top-name').textContent = user.name.split(' ')[0];
   document.getElementById('sb-name').textContent = user.name;
   document.getElementById('sb-email').textContent = user.email;
-  document.getElementById('sb-avatar').textContent = user.avatar||user.name.charAt(0).toUpperCase();
+  document.getElementById('sb-provider').textContent = user.provider==='google'?'🔵 Signed in with Google':'👤 Guest';
+
+  // Sidebar avatar
+  const sbWrap = document.getElementById('sb-avatar-wrap');
+  if(user.photo){
+    sbWrap.innerHTML=`<img class="sb-avatar-img" src="${user.photo}" onerror="this.outerHTML='<div class=sb-avatar-txt>${user.name.charAt(0)}</div>'">`;
+  } else {
+    sbWrap.innerHTML=`<div class="sb-avatar-txt">${user.provider==='guest'?'😊':user.name.charAt(0).toUpperCase()}</div>`;
+  }
+
+  // Topbar avatar
+  const tbWrap = document.getElementById('topbar-avatar-wrap');
+  if(user.photo){
+    tbWrap.innerHTML=`<img class="topbar-avatar" src="${user.photo}" onerror="this.outerHTML='<div class=topbar-avatar-text>${user.name.charAt(0)}</div>'">`;
+  } else {
+    tbWrap.innerHTML=`<div class="topbar-avatar-text">${user.provider==='guest'?'😊':user.name.charAt(0).toUpperCase()}</div>`;
+  }
+
   renderFoods(FOOD_DATA);
   updateCartBadge();
 }
 
-// ─── FOOD RENDER ───
+// ─── RENDER FOODS ───
 function renderFoods(items){
-  const grid = document.getElementById('food-grid');
+  const grid=document.getElementById('food-grid');
   if(!items.length){
-    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--muted)">
-      <div style="font-size:2.5rem;margin-bottom:8px">🍽</div>
-      <div>No dishes found</div></div>`;
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)"><div style="font-size:2.5rem">🍽</div><div>No dishes found</div></div>`;
     return;
   }
-  grid.innerHTML = items.map(f=>`
+  grid.innerHTML=items.map(f=>`
     <div class="food-card">
       <div class="food-img-wrap">
         <div class="food-emoji-card ${f.emojiClass||'fe-default'}"><span>${f.emoji||'🍽'}</span></div>
@@ -578,73 +644,62 @@ function renderFoods(items){
         <div class="food-name">${f.name}</div>
         <div class="food-rest">📍 ${f.rest}</div>
         <div class="food-meta">
-          <div>
-            <div class="food-price">₹${f.price}</div>
-            <div class="food-rating">⭐ ${f.rating}</div>
-          </div>
+          <div><div class="food-price">₹${f.price}</div><div class="food-rating">⭐ ${f.rating}</div></div>
           <button class="add-btn" onclick="addToCart(${f.id})">+</button>
         </div>
       </div>
     </div>`).join('');
 }
 
-function toggleFav(btn){ btn.textContent = btn.textContent==='🤍'?'❤️':'🤍'; }
+function toggleFav(btn){btn.textContent=btn.textContent==='🤍'?'❤️':'🤍';}
 
 // ─── FILTER ───
-function filterCat(cat, el){
+function filterCat(cat,el){
   currentCat=cat;
   document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   const q=document.getElementById('search-input').value.toLowerCase();
-  const filtered = FOOD_DATA.filter(f=>(cat==='all'||f.cat===cat)&&(!q||f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q)));
-  document.getElementById('food-section-title').textContent = cat==='all'?'Popular Near You':`${el.querySelector('.cat-label').textContent} 🍽`;
-  renderFoods(filtered);
+  const f=FOOD_DATA.filter(f=>(cat==='all'||f.cat===cat)&&(!q||f.name.toLowerCase().includes(q)));
+  document.getElementById('food-section-title').textContent=cat==='all'?'Popular Near You':el.querySelector('.cat-label').textContent+' 🍽';
+  renderFoods(f);
 }
-
 function filterFood(){
   const q=document.getElementById('search-input').value.toLowerCase();
-  const filtered = FOOD_DATA.filter(f=>(currentCat==='all'||f.cat===currentCat)&&(!q||f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q)));
-  renderFoods(filtered);
+  renderFoods(FOOD_DATA.filter(f=>(currentCat==='all'||f.cat===currentCat)&&(!q||f.name.toLowerCase().includes(q))));
 }
+
+// ─── SIDEBAR ───
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
 
 // ─── CART ───
 function addToCart(id){
-  const food = FOOD_DATA.find(f=>f.id===id);
-  if(!food) return;
-  const ex = cart.find(c=>c.id===id);
-  if(ex) ex.qty++;
-  else cart.push({...food, qty:1});
-  saveCart(cart);
-  updateCartBadge();
-  showToast(`✅ ${food.name} added to cart`);
+  const food=FOOD_DATA.find(f=>f.id===id);
+  if(!food)return;
+  const ex=cart.find(c=>c.id===id);
+  if(ex)ex.qty++; else cart.push({...food,qty:1});
+  saveCart(cart); updateCartBadge();
+  showToast(`✅ ${food.name} added!`);
 }
-
 function updateCartBadge(){
-  const total = cart.reduce((s,i)=>s+i.qty,0);
-  const badge = document.getElementById('cart-badge');
-  badge.textContent = total;
-  badge.classList.toggle('show', total>0);
+  const t=cart.reduce((s,i)=>s+i.qty,0);
+  const b=document.getElementById('cart-badge');
+  b.textContent=t; b.classList.toggle('show',t>0);
 }
-
-function openCart(){
-  document.getElementById('cart-panel').classList.add('open');
-  renderCart();
-}
-function closeCart(){ document.getElementById('cart-panel').classList.remove('open'); }
-
+function openCart(){document.getElementById('cart-panel').classList.add('open');renderCart();}
+function closeCart(){document.getElementById('cart-panel').classList.remove('open');}
 function renderCart(){
-  const list = document.getElementById('cart-items-list');
-  const footer = document.getElementById('cart-footer');
+  const list=document.getElementById('cart-items-list'),footer=document.getElementById('cart-footer');
   if(!cart.length){
-    list.innerHTML=`<div class="empty-cart"><div class="empty-cart-icon">🛒</div><p>Your cart is empty.<br>Add some delicious items!</p></div>`;
-    footer.style.display='none'; return;
+    list.innerHTML=`<div class="empty-cart"><div class="empty-cart-icon">🛒</div><p>Your cart is empty!<br>Add some delicious items.</p></div>`;
+    footer.style.display='none';return;
   }
-  list.innerHTML = cart.map(i=>`
+  list.innerHTML=cart.map(i=>`
     <div class="cart-item">
-      <div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:linear-gradient(135deg,var(--orange),var(--orange2));border-radius:10px;flex-shrink:0;width:52px;height:52px">${i.emoji||'🍽'}</div>
+      <div class="cart-item-emoji">${i.emoji||'🍽'}</div>
       <div class="cart-item-info">
         <div class="cart-item-name">${i.name}</div>
-        <div class="cart-item-price">₹${i.price} × ${i.qty}</div>
+        <div class="cart-item-price">₹${i.price} × ${i.qty} = ₹${i.price*i.qty}</div>
       </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
@@ -652,35 +707,31 @@ function renderCart(){
         <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
       </div>
     </div>`).join('');
-  const sub = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  document.getElementById('cart-subtotal').textContent = `₹${sub}`;
+  document.getElementById('cart-subtotal').textContent=`₹${cart.reduce((s,i)=>s+i.price*i.qty,0)}`;
   footer.style.display='block';
 }
-
-function changeQty(id, delta){
-  const idx = cart.findIndex(c=>c.id===id);
-  if(idx<0) return;
-  cart[idx].qty += delta;
-  if(cart[idx].qty<=0) cart.splice(idx,1);
-  saveCart(cart);
-  updateCartBadge();
-  renderCart();
+function changeQty(id,delta){
+  const idx=cart.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  cart[idx].qty+=delta;
+  if(cart[idx].qty<=0)cart.splice(idx,1);
+  saveCart(cart);updateCartBadge();renderCart();
 }
-
 function doCheckout(){
   if(!currentUser||currentUser.id==='guest'){
     closeCart();
-    showToast('🔐 Sign in to place order!');
-    setTimeout(openGooglePopup,600); return;
+    showToast('🔐 Sign in with Google to place order!');
+    setTimeout(()=>{showScreen('auth-screen');},800);
+    return;
   }
-  showToast('🎉 Order placed! Delivery in 30 min');
-  cart=[]; saveCart(cart); updateCartBadge(); closeCart();
+  showToast('🎉 Order placed! Arrives in 30 min 🛵');
+  cart=[];saveCart(cart);updateCartBadge();closeCart();
 }
 
 // ─── AUTO LOGIN ───
 window.addEventListener('DOMContentLoaded',()=>{
-  const sess = getSess();
-  if(sess){ currentUser=sess; cart=getCart(); loadHome(sess); showScreen('home-screen'); }
+  const sess=getSess();
+  if(sess){currentUser=sess;cart=getCart();loadHome(sess);showScreen('home-screen');}
 });
 </script>
 </body>
