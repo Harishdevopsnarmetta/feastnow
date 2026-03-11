@@ -13,8 +13,9 @@
 body.light{--bg:#f5f0eb;--card:#ffffff;--card2:#f0ebe4;--text:#1a1208;--muted:#8a7a6a;--border:#e0d5c5;--gold3:#b8902a}
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
 #app{width:100%;height:100dvh;position:relative;overflow:hidden}
-.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateY(20px);background:var(--bg);overflow-y:auto}
-.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.4,0,.2,1),transform .35s cubic-bezier(.4,0,.2,1);transform:translateX(40px) scale(.98);background:var(--bg);overflow-y:auto}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(0) scale(1)}
+.screen.slide-up{transform:translateY(40px) scale(.98)}
 
 /* AUTH */
 #auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:52px;overflow:hidden;background:#000}
@@ -189,19 +190,23 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 #cart-panel{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;justify-content:flex-end}
 #cart-panel.open{display:flex}
 .cart-bg{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
-.cart-sheet{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:28px 28px 0 0;max-height:85dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s ease}
+.cart-sheet{position:relative;z-index:1;background:var(--card);border:1px solid var(--border);border-radius:28px 28px 0 0;max-height:88dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s cubic-bezier(.34,1.1,.64,1)}
 .cart-head{padding:20px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.cart-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.3rem}
-.cart-close{background:none;border:none;font-size:1.6rem;cursor:pointer;color:var(--muted)}
+.cart-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.3rem;display:flex;align-items:center;gap:8px}
+.cart-count-pill{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:50px}
+.cart-close{background:var(--card2);border:1px solid var(--border);width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cart-close:active{background:var(--border)}
 .cart-items{flex:1;overflow-y:auto;padding:14px 20px}
-.cart-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;margin-bottom:10px}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;animation:fadeUp .25s ease backwards;transition:transform .2s,opacity .2s}
+.cart-item.removing{transform:translateX(60px);opacity:0}
 .ci-emoji{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:linear-gradient(135deg,var(--gold3),var(--gold));flex-shrink:0}
 .ci-info{flex:1}
 .ci-name{font-weight:600;font-size:.88rem;color:var(--text)}
 .ci-price{font-size:.78rem;color:var(--gold);font-weight:500;margin-top:3px}
 .qty-ctrl{display:flex;align-items:center;gap:8px}
-.qty-btn{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:1rem;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center}
-.qty-num{font-weight:700;font-size:.9rem;min-width:18px;text-align:center}
+.qty-btn{width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--card);font-size:1rem;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qty-btn:active{background:var(--gold);color:#000;border-color:var(--gold)}
+.qty-num{font-weight:700;font-size:.9rem;min-width:18px;text-align:center;color:var(--text)}
 
 /* PROMO INPUT in cart */
 .promo-input-wrap{display:flex;gap:8px;padding:0 20px 14px}
@@ -304,10 +309,14 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 /* RESTAURANT SCREEN */
 #restaurant-screen{padding-bottom:80px}
-.rest-hero{height:200px;position:relative;overflow:hidden;flex-shrink:0}
-.rest-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6rem}
-.rest-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,transparent 60%)}
-.rest-back{position:absolute;top:52px;left:16px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:1.1rem;cursor:pointer;border:1px solid var(--border)}
+.rest-hero{height:220px;position:relative;overflow:hidden;flex-shrink:0}
+.rest-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6rem;transition:transform .4s ease}
+.rest-hero:hover .rest-hero-bg{transform:scale(1.04)}
+.rest-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(0,0,0,.2) 60%)}
+.rest-back{position:absolute;top:52px;left:16px;background:var(--card);backdrop-filter:blur(8px);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:1.1rem;cursor:pointer;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.rest-cart-fab{position:absolute;top:52px;right:16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;padding:8px 16px;display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#000;cursor:pointer;box-shadow:0 4px 16px rgba(212,168,71,.4);transition:transform .15s}
+.rest-cart-fab:active{transform:scale(.93)}
+.rest-cart-fab-count{background:rgba(0,0,0,.2);border-radius:50px;padding:1px 6px;font-size:.7rem}
 .rest-info{padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:4px}
 .rest-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.6rem;color:var(--text)}
 .rest-meta{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
@@ -315,6 +324,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .rest-meta-item span{color:var(--text);font-weight:500}
 .rest-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .rest-tag{padding:4px 10px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.15);border-radius:50px;font-size:.7rem;color:var(--gold)}
+.rest-offer-strip{display:flex;gap:8px;padding:10px 20px 0;overflow-x:auto;scrollbar-width:none}
+.rest-offer-strip::-webkit-scrollbar{display:none}
+.rest-offer-pill{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:50px;padding:5px 12px;font-size:.7rem;color:var(--green);font-weight:500}
 
 /* ADMIN SCREEN */
 #admin-screen{padding-bottom:40px}
@@ -711,6 +723,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="rest-hero-bg" id="rest-hero-bg"></div>
     <div class="rest-hero-overlay"></div>
     <button class="rest-back" onclick="showScreen('home-screen')">←</button>
+    <button class="rest-cart-fab" onclick="openCart()" id="rest-cart-fab" style="display:none">🛒 Cart <span class="rest-cart-fab-count" id="rest-cart-fab-count">0</span></button>
   </div>
   <div class="rest-info">
     <div class="rest-name" id="rest-name">Restaurant</div>
@@ -721,6 +734,12 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
       <div class="rest-meta-item">📍 <span id="rest-area">Banjara Hills</span></div>
     </div>
     <div class="rest-tags" id="rest-tags"></div>
+  </div>
+  <div class="rest-offer-strip">
+    <div class="rest-offer-pill">🎉 50% off up to ₹100</div>
+    <div class="rest-offer-pill">🛵 Free delivery</div>
+    <div class="rest-offer-pill">⚡ 20–30 min</div>
+    <div class="rest-offer-pill">💳 5% cashback on UPI</div>
   </div>
   <div class="section" style="margin-top:16px">
     <div class="section-row"><div class="section-title">Menu</div></div>
@@ -1049,8 +1068,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
   <div class="cart-bg" onclick="closeCart()"></div>
   <div class="cart-sheet">
     <div class="cart-head">
-      <div class="cart-title">🛒 Your Order</div>
-      <button class="cart-close" onclick="closeCart()">×</button>
+      <div class="cart-title">🛒 Your Order <span class="cart-count-pill" id="cart-count-pill" style="display:none"></span></div>
+      <button class="cart-close" onclick="closeCart()">✕</button>
     </div>
     <div class="cart-items" id="cart-items-list"></div>
     <div class="promo-input-wrap">
@@ -1062,8 +1081,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
       <div class="cart-row"><div class="cart-lbl">Subtotal</div><div style="font-size:.95rem;font-weight:600;color:var(--text)" id="cart-subtotal">₹0</div></div>
       <div class="cart-row" id="discount-row" style="display:none"><div class="cart-lbl">Discount 🎉</div><div class="cart-discount" id="discount-val">-₹0</div></div>
       <div class="cart-row"><div class="cart-lbl">Delivery</div><div style="font-size:.82rem;color:var(--green);font-weight:600">FREE ✨</div></div>
-      <div class="cart-row"><div class="cart-lbl">Total</div><div class="cart-val" id="cart-total">₹0</div></div>
-      <button class="checkout-btn" onclick="goToPayment()">Proceed to Payment →</button>
+      <div class="cart-row" style="border-top:1px solid var(--border);padding-top:10px;margin-top:4px"><div class="cart-lbl" style="font-weight:600;color:var(--text)">Total</div><div class="cart-val" id="cart-total">₹0</div></div>
+      <button class="checkout-btn" onclick="goToPayment()" style="margin-top:14px;letter-spacing:.03em">Proceed to Payment →</button>
     </div>
   </div>
 </div>
@@ -1152,7 +1171,12 @@ const saveOrders=o=>localStorage.setItem(OK,JSON.stringify(o));
 const getAddrs=()=>{try{return JSON.parse(localStorage.getItem(AK))||addresses}catch{return addresses}};
 const saveAddrs=a=>{addresses=a;localStorage.setItem(AK,JSON.stringify(a))};
 
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showScreen(id){
+  const prev=document.querySelector('.screen.active');
+  if(prev&&prev.id!==id){prev.classList.remove('active');}
+  const next=document.getElementById(id);
+  if(next){next.scrollTop=0;next.classList.add('active');}
+}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function showLoading(v){document.getElementById('loading').classList.toggle('show',v);}
 
@@ -1352,17 +1376,35 @@ function addToCart(id){
   saveCart(cart);updateCartBadge();showToast('✅ '+f.name+' added!');
 }
 function updateCartBadge(){
-  const t=cart.reduce((s,i)=>s+i.qty,0);const b=document.getElementById('cart-badge');b.textContent=t;b.classList.toggle('show',t>0);
+  const t=cart.reduce((s,i)=>s+i.qty,0);
+  const b=document.getElementById('cart-badge');b.textContent=t;b.classList.toggle('show',t>0);
+  // count pill in cart header
+  const pill=document.getElementById('cart-count-pill');
+  if(pill){pill.textContent=t+' item'+(t!==1?'s':'');pill.style.display=t>0?'inline-flex':'none';}
+  // floating cart FAB on restaurant screen
+  const fab=document.getElementById('rest-cart-fab');
+  const fabCount=document.getElementById('rest-cart-fab-count');
+  if(fab){fab.style.display=t>0?'flex':'none';if(fabCount)fabCount.textContent=t;}
 }
 function openCart(){document.getElementById('cart-panel').classList.add('open');renderCart();}
 function closeCart(){document.getElementById('cart-panel').classList.remove('open');}
 function renderCart(){
   const list=document.getElementById('cart-items-list'),footer=document.getElementById('cart-footer');
-  if(!cart.length){list.innerHTML=`<div class="empty-cart"><div style="font-size:3rem;margin-bottom:12px">🛒</div><div>Cart is empty</div><div style="font-size:.8rem;margin-top:6px;color:var(--muted)">Add something delicious!</div></div>`;footer.style.display='none';return;}
-  list.innerHTML=cart.map(i=>`
-    <div class="cart-item">
+  if(!cart.length){
+    list.innerHTML=`<div class="empty-cart">
+      <div style="font-size:3.5rem;margin-bottom:14px;filter:grayscale(.4)">🛒</div>
+      <div style="font-weight:600;font-size:1rem;color:var(--text);margin-bottom:6px">Your cart is empty</div>
+      <div style="font-size:.8rem;color:var(--muted)">Add something delicious to get started!</div>
+    </div>`;
+    footer.style.display='none';return;
+  }
+  list.innerHTML=cart.map((i,idx)=>`
+    <div class="cart-item" style="animation-delay:${idx*0.05}s">
       <div class="ci-emoji">${i.emoji||'🍽'}</div>
-      <div class="ci-info"><div class="ci-name">${i.name}</div><div class="ci-price">₹${i.price} × ${i.qty} = ₹${i.price*i.qty}</div></div>
+      <div class="ci-info">
+        <div class="ci-name">${i.name}</div>
+        <div class="ci-price">₹${i.price} × ${i.qty} = <b>₹${i.price*i.qty}</b></div>
+      </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
         <div class="qty-num">${i.qty}</div>
