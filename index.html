@@ -13,7 +13,7 @@
 (function(){
   const FIREBASE_CONFIG={
     apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
-    authDomain:"feastnow-10576.firebaseapp.com",
+    authDomain:"harishdevopsnarmetta.github.io",
     projectId:"feastnow-10576",
     storageBucket:"feastnow-10576.firebasestorage.app",
     messagingSenderId:"59738911240",
@@ -2129,9 +2129,13 @@ async function sendOtp(){
     let msg='Failed to send OTP. Try again.';
     if(err.code==='auth/invalid-phone-number') msg='Invalid phone number.';
     else if(err.code==='auth/too-many-requests') msg='Too many attempts. Try later.';
-    else if(err.code==='auth/operation-not-allowed') msg='Enable Phone auth in Firebase console.';
+    else if(err.code==='auth/operation-not-allowed') msg='Phone auth not enabled in Firebase.';
+    else if(err.code==='auth/unauthorized-domain') msg='Domain not authorized in Firebase.';
+    else if(err.code==='auth/internal-error') msg='reCAPTCHA failed. Refresh & retry.';
+    else if(err.code) msg='Error: '+err.code;
+    else msg='Error: '+err.message;
     showToast('❌ '+msg);
-    document.getElementById('otp-hint').textContent=msg;
+    document.getElementById('otp-hint').innerHTML='<span style="color:#e74c3c;font-size:.8rem">'+msg+'</span>';
   }
 }
 
@@ -3673,7 +3677,7 @@ function renderHistory(){
           <div class="ohc-total">₹${o.total}</div>
           <div class="ohc-date">${o.time||o.date||''}</div>
         </div>
-        <button        <button class="ohc-reorder" onclick="openReorderSheet(window._reorderOrders[${i}])">🔄 Order Again</button>
+        <button class="ohc-reorder" onclick="openReorderSheet(window._reorderOrders[${i}])">🔄 Order Again</button>
       </div>
     </div>`;
   }).join('');
