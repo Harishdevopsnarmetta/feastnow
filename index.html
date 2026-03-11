@@ -4101,17 +4101,19 @@ async function loadDynamicData(){
 // ── Save order to Firestore ──
 window.saveOrderToFirestore = async function saveOrderToFirestore(order){
   console.log('🔄 saveOrderToFirestore called, order:', order.id);
+  console.log('📊 Firebase state - ready:', window._firebaseReady, 'db:', !!window._db);
   
-  // Wait for Firebase up to 10 seconds (try every 300ms)
+  // Wait for Firebase up to 8 seconds
   let attempts = 0;
-  while((!window._db || !window._firebaseReady) && attempts < 34){
-    await new Promise(r=>setTimeout(r,300));
+  while((!window._db || !window._firebaseReady) && attempts < 16){
+    console.log('⏳ Waiting for Firebase... attempt', attempts+1);
+    await new Promise(r=>setTimeout(r,500));
     attempts++;
   }
   
   if(!window._db || !window._firebaseReady){
-    console.error('❌ Firebase not ready');
-    showToast('⚠️ Order saved locally - Firebase not connected');
+    console.error('❌ Firebase STILL not ready after 8s! db:', !!window._db, 'ready:', window._firebaseReady);
+    showToast('⚠️ Firebase not connected - order saved locally only');
     return;
   }
   
@@ -4119,9 +4121,9 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
     console.log('📝 Writing order to Firestore...');
     const orderData = {
       id: order.id,
-      userId: currentUser ? currentUser.id : 'guest',
-      userName: currentUser ? currentUser.name : 'Guest',
-      userPhone: currentUser ? (currentUser.phone || '') : '',
+      userId: currentUser?.id || 'guest',
+      userName: currentUser?.name || 'Guest',
+      userPhone: currentUser?.phone || '',
       items: order.items || [],
       subtotal: order.subtotal || 0,
       total: order.total || 0,
@@ -4129,19 +4131,19 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
     await window._db.collection('orders').doc(order.id).set(orderData);
-    console.log('✅ ORDER SAVED TO FIRESTORE:', order.id);
-    showToast('🔥 Order sent to rider!');
+    console.log('✅✅✅ ORDER SAVED TO FIRESTORE:', order.id);
+    showToast('🔥 Order synced to Firebase!');
     
     if(window._rtdb){
       await window._rtdb.ref('tracking/' + order.id).set({
         status: 'pending_rider',
-        orderId: order.id,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
       });
+      console.log('✅ RTDB tracking created');
     }
   } catch(e){ 
-    console.error('❌ saveOrderToFirestore FAILED:', e.code, e.message);
-    showToast('⚠️ Firebase write failed: ' + (e.code || e.message));
+    console.error('❌❌❌ saveOrderToFirestore FAILED:', e.code, e.message);
+    showToast('❌ Firebase error: ' + e.message);
   }
 }
 
