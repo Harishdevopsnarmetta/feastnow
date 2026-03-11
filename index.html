@@ -3414,7 +3414,7 @@ function processPayment(){
     const selAddr=addresses.find(a=>a.selected)||addresses[0];
     const order={
       id:orderId,userId:currentUser.id,userName:currentUser.name,
-      items:pendingOrder.cart,subtotal:pendingOrder.subtotal,
+      items:pendingOrder.cart||pendingOrder.items||[],subtotal:pendingOrder.subtotal,
       discount:pendingOrder.discount,total:finalTotal,
       tip:tipAmount,coinsUsed:coinsOff,
       promo:pendingOrder.promo,payMethod:currentPayMethod,
@@ -4119,20 +4119,32 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
   
   try{
     console.log('📝 Writing order to Firestore...');
+    // Sanitize items — strip any non-serializable fields
+    const rawItems = order.items || order.cart || [];
+    const cleanItems = (Array.isArray(rawItems) ? rawItems : []).map(item => ({
+      id: item.id || 0,
+      name: item.name || 'Item',
+      price: Number(item.price) || 0,
+      qty: Number(item.qty || item.quantity || 1),
+      emoji: item.emoji || '',
+      rest: item.rest || item.restaurant || '',
+    }));
     const orderData = {
       id: order.id,
       userId: currentUser?.id || 'guest',
       userName: currentUser?.name || 'Guest',
       userPhone: currentUser?.phone || '',
-      items: order.items || [],
-      subtotal: order.subtotal || 0,
-      total: order.total || 0,
+      items: cleanItems,
+      subtotal: Number(order.subtotal) || 0,
+      total: Number(order.total || order.finalTotal) || 0,
       status: 'pending_rider',
+      address: order.address || '',
+      payMethod: order.payMethod || '',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
     await window._db.collection('orders').doc(order.id).set(orderData);
     console.log('✅✅✅ ORDER SAVED TO FIRESTORE:', order.id);
-    showToast('🔥 Order synced to Firebase!');
+    showToast('🔥 Order sent to rider! 🛵');
     
     if(window._rtdb){
       await window._rtdb.ref('tracking/' + order.id).set({
@@ -4270,7 +4282,7 @@ if('serviceWorker' in navigator){
 }
 </script>
 
-<!-- ══ FIREBASE DEBUG OVERLAY (remove after testing) ══ -->
+<!-- ══ FIREBASE DEBUG OVERLAY ══ -->
 <div id="fb-debug-btn" onclick="toggleFbDebug()" style="position:fixed;bottom:90px;right:16px;z-index:99999;background:#d4a847;color:#000;border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 20px rgba(0,0,0,.5);cursor:pointer;font-weight:900">🔥</div>
 <div id="fb-debug-panel" style="display:none;position:fixed;bottom:155px;right:12px;left:12px;z-index:99998;background:#0a1a0a;border:2px solid #d4a847;border-radius:16px;padding:16px;max-height:60vh;overflow-y:auto">
   <div style="color:#d4a847;font-weight:700;font-size:.9rem;margin-bottom:10px">🔥 Firebase Debug</div>
@@ -4283,343 +4295,11 @@ if('serviceWorker' in navigator){
   </div>
 </div>
 <script>
-function toggleFbDebug(){
-  var p=document.getElementById('fb-debug-panel');
-  p.style.display=p.style.display==='none'?'block':'none';
-  if(p.style.display==='block') fbDebugStatus();
-}
-function fbLog(msg){
-  var el=document.getElementById('fb-debug-log');
-  el.textContent+=msg+'\n';
-  el.scrollTop=el.scrollHeight;
-}
-function fbDebugStatus(){
-  document.getElementById('fb-debug-log').textContent='';
-  fbLog('⏰ '+new Date().toLocaleTimeString());
-  fbLog('🔥 Firebase ready: '+(window._firebaseReady||false));
-  fbLog('🗄️ Firestore (_db): '+(!!window._db));
-  fbLog('📡 RTDB (_rtdb): '+(!!window._rtdb));
-  fbLog('❌ Firebase failed: '+(window._firebaseFailed||false));
-  fbLog('👤 User: '+(currentUser?currentUser.name+' ('+currentUser.id+')':'not logged in'));
-}
-async function fbDebugWrite(){
-  fbLog('\n--- Test Write ---');
-  if(!window._db){ fbLog('❌ No Firestore! Firebase not loaded.'); return; }
-  const testId = 'TEST_'+Date.now();
-  fbLog('📝 Writing doc: '+testId);
-  try{
-    await window._db.collection('orders').doc(testId).set({
-      id: testId,
-      userName: 'DebugTest',
-      status: 'pending_rider',
-      items: [{name:'Test Item',price:99}],
-      total: 99,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    fbLog('✅ SUCCESS! Doc written: '+testId);
-    fbLog('✅ Check rider app — it should appear now!');
-    alert('✅ Firebase write SUCCESS!\nCheck rider app for the test order.');
-  }catch(e){
-    fbLog('❌ WRITE FAILED!');
-    fbLog('   Code: '+e.code);
-    fbLog('   Msg: '+e.message);
-    if(e.code==='permission-denied'){
-      fbLog('');
-      fbLog('🔒 FIX NEEDED:');
-      fbLog('   Firebase Console → Firestore → Rules');
-      fbLog('   Change to: allow read, write: if true;');
-    }
-    alert('❌ Firebase FAILED: '+e.code+'\n'+e.message);
-  }
-}
-async function fbDebugRead(){
-  fbLog('\n--- Read Orders ---');
-  if(!window._db){ fbLog('❌ No Firestore!'); return; }
-  try{
-    const snap = await window._db.collection('orders').get();
-    fbLog('✅ Total docs: '+snap.docs.length);
-    snap.docs.forEach(d=>{
-      const data=d.data();
-      fbLog('  → '+d.id+' | status='+data.status);
-    });
-    if(snap.docs.length===0) fbLog('⚠️ orders collection is EMPTY');
-  }catch(e){
-    fbLog('❌ READ FAILED: '+e.code);
-    fbLog('   '+e.message);
-  }
-}
+function toggleFbDebug(){var p=document.getElementById('fb-debug-panel');p.style.display=p.style.display==='none'?'block':'none';if(p.style.display==='block')fbDebugStatus();}
+function fbLog(msg){var el=document.getElementById('fb-debug-log');el.textContent+=msg+'\n';el.scrollTop=el.scrollHeight;}
+function fbDebugStatus(){document.getElementById('fb-debug-log').textContent='';fbLog('⏰ '+new Date().toLocaleTimeString());fbLog('🔥 Firebase ready: '+(window._firebaseReady||false));fbLog('🗄️ Firestore: '+(!!window._db));fbLog('📡 RTDB: '+(!!window._rtdb));fbLog('👤 User: '+(typeof currentUser!=='undefined'&&currentUser?currentUser.name+' ('+currentUser.id+')':'not logged in'));}
+async function fbDebugWrite(){fbLog('\n--- Test Write ---');if(!window._db){fbLog('❌ No Firestore!');return;}const testId='TEST_'+Date.now();fbLog('📝 Writing: '+testId);try{await window._db.collection('orders').doc(testId).set({id:testId,userName:'DebugTest',status:'pending_rider',items:[{name:'Test',price:99,qty:1}],total:99,createdAt:firebase.firestore.FieldValue.serverTimestamp()});fbLog('✅ SUCCESS: '+testId);alert('✅ Firebase write SUCCESS!\nCheck rider app.');}catch(e){fbLog('❌ FAILED: '+e.code);fbLog('   '+e.message);if(e.code==='permission-denied'){fbLog('🔒 Fix Firestore Rules!');}alert('❌ FAILED: '+e.code+'\n'+e.message);}}
+async function fbDebugRead(){fbLog('\n--- Read Orders ---');if(!window._db){fbLog('❌ No Firestore!');return;}try{const snap=await window._db.collection('orders').get();fbLog('✅ Total docs: '+snap.docs.length);snap.docs.forEach(d=>{const data=d.data();fbLog('  → '+d.id+' | '+data.status);});if(snap.docs.length===0)fbLog('⚠️ Empty — no orders written yet');}catch(e){fbLog('❌ READ FAILED: '+e.code);fbLog('   '+e.message);}}
 </script>
 </body>
 </html>
-<script>
-// ══════════════════════════════════════════════════
-// ALL NEW FEATURES — safe JS, no quote conflicts
-// ══════════════════════════════════════════════════
-
-// ── Data ──────────────────────────────────────────
-var NUTRITION={1:{cal:285,protein:12,carbs:36},2:{cal:520,protein:28,carbs:42},3:{cal:450,protein:22,carbs:58},4:{cal:380,protein:14,carbs:62},5:{cal:310,protein:5,carbs:48},6:{cal:120,protein:4,carbs:22},7:{cal:620,protein:30,carbs:48},8:{cal:490,protein:32,carbs:38},9:{cal:380,protein:10,carbs:72},10:{cal:180,protein:5,carbs:28},11:{cal:210,protein:16,carbs:8},12:{cal:150,protein:3,carbs:28},13:{cal:320,protein:18,carbs:35},14:{cal:270,protein:10,carbs:38},15:{cal:180,protein:24,carbs:2},16:{cal:220,protein:8,carbs:40},17:{cal:280,protein:22,carbs:6},18:{cal:240,protein:18,carbs:8},19:{cal:350,protein:20,carbs:38},20:{cal:290,protein:12,carbs:42}};
-var wishlist=JSON.parse(localStorage.getItem('fn_wishlist')||'[]');
-function saveWishlist(){localStorage.setItem('fn_wishlist',JSON.stringify(wishlist));}
-
-// ── 1. LIVE SEARCH ────────────────────────────────
-function liveSearch(val){
-  var clr=document.getElementById('gs-clear');
-  if(clr) clr.style.display=val?'block':'none';
-  var box=document.getElementById('gs-box');
-  if(!val.trim()){box.classList.remove('open');return;}
-  var q=val.toLowerCase();
-  var fm=FOOD_DATA.filter(function(f){return f.name.toLowerCase().indexOf(q)!==-1||f.rest.toLowerCase().indexOf(q)!==-1;}).slice(0,4);
-  var rk=Object.keys(RESTAURANTS).filter(function(r){return r.toLowerCase().indexOf(q)!==-1;}).slice(0,2);
-  box.innerHTML='';
-  if(!fm.length&&!rk.length){var nd=document.createElement('div');nd.style.cssText='padding:12px 16px;color:var(--muted);font-size:.83rem';nd.textContent='No results found';box.appendChild(nd);box.classList.add('open');return;}
-  fm.forEach(function(f){
-    var el=document.createElement('div');el.className='sugg-item';
-    var tag=document.createElement('span');tag.className='sugg-tag';tag.textContent='Food';
-    var price=document.createElement('span');price.className='sugg-price';price.textContent='₹'+f.price;
-    var info=document.createElement('div');
-    var n=document.createElement('div');n.className='sugg-name';n.textContent=f.name;
-    var s=document.createElement('div');s.className='sugg-sub';s.textContent=f.rest;
-    info.appendChild(n);info.appendChild(s);
-    var em=document.createElement('span');em.className='sugg-emoji';em.textContent=f.emoji;
-    el.appendChild(em);el.appendChild(info);el.appendChild(price);el.appendChild(tag);
-    el.addEventListener('click',function(){addToCart(f.id);clearSearch();showToast('Added to cart!');});
-    box.appendChild(el);
-  });
-  rk.forEach(function(r){
-    var el=document.createElement('div');el.className='sugg-item';
-    var tag=document.createElement('span');tag.className='sugg-tag';tag.textContent='Restaurant';
-    var info=document.createElement('div');
-    var n=document.createElement('div');n.className='sugg-name';n.textContent=r;
-    var s=document.createElement('div');s.className='sugg-sub';s.textContent=RESTAURANTS[r].area;
-    info.appendChild(n);info.appendChild(s);
-    var em=document.createElement('span');em.className='sugg-emoji';em.textContent=RESTAURANTS[r].emoji;
-    el.appendChild(em);el.appendChild(info);el.appendChild(tag);
-    el.addEventListener('click',function(){openRestaurant(r);clearSearch();});
-    box.appendChild(el);
-  });
-  box.classList.add('open');
-}
-function openSugg(){var v=document.getElementById('gs-input');if(v&&v.value)liveSearch(v.value);}
-function closeSugg(){document.getElementById('gs-box').classList.remove('open');}
-function clearSearch(){var i=document.getElementById('gs-input');if(i)i.value='';closeSugg();var c=document.getElementById('gs-clear');if(c)c.style.display='none';}
-
-// ── 2. WISHLIST ───────────────────────────────────
-function toggleWishlist(id,btn){
-  var idx=wishlist.indexOf(id);
-  if(idx===-1){wishlist.push(id);btn.textContent='❤️';btn.classList.add('faved');showToast('❤️ Added to wishlist!');}
-  else{wishlist.splice(idx,1);btn.textContent='🤍';btn.classList.remove('faved');showToast('Removed from wishlist');}
-  saveWishlist();
-}
-function openWishlist(){
-  showScreen('wishlist-screen');
-  var grid=document.getElementById('wishlist-grid');
-  grid.innerHTML='';
-  var items=FOOD_DATA.filter(function(f){return wishlist.indexOf(f.id)!==-1;});
-  if(!items.length){grid.innerHTML='<div class="wishlist-empty"><div style="font-size:3rem;margin-bottom:10px">❤️</div><div style="font-weight:700;color:var(--text);margin-bottom:6px">No favourites yet</div><div style="font-size:.8rem">Tap ❤️ on any food card to save it</div></div>';return;}
-  items.forEach(function(f){
-    var card=document.createElement('div');card.className='food-card';
-    card.innerHTML='<div class="food-img-wrap"><div class="food-ec '+(f.ec||'fe-default')+'"><span>'+f.emoji+'</span></div><div class="food-badge '+(f.veg?'veg':'')+'">'+( f.veg?'🟢 Veg':f.badge)+'</div><button class="food-fav faved">❤️</button></div><div class="food-info"><div class="food-name">'+f.name+'</div><div class="food-rest">'+f.rest+'</div><div class="food-meta"><div><div class="food-price">₹'+f.price+'</div><div class="food-rating">⭐ '+f.rating+'</div></div><button class="add-btn">+</button></div></div>';
-    card.querySelector('.food-fav').addEventListener('click',function(){toggleWishlist(f.id,this);openWishlist();});
-    card.querySelector('.add-btn').addEventListener('click',function(){addToCart(f.id);});
-    grid.appendChild(card);
-  });
-}
-
-// ── 3. CHEF SPECIAL ───────────────────────────────
-var CHEF_IDS=[3,7,11,5,15,17,2,8];
-function renderChefSpecial(){
-  var wrap=document.getElementById('chef-scroll');if(!wrap)return;
-  wrap.innerHTML='';
-  CHEF_IDS.forEach(function(id){
-    var f=FOOD_DATA.find(function(x){return x.id===id;});if(!f)return;
-    var card=document.createElement('div');card.className='chef-card';
-    card.innerHTML='<div class="chef-card-img" style="background:linear-gradient(135deg,rgba(212,168,71,.12),rgba(212,168,71,.04))"><div class="chef-ribbon">Chef Pick</div><span style="font-size:2.8rem">'+f.emoji+'</span></div><div class="chef-card-info"><div class="chef-card-name">'+f.name+'</div><div class="chef-card-rest">'+f.rest+'</div><div class="chef-card-row"><span class="chef-card-price">₹'+f.price+'</span><span style="font-size:.62rem;color:var(--green)">⭐'+f.rating+'</span></div></div>';
-    card.addEventListener('click',function(){addToCart(f.id);showToast('Added to cart!');});
-    wrap.appendChild(card);
-  });
-}
-
-// ── 4. SCHEDULE ORDER ─────────────────────────────
-var scheduledTime=null;
-function openSchedule(){
-  var slots=[{l:'Deliver Now',v:''}];
-  var now=new Date();
-  for(var i=1;i<=8;i++){
-    var t=new Date(now.getTime()+(i*30*60000));
-    var h=t.getHours(),m=t.getMinutes(),ap=h>=12?'PM':'AM';
-    var hh=h%12||12,mm=m===0?'00':('0'+m).slice(-2);
-    var lbl=hh+':'+mm+' '+ap;
-    slots.push({l:lbl,v:lbl});
-  }
-  var wrap=document.getElementById('time-slots');wrap.innerHTML='';
-  slots.forEach(function(s,i){
-    var el=document.createElement('div');el.className='tslot'+(((!scheduledTime&&i===0)||scheduledTime===s.v)?' sel':'');
-    el.textContent=s.l;
-    el.addEventListener('click',function(){document.querySelectorAll('.tslot').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');scheduledTime=s.v;});
-    wrap.appendChild(el);
-  });
-  document.getElementById('schedule-modal').classList.add('open');
-}
-function confirmSchedule(){
-  var bar=document.getElementById('sched-bar');
-  document.getElementById('sched-lbl').textContent=scheduledTime?'Scheduled: '+scheduledTime:'Deliver Now';
-  document.getElementById('sched-sub').textContent=scheduledTime?'Tap to change':'Tap to schedule for later';
-  if(scheduledTime)bar.classList.add('active');else bar.classList.remove('active');
-  closeSchedule();showToast(scheduledTime?'Scheduled for '+scheduledTime:'Delivering now!');
-}
-function closeSchedule(){document.getElementById('schedule-modal').classList.remove('open');}
-
-// ── 5. LOYALTY POINTS ─────────────────────────────
-var loyPts=parseInt(localStorage.getItem('fn_loyalty')||'0');
-function saveLoyalty(){localStorage.setItem('fn_loyalty',''+loyPts);}
-function addLoyaltyPts(total){var earned=Math.floor(total/10);loyPts+=earned;saveLoyalty();updateLoyaltyUI();showToast('🏆 +'+earned+' FeastCoins earned!');}
-function updateLoyaltyUI(){
-  var next=loyPts<500?500:loyPts<1500?1500:5000;
-  var base=loyPts<500?0:loyPts<1500?500:1500;
-  var pct=Math.min(100,Math.round(((loyPts-base)/(next-base))*100));
-  var el=document.getElementById('home-loy-pts');if(el)el.textContent=loyPts;
-  var fill=document.getElementById('home-loy-fill');if(fill)fill.style.width=pct+'%';
-}
-function renderLoyalty(){
-  var next=loyPts<500?500:loyPts<1500?1500:5000;
-  var base=loyPts<500?0:loyPts<1500?500:1500;
-  var pct=Math.min(100,Math.round(((loyPts-base)/(next-base))*100));
-  var tier=loyPts>=5000?'🥇 Gold':loyPts>=1500?'🥈 Silver':'🥉 Bronze';
-  var el;
-  el=document.getElementById('loy-pts-big');if(el)el.textContent=loyPts;
-  el=document.getElementById('loy-tier');if(el)el.textContent=tier+' Member';
-  el=document.getElementById('loy-fill');if(el)el.style.width=pct+'%';
-  el=document.getElementById('loy-prog-lbl');if(el)el.textContent=loyPts+' / '+next+' to '+(next===500?'Silver':next===1500?'Gold':'Legend');
-  el=document.getElementById('loy-pct');if(el)el.textContent=pct+'%';
-  ['rb-pizza','rb-cash','rb-del','rb-box'].forEach(function(id,i){
-    var costs=[200,150,100,500];var b=document.getElementById(id);if(b)b.disabled=loyPts<costs[i];
-  });
-}
-function redeemReward(name,cost){
-  if(loyPts<cost){showToast('Not enough FeastCoins');return;}
-  loyPts-=cost;saveLoyalty();renderLoyalty();updateLoyaltyUI();
-  showToast('🎉 '+name+' redeemed!');
-  addNotif('reward','🏆','Reward Redeemed!','You redeemed '+name+' for '+cost+' FeastCoins!',true);
-}
-
-// ── 6. SCRATCH CARD ───────────────────────────────
-var PRIZES=[{v:'₹50 OFF',l:'Code: SCRATCH50'},{v:'₹100 OFF',l:'Code: SCRATCH100'},{v:'20% OFF',l:'Code: SCRATCHOFF'},{v:'Free Delivery',l:'Next 3 orders'},{v:'+50 Coins',l:'FeastCoins added!'},{v:'Try Again!',l:'Better luck!'}];
-function openScratchCard(){
-  var prize=PRIZES[Math.floor(Math.random()*PRIZES.length)];
-  var pv=document.getElementById('scratch-prize-val');if(pv)pv.textContent=prize.v;
-  var pl=document.getElementById('scratch-prize-lbl');if(pl)pl.textContent=prize.l;
-  var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='none';
-  document.getElementById('scratch-modal').classList.add('open');
-  setTimeout(function(){initCanvas(prize);},80);
-}
-function initCanvas(prize){
-  var canvas=document.getElementById('scratchCanvas');if(!canvas)return;
-  var ctx=canvas.getContext('2d');
-  var g=ctx.createLinearGradient(0,0,240,0);g.addColorStop(0,'#b8902a');g.addColorStop(.5,'#d4a847');g.addColorStop(1,'#b8902a');
-  ctx.fillStyle=g;ctx.fillRect(0,0,240,115);
-  ctx.font='bold 14px sans-serif';ctx.fillStyle='rgba(0,0,0,.35)';ctx.textAlign='center';ctx.fillText('✦ SCRATCH HERE ✦',120,62);
-  var drawn=false,count=0;
-  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.fill();count++;if(count>22&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';SFX.scratchReveal();if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();SFX.coins();}}}
-  function getPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;return{x:(e.clientX-r.left)*scaleX,y:(e.clientY-r.top)*scaleY};}
-  function getTouchPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;var t=e.touches[0];return{x:(t.clientX-r.left)*scaleX,y:(t.clientY-r.top)*scaleY};}
-  var dn=false;
-  canvas.addEventListener('mousedown',function(e){dn=true;var p=getPos(e);go(p.x,p.y);});
-  canvas.addEventListener('mousemove',function(e){if(dn){var p=getPos(e);go(p.x,p.y);}});
-  canvas.addEventListener('mouseup',function(){dn=false;});
-  canvas.addEventListener('touchstart',function(e){e.preventDefault();e.stopPropagation();dn=true;var p=getTouchPos(e);go(p.x,p.y);},{passive:false,capture:true});
-  canvas.addEventListener('touchmove',function(e){e.preventDefault();e.stopPropagation();if(dn){var p=getTouchPos(e);go(p.x,p.y);}},{passive:false,capture:true});
-  canvas.addEventListener('touchend',function(e){e.preventDefault();dn=false;},{passive:false});
-}
-function closeScratch(){document.getElementById('scratch-modal').classList.remove('open');}
-
-// ── 7. LIVE CHAT ──────────────────────────────────
-var BOT={hi:'Hey! How can I help?',hello:'Hi there! What can I do for you?',order:'Your order is being prepared! Check Tracking for live updates.',track:'Open Order History and tap Track to see live updates!',cancel:'Orders can be cancelled within 2 minutes. Call 1800-FEAST-NOW urgently.',refund:'Refunds are processed in 3-5 business days to your original payment.',delay:'Sorry for the delay! Your rider is on the way as fast as possible.',help:'I can help with orders, tracking, refunds, offers, and more!',payment:'We accept UPI, credit/debit cards, cash on delivery, and wallets!',offer:'Check the Offers tab! Try FEAST50 for 50% off pizzas.',thanks:'Happy to help! Anything else?',bye:'Goodbye! Enjoy your meal! 😋'};
-var chatReady=false;
-function openChat(){
-  showScreen('chat-screen');
-  if(!chatReady){chatReady=true;addBotMsg('Hi! I\'m FeastBot 🤖 Your 24/7 support assistant. How can I help?');setTimeout(function(){addBotMsg('Ask me about orders, tracking, refunds, or offers!');},900);}
-}
-function addBotMsg(txt){
-  var w=document.getElementById('chat-msgs');if(!w)return;
-  var d=document.createElement('div');d.className='cbubble bot';
-  d.innerHTML=txt+'<div class="chat-time-lbl">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div>';
-  w.appendChild(d);w.scrollTop=w.scrollHeight;
-}
-function addUserMsg(txt){
-  var w=document.getElementById('chat-msgs');if(!w)return;
-  var d=document.createElement('div');d.className='cbubble usr';d.textContent=txt;
-  w.appendChild(d);w.scrollTop=w.scrollHeight;
-}
-function sendChat(){
-  var inp=document.getElementById('chat-inp');var msg=(inp.value||'').trim();if(!msg)return;
-  addUserMsg(msg);inp.value='';
-  setTimeout(function(){
-    var lower=msg.toLowerCase();var reply='';
-    var keys=Object.keys(BOT);
-    for(var i=0;i<keys.length;i++){if(lower.indexOf(keys[i])!==-1){reply=BOT[keys[i]];break;}}
-    if(!reply)reply='Let me check on that! For urgent issues call 1800-FEAST-NOW 📞';
-    addBotMsg(reply);
-  },500+Math.random()*400);
-}
-
-// ── 8. RATE ITEMS ─────────────────────────────────
-function rateItem(itemId,val,btn){
-  var row=btn.closest('.stars-row')||btn.parentNode;
-  row.querySelectorAll('.star-btn').forEach(function(s,i){s.classList.toggle('lit',i<val);});
-}
-function submitRatings(){
-  showToast('⭐ Thanks for your review!');
-  addLoyaltyPts(50);
-  setTimeout(function(){showScreen('home-screen');},900);
-}
-
-// ── WISHLIST NAV SHORTCUT ─────────────────────────
-function goWishlist(){openWishlist();}
-
-// ── SOUND ENGINE (Web Audio API) ──────────────────────
-const SFX = (() => {
-  let ctx = null;
-  function getCtx() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx;
-  }
-  function play(notes, type='sine', vol=0.18) {
-    try {
-      const c = getCtx();
-      notes.forEach(([freq, start, dur, endFreq]) => {
-        const osc = c.createOscillator();
-        const gain = c.createGain();
-        osc.connect(gain); gain.connect(c.destination);
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, c.currentTime + start);
-        if (endFreq) osc.frequency.linearRampToValueAtTime(endFreq, c.currentTime + start + dur);
-        gain.gain.setValueAtTime(vol, c.currentTime + start);
-        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + start + dur);
-        osc.start(c.currentTime + start);
-        osc.stop(c.currentTime + start + dur + 0.01);
-      });
-    } catch(e) {}
-  }
-  return {
-    addToCart()    { play([[520,0,0.06],[780,0.07,0.08]],'sine',0.12); },
-    processing()   { play([[200,0,0.15,400],[400,0.1,0.2,600],[600,0.25,0.15,500]],'sine',0.1); },
-    orderConfirmed(){ play([[523.25,0,0.15],[659.25,0.18,0.15],[783.99,0.36,0.25],[1046.5,0.54,0.4]],'sine',0.2); },
-    outForDelivery(){ play([[880,0,0.12],[1100,0.15,0.18]],'triangle',0.13); },
-    delivered()    {
-      play([[523.25,0,0.1],[659.25,0.12,0.1],[783.99,0.24,0.1],[1046.5,0.36,0.12],[1318.5,0.5,0.12],[1046.5,0.65,0.08],[1318.5,0.75,0.35]],'sine',0.18);
-      play([[392,0,0.1],[523.25,0.12,0.1],[659.25,0.24,0.3]],'triangle',0.08);
-    },
-    scratchReveal(){ play([[400,0,0.08,800],[800,0.1,0.08,600],[600,0.2,0.15],[900,0.38,0.3]],'sine',0.14); },
-    coins()        { play([[1200,0,0.06],[1500,0.08,0.06],[1800,0.16,0.1]],'sine',0.1); }
-  };
-})();
-// ──────────────────────────────────────────────────────
-
-// ── BOOT HOOK ─────────────────────────────────────
-document.addEventListener('DOMContentLoaded',function(){
-  updateLoyaltyUI();
-  // Delay chef special until FOOD_DATA is ready
-  setTimeout(renderChefSpecial,200);
-});
-</script>
