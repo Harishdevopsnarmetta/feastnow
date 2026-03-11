@@ -411,6 +411,38 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .rc-time{font-size:.68rem;color:var(--muted);margin-left:auto}
 .rc-text{font-size:.82rem;color:rgba(240,236,228,.7);line-height:1.5}
 
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;padding:10px 20px 0;overflow-x:auto;scrollbar-width:none;align-items:center}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{flex:0 0 auto;padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:50px;font-size:.75rem;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-chip.active{background:rgba(212,168,71,.12);border-color:var(--gold3);color:var(--gold)}
+.filter-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;margin:0 2px}
+
+/* PROFILE SCREEN */
+#profile-screen{padding-bottom:40px}
+.profile-hero{padding:52px 24px 28px;background:linear-gradient(180deg,rgba(212,168,71,.06),transparent);border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center}
+.profile-av-wrap{position:relative;margin-bottom:16px}
+.profile-av-img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:2.5px solid var(--gold)}
+.profile-av-txt{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;color:#000;border:2.5px solid var(--gold)}
+.profile-cam{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer}
+.profile-name-display{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--text)}
+.profile-email-display{font-size:.78rem;color:var(--muted);margin-top:4px}
+.profile-provider-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.2);padding:4px 14px;border-radius:50px;font-size:.68rem;color:var(--gold)}
+.profile-body{padding:24px 20px}
+.profile-section-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:16px}
+.profile-field{margin-bottom:16px}
+.profile-field label{display:block;font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.profile-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.profile-input:focus{border-color:var(--gold3)}
+.profile-input:disabled{opacity:.45;cursor:not-allowed}
+.profile-input::placeholder{color:var(--muted)}
+.profile-save-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.pstat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.pstat-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.4rem;color:var(--gold)}
+.pstat-lbl{font-size:.65rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
+
 /* TOAST */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);padding:11px 22px;border-radius:50px;font-size:.82rem;color:var(--text);white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -485,6 +517,17 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="cat" onclick="filterCat('noodles',this)"><div class="cat-icon">🍜</div><div class="cat-label">Noodles</div></div>
     <div class="cat" onclick="filterCat('dessert',this)"><div class="cat-icon">🍰</div><div class="cat-label">Desserts</div></div>
     <div class="cat" onclick="filterCat('drinks',this)"><div class="cat-icon">🥤</div><div class="cat-label">Drinks</div></div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <div class="filter-chip active" id="fc-all" onclick="setDiet('all',this)">🍽 All</div>
+    <div class="filter-chip" id="fc-veg" onclick="setDiet('veg',this)">🟢 Veg</div>
+    <div class="filter-chip" id="fc-nonveg" onclick="setDiet('nonveg',this)">🔴 Non-Veg</div>
+    <div class="filter-sep"></div>
+    <div class="filter-chip" id="fs-rating" onclick="setSort('rating',this)">⭐ Top Rated</div>
+    <div class="filter-chip" id="fs-low" onclick="setSort('price-low',this)">💰 Price ↑</div>
+    <div class="filter-chip" id="fs-high" onclick="setSort('price-high',this)">💎 Price ↓</div>
   </div>
 
   <div class="section">
@@ -718,6 +761,48 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
   <button class="success-btn" onclick="afterPaymentSuccess()">Track My Order →</button>
 </div>
 
+
+<!-- ══ PROFILE ══ -->
+<div class="screen" id="profile-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">Edit <span class="screen-gold">Profile ✨</span></div>
+  </div>
+  <div class="profile-hero">
+    <div class="profile-av-wrap">
+      <div id="profile-av-display"></div>
+      <div class="profile-cam" onclick="showToast('📷 Photo upload coming soon!')">📷</div>
+    </div>
+    <div class="profile-name-display" id="profile-name-display">—</div>
+    <div class="profile-email-display" id="profile-email-display">—</div>
+    <div class="profile-provider-badge" id="profile-provider-badge">👤 Guest</div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-stats">
+      <div class="pstat"><div class="pstat-val" id="ps-orders">0</div><div class="pstat-lbl">Orders</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-reviews">0</div><div class="pstat-lbl">Reviews</div></div>
+      <div class="pstat"><div class="pstat-val" id="ps-spent">₹0</div><div class="pstat-lbl">Spent</div></div>
+    </div>
+    <div class="profile-section-title">Personal Info</div>
+    <div class="profile-field">
+      <label>Full Name</label>
+      <input class="profile-input" id="pedit-name" type="text" placeholder="Your full name">
+    </div>
+    <div class="profile-field">
+      <label>Phone Number</label>
+      <input class="profile-input" id="pedit-phone" type="tel" placeholder="+91 9876543210" maxlength="14">
+    </div>
+    <div class="profile-field">
+      <label>Email Address</label>
+      <input class="profile-input" id="pedit-email" type="email" disabled>
+    </div>
+    <div class="profile-field">
+      <label>Date of Birth</label>
+      <input class="profile-input" id="pedit-dob" type="date">
+    </div>
+    <button class="profile-save-btn" onclick="saveProfile()">Save Changes ✓</button>
+  </div>
+</div>
 </div><!-- /app -->
 
 <!-- SIDEBAR -->
@@ -736,7 +821,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="sb-item" onclick="closeSidebar();showScreen('notif-screen');clearNotifDot()"><span class="si">🔔</span> Notifications</div>
     <div class="sb-item" onclick="closeSidebar();showScreen('address-screen')"><span class="si">📍</span> Saved Addresses</div>
     <div class="sb-lbl">Account</div>
-    <div class="sb-item" onclick="closeSidebar()"><span class="si">👤</span> Edit Profile</div>
+    <div class="sb-item" onclick="closeSidebar();openProfile()"><span class="si">👤</span> Edit Profile</div>
     <div class="sb-item" onclick="closeSidebar();openPaymentFromSidebar()"><span class="si">💳</span> Payment Methods</div>
     <div class="sb-item" onclick="closeSidebar();openRatingsFromSidebar()"><span class="si">⭐</span> Rate Orders</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="si">🎁</span> Refer & Earn</div>
@@ -833,7 +918,7 @@ const FOOD_DATA=[
   {id:12,name:'Gulab Jamun',rest:'Sweet Spot',cat:'dessert',price:89,rating:4.8,emoji:'🍮',ec:'fe-dessert',badge:'Classic',veg:true},
 ];
 
-let cart=[],currentUser=null,currentCat='all',appliedPromo=null,discount=0;
+let cart=[],currentUser=null,currentCat='all',currentDiet='all',currentSort='default',appliedPromo=null,discount=0;
 let notifications=[
   {id:1,type:'offer',icon:'🎁',title:'Welcome Offer!',msg:'Use NEWUSER for ₹150 off your first order.',time:'Just now',unread:true},
   {id:2,type:'offer',icon:'🔥',title:'Flash Deal: FEAST50',msg:'50% off all pizzas today only. Limited time!',time:'2 hours ago',unread:true},
@@ -949,13 +1034,71 @@ function toggleFav(b){b.textContent=b.textContent==='🤍'?'❤️':'🤍';}
 
 function filterCat(cat,el){
   currentCat=cat;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));el.classList.add('active');
-  const q=document.getElementById('search-input').value.toLowerCase();
-  renderFoods(FOOD_DATA.filter(f=>(cat==='all'||f.cat===cat)&&(!q||f.name.toLowerCase().includes(q))));
   document.getElementById('food-section-title').textContent=cat==='all'?'Popular Near You':el.querySelector('.cat-label').textContent+' Dishes';
+  applyFilters();
 }
-function filterFood(){
+function filterFood(){applyFilters();}
+
+function setDiet(diet,el){
+  currentDiet=diet;
+  document.querySelectorAll('.filter-chip[id^="fc-"]').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+function setSort(sort,el){
+  if(currentSort===sort){currentSort='default';el.classList.remove('active');}
+  else{
+    currentSort=sort;
+    document.querySelectorAll('.filter-chip[id^="fs-"]').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  applyFilters();
+}
+function applyFilters(){
   const q=document.getElementById('search-input').value.toLowerCase();
-  renderFoods(FOOD_DATA.filter(f=>(currentCat==='all'||f.cat===currentCat)&&(!q||f.name.toLowerCase().includes(q))));
+  let items=FOOD_DATA.filter(f=>{
+    const catOk=currentCat==='all'||f.cat===currentCat;
+    const dietOk=currentDiet==='all'||(currentDiet==='veg'&&f.veg)||(currentDiet==='nonveg'&&!f.veg);
+    const searchOk=!q||f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q);
+    return catOk&&dietOk&&searchOk;
+  });
+  if(currentSort==='rating') items=[...items].sort((a,b)=>b.rating-a.rating);
+  else if(currentSort==='price-low') items=[...items].sort((a,b)=>a.price-b.price);
+  else if(currentSort==='price-high') items=[...items].sort((a,b)=>b.price-a.price);
+  renderFoods(items);
+}
+
+function openProfile(){
+  if(!currentUser){showToast('Please sign in first');return;}
+  const saved=JSON.parse(localStorage.getItem('fn_profile_'+(currentUser.id||'guest'))||'{}');
+  document.getElementById('pedit-name').value=saved.name||currentUser.name||'';
+  document.getElementById('pedit-phone').value=saved.phone||'';
+  document.getElementById('pedit-email').value=currentUser.email||'';
+  document.getElementById('pedit-dob').value=saved.dob||'';
+  document.getElementById('profile-name-display').textContent=saved.name||currentUser.name||'—';
+  document.getElementById('profile-email-display').textContent=currentUser.email||'—';
+  document.getElementById('profile-provider-badge').textContent=currentUser.provider==='google'?'🔵 Google Account':'👤 Guest';
+  const av=document.getElementById('profile-av-display');
+  av.innerHTML=currentUser.photo
+    ?`<img class="profile-av-img" src="${currentUser.photo}" onerror="this.outerHTML='<div class=profile-av-txt>'+currentUser.name.charAt(0)+'</div>'">`
+    :`<div class="profile-av-txt">${currentUser.provider==='guest'?'😊':currentUser.name.charAt(0).toUpperCase()}</div>`;
+  const allOrders=getOrders().filter(o=>o.userId===currentUser.id);
+  const reviews=JSON.parse(localStorage.getItem('fn_reviews')||'[]').filter(r=>r.userId===currentUser.id);
+  document.getElementById('ps-orders').textContent=allOrders.length;
+  document.getElementById('ps-reviews').textContent=reviews.length;
+  document.getElementById('ps-spent').textContent='₹'+allOrders.reduce((s,o)=>s+(o.total||0),0);
+  showScreen('profile-screen');
+}
+function saveProfile(){
+  const name=document.getElementById('pedit-name').value.trim();
+  const phone=document.getElementById('pedit-phone').value.trim();
+  const dob=document.getElementById('pedit-dob').value;
+  if(!name){showToast('Please enter your name');return;}
+  const profile={name,phone,dob,updatedAt:new Date().toLocaleString()};
+  localStorage.setItem('fn_profile_'+(currentUser?.id||'guest'),JSON.stringify(profile));
+  if(currentUser){currentUser.name=name;saveSess(currentUser);loadHome(currentUser);}
+  document.getElementById('profile-name-display').textContent=name;
+  showToast('✅ Profile saved!');
 }
 
 // RESTAURANT DETAIL
