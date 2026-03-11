@@ -386,7 +386,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .upi-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .upi-app{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:10px 8px;background:var(--card);border:1px solid var(--border);border-radius:14px;transition:all .2s}
 .upi-app:active{transform:scale(.92);border-color:var(--gold3)}
-.upi-app-icon{width:36px;height:36px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.upi-app-icon{width:40px;height:40px;border-radius:10px;overflow:hidden;object-fit:contain;display:block;background:#fff;padding:2px}
 .upi-app-name{font-size:.65rem;color:var(--muted);font-weight:500}
 .pm-upi{background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.05))}
 .pm-card{background:linear-gradient(135deg,rgba(52,152,219,.15),rgba(52,152,219,.05))}
@@ -918,57 +918,27 @@ body:not(.logged-in) .bottom-nav{display:none!important}
       <input class="upi-input" id="upi-id" placeholder="yourname@upi">
       <div class="upi-apps">
         <div class="upi-app" onclick="fillUPI('gpay')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#fff"/>
-            <path d="M24 10C16.268 10 10 16.268 10 24s6.268 14 14 14 14-6.268 14-14S31.732 10 24 10z" fill="#4285F4"/>
-            <path d="M24 17.5v6.5H30.5C29.7 27.7 27.1 29.5 24 29.5c-3.6 0-6.5-2.9-6.5-6.5s2.9-6.5 6.5-6.5c1.7 0 3.2.6 4.4 1.7l4.6-4.6C30.6 11.9 27.5 10.5 24 10.5 16.5 10.5 10.5 16.5 10.5 24S16.5 37.5 24 37.5 37.5 31.5 37.5 24H24v-6.5z" fill="white"/>
-            <path d="M24 24h6.5c-.8 3.2-3.4 5.5-6.5 5.5-3.6 0-6.5-2.9-6.5-6.5S20.4 17 24 17c1.7 0 3.2.6 4.4 1.7L32 14.1C30 12.3 27.1 11 24 11c-7.2 0-13 5.8-13 13s5.8 13 13 13 13-5.8 13-13H24z" fill="#34A853"/>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png" alt="GPay" onerror="this.src='https://www.gstatic.com/instantbuy/svg/dark_gpay.svg'">
           <div class="upi-app-name">GPay</div>
         </div>
         <div class="upi-app" onclick="fillUPI('phonepe')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#5F259F"/>
-            <path d="M32 14h-6l-10 10 4 4 3-3v9h4V21l3 3 4-4-2-6z" fill="white"/>
-            <circle cx="24" cy="24" r="10" fill="none" stroke="white" stroke-width="1.5" opacity="0.3"/>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/PhonePe_Logo.png/120px-PhonePe_Logo.png" alt="PhonePe" onerror="this.style.background='#5f259f';this.alt='Pe'">
           <div class="upi-app-name">PhonePe</div>
         </div>
         <div class="upi-app" onclick="fillUPI('paytm')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#00BAF2"/>
-            <rect x="10" y="10" width="28" height="28" rx="6" fill="white"/>
-            <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8z" fill="#00BAF2"/>
-            <path d="M20 24c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" fill="white"/>
-            <text x="24" y="38" text-anchor="middle" fill="#00BAF2" font-size="6" font-weight="bold" font-family="sans-serif">PAYTM</text>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Paytm_Logo_%28standalone%29.svg/120px-Paytm_Logo_%28standalone%29.svg.png" alt="Paytm" onerror="this.src='https://staticassets.paytm.com/page-assets/paytm-logo.png'">
           <div class="upi-app-name">Paytm</div>
         </div>
         <div class="upi-app" onclick="fillUPI('bhim')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#00A651"/>
-            <rect x="0" y="32" width="48" height="16" rx="0" fill="#FF6600"/>
-            <rect x="0" y="32" width="48" height="4" fill="white"/>
-            <text x="24" y="26" text-anchor="middle" fill="white" font-size="10" font-weight="900" font-family="sans-serif">BHIM</text>
-            <text x="24" y="44" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">UPI</text>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/en/thumb/6/6e/BHIM_Logo.svg/120px-BHIM_Logo.svg.png" alt="BHIM" onerror="this.style.background='#00a651';this.alt='BHIM'">
           <div class="upi-app-name">BHIM</div>
         </div>
         <div class="upi-app" onclick="fillUPI('amazonpay')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#FF9900"/>
-            <text x="24" y="22" text-anchor="middle" fill="white" font-size="8" font-weight="900" font-family="sans-serif">amazon</text>
-            <text x="24" y="32" text-anchor="middle" fill="white" font-size="7" font-weight="700" font-family="sans-serif">pay</text>
-            <path d="M14 36 Q24 40 34 36" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Amazon_Pay_logo.svg/120px-Amazon_Pay_logo.svg.png" alt="Amazon Pay" onerror="this.style.background='#ff9900'">
           <div class="upi-app-name">Amazon</div>
         </div>
         <div class="upi-app" onclick="fillUPI('cred')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#1A1A2E"/>
-            <polygon points="24,10 38,18 38,30 24,38 10,30 10,18" fill="none" stroke="#D4A847" stroke-width="2"/>
-            <text x="24" y="28" text-anchor="middle" fill="#D4A847" font-size="9" font-weight="900" font-family="sans-serif">CRED</text>
-          </svg>
+          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/CRED_logo.svg/120px-CRED_logo.svg.png" alt="CRED" onerror="this.style.background='#1a1a2e';this.alt='CRED'">
           <div class="upi-app-name">CRED</div>
         </div>
       </div>
@@ -2098,41 +2068,84 @@ function initBannerSlider(){
   startTimer();
 }
 
-// ─── REAL PUSH NOTIFICATIONS ───
-async function requestPushPermission(){
-  if(!('Notification' in window)) return false;
-  if(Notification.permission==='granted') return true;
-  if(Notification.permission==='denied') return false;
-  const perm=await Notification.requestPermission();
-  return perm==='granted';
+// ─── REAL PUSH NOTIFICATIONS via Service Worker ───
+const SW_CODE = `
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'PUSH') {
+    const { title, body, icon, tag, delay } = e.data;
+    setTimeout(() => {
+      self.registration.showNotification(title, {
+        body,
+        icon: 'https://em-content.zobj.net/thumbs/120/apple/354/' + icon,
+        badge: 'https://em-content.zobj.net/thumbs/120/apple/354/fork-and-knife-with-plate_1f37d-fe0f.png',
+        tag: tag || 'feastnow',
+        vibrate: [200, 100, 200],
+        requireInteraction: false
+      });
+    }, delay || 0);
+  }
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window'}).then(cs => {
+    if (cs.length) return cs[0].focus();
+    return clients.openWindow('/');
+  }));
+});
+`;
+
+let swReg = null;
+
+async function initServiceWorker() {
+  if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+  try {
+    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    swReg = await navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(async () => {
+      // blob SW may fail on some browsers — fallback to direct Notification API
+      swReg = null;
+    });
+  } catch(e) { swReg = null; }
 }
 
-function sendPushNotif(title, body, icon='🍽'){
-  if(!('Notification' in window)||Notification.permission!=='granted') return;
-  const n=new Notification(title,{
-    body,
-    icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">'+icon+'</text></svg>',
-    badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍽</text></svg>',
-    vibrate:[200,100,200],
-    tag:'feastnow-order'
-  });
-  n.onclick=()=>{window.focus();n.close();};
-  setTimeout(()=>n.close(), 6000);
+async function requestPushPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const p = await Notification.requestPermission();
+  return p === 'granted';
 }
 
-function fireOrderNotifications(order){
-  const steps=[
-    {delay:0,    title:'✅ Order Confirmed!',     body:`Order #${order.id} placed successfully. ₹${order.total} paid.`, icon:'✅'},
-    {delay:25000, title:'👨‍🍳 Being Prepared',       body:`Your food is being freshly prepared at the restaurant.`, icon:'👨‍🍳'},
-    {delay:55000, title:'🛵 Partner Picked Up!',  body:`Your delivery partner has picked up Order #${order.id}.`, icon:'🛵'},
-    {delay:90000, title:'📍 Out for Delivery',    body:`Your order is nearby! Track live in the app.`, icon:'📍'},
-    {delay:130000,title:'🎉 Order Delivered!',    body:`Enjoy your meal! Don't forget to rate your experience.`, icon:'🎉'},
+function sendPushNotif(title, body, icon = 'fork-and-knife_1f374.png', tag = 'feastnow', delay = 0) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (swReg && swReg.active) {
+    swReg.active.postMessage({ type: 'PUSH', title, body, icon, tag, delay });
+  } else {
+    // fallback: direct Notification (only works when tab is open)
+    setTimeout(() => {
+      try {
+        new Notification(title, {
+          body,
+          icon: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🍽</text></svg>`,
+          tag
+        });
+      } catch(e) {}
+    }, delay);
+  }
+}
+
+function fireOrderNotifications(order) {
+  const steps = [
+    { delay: 0,      title: '✅ Order Confirmed!',    body: `Order #${order.id} placed. ₹${order.total} paid via ${order.payMethod?.toUpperCase()}.`, icon: 'check-mark-button_2705.png' },
+    { delay: 20000,  title: '👨‍🍳 Being Prepared',      body: `Your food is being freshly prepared. Estimated 15–20 mins.`, icon: 'cook_1f9d1-200d-1f373.png' },
+    { delay: 50000,  title: '🛵 Rider Picked Up!',    body: `Your delivery partner has picked up Order #${order.id}.`, icon: 'motor-scooter_1f6f5.png' },
+    { delay: 85000,  title: '📍 Out for Delivery',    body: `Almost there! Your order is just a few minutes away.`, icon: 'round-pushpin_1f4cd.png' },
+    { delay: 120000, title: '🎉 Delivered!',          body: `Enjoy your meal! Tap to rate your experience.`, icon: 'party-popper_1f389.png' },
   ];
-  steps.forEach(s=>{
-    setTimeout(()=>{
-      sendPushNotif(s.title, s.body, s.icon);
-      addNotif('order', s.icon, s.title, s.body, true);
-    }, s.delay);
+  steps.forEach(s => {
+    sendPushNotif(s.title, s.body, s.icon, 'fn-order-' + order.id, s.delay);
+    // also mirror into in-app notifications
+    setTimeout(() => addNotif('order', s.title.split(' ')[0], s.title, s.body, true), s.delay);
   });
 }
 
@@ -2172,6 +2185,7 @@ function initTheme(){
 // ── BOOT ──
 window.addEventListener('DOMContentLoaded',async()=>{
   await showSplash();
+  initServiceWorker();
   initParticles();
   initBannerSlider();
   const handled=await handleRedirect();if(handled)return;
