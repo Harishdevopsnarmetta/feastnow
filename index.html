@@ -1799,16 +1799,6 @@ function showFoodReviews(itemId,itemName){
   document.getElementById('rest-food-grid').after(sec);
 }
 
-// ── BOOT ──
-window.addEventListener('DOMContentLoaded',async()=>{
-  initParticles();
-  const handled=await handleRedirect();if(handled)return;
-  const sess=getSess();
-  initTheme();
-  if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);showScreen('home-screen');return;}
-  showScreen('auth-screen');
-  setTimeout(renderAddresses,100);
-
 // ─── THEME TOGGLE ───
 function toggleTheme(){
   const isLight=document.body.classList.toggle('light');
@@ -1826,6 +1816,16 @@ function initTheme(){
     if(trk) trk.classList.add('on');
   }
 }
+
+// ── BOOT ──
+window.addEventListener('DOMContentLoaded',async()=>{
+  initParticles();
+  const handled=await handleRedirect();if(handled)return;
+  const sess=getSess();
+  initTheme();
+  if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);showScreen('home-screen');return;}
+  showScreen('auth-screen');
+  setTimeout(renderAddresses,100);
 
 // ─── ORDER HISTORY ───
 function renderHistory(){
