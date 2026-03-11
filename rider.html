@@ -178,7 +178,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 (function(){
   const FIREBASE_CONFIG={
     apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
-    authDomain:"harishdevopsnarmetta.github.io",
+    authDomain:"feastnow-10576.firebaseapp.com",
+    databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
     projectId:"feastnow-10576",
     storageBucket:"feastnow-10576.firebasestorage.app",
     messagingSenderId:"59738911240",
@@ -282,6 +283,16 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
     <!-- Order incoming / active delivery / waiting -->
     <div id="order-area"></div>
+    <!-- DEBUG PANEL -->
+    <div id="debug-panel" style="margin:16px;background:#0a1a0a;border:1px solid #00e676;border-radius:12px;padding:14px;display:none">
+      <div style="font-family:Syne,sans-serif;font-size:.8rem;color:#00e676;margin-bottom:8px">🔍 Debug Info</div>
+      <div id="debug-log" style="font-size:.72rem;color:#aaa;line-height:1.8;font-family:monospace"></div>
+      <button onclick="runDebug()" style="margin-top:10px;background:#00e676;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">🔄 Re-check Firebase</button>
+      <button onclick="showDemoOrder()" style="margin-top:10px;margin-left:8px;background:#f5c842;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">📦 Load Demo Order</button>
+    </div>
+    <div style="text-align:center;margin:8px 0">
+      <button onclick="document.getElementById('debug-panel').style.display=document.getElementById('debug-panel').style.display==='none'?'block':'none'" style="background:none;border:1px solid #252535;border-radius:20px;padding:6px 14px;color:#6b6890;font-size:.72rem;cursor:pointer">🔍 Debug</button>
+    </div>
   </div>
 </div>
 
@@ -640,47 +651,56 @@ let _orderListener = null;
 
 function startListeningForOrders(){
   if(!window._firebaseReady || !window._db) {
-    // Fallback to demo orders if Firebase not ready
     setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
     return;
   }
   if(_orderListener) _orderListener(); // unsub previous
 
-  console.log('👂 Listening for real orders...');
+  console.log('👂 Listening for real orders from Firestore...');
+
+  // Simple query — no orderBy to avoid index requirement
   _orderListener = window._db.collection('orders')
     .where('status','==','pending_rider')
-    .orderBy('createdAt','desc')
-    .limit(5)
     .onSnapshot(snap=>{
       if(!isOnline || currentOrder) return;
-      snap.docChanges().forEach(change=>{
-        if(change.type==='added'){
-          const data = change.doc.data();
-          // Don't show orders from before we went online
-          const orderTime = data.createdAt?.toMillis?.() || 0;
-          if(orderTime < (window._onlineTime||0)-5000) return;
-          showRealOrder(data);
-        }
-      });
-    }, err=>{ console.warn('Order listener error:', err); });
+      console.log('📦 Firestore snapshot:', snap.docs.length, 'pending orders');
+      
+      // Show the most recent pending order
+      if(snap.docs.length > 0){
+        // Sort by createdAt client-side (most recent first)
+        const sorted = snap.docs
+          .map(d=>({id:d.id,...d.data()}))
+          .sort((a,b)=>{
+            const ta = a.createdAt?.toMillis?.() || 0;
+            const tb = b.createdAt?.toMillis?.() || 0;
+            return tb - ta;
+          });
+        showRealOrder(sorted[0]);
+      }
+    }, err=>{ 
+      console.warn('Order listener error:', err);
+      // Fallback to demo
+      setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 3000);
+    });
 }
 
 function showRealOrder(data){
   if(!isOnline || currentOrder) return;
+  console.log('🎯 Showing real order:', data.id);
   const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
   let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
   while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
   const dist = (1.5+Math.random()*3).toFixed(1);
   const earn = 40 + Math.floor(Math.random()*40) + (data.items?.length||1)*5;
   currentOrder = {
-    id: data.id,
-    rest: data.items?.[0]?.rest || 'Restaurant',
+    id: data.id || ('FN'+Date.now().toString().slice(-6)),
+    rest: data.items?.[0]?.rest || data.rest || 'Restaurant',
     restPos: HYD_SPOTS[restIdx],
     destPos: HYD_SPOTS[destIdx],
     items: data.items?.length || 1,
     itemsList: data.items || [],
     earn, dist,
-    customer: data.userName || 'Customer',
+    customer: data.userName || data.userId || 'Customer',
     area: HYD_SPOTS[destIdx].name,
     time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
     isReal: true,
@@ -1023,6 +1043,53 @@ function renderProfile(){
   document.getElementById('ps-total').textContent='₹'+total;
   document.getElementById('ps-orders').textContent=allDeliveries.length;
   document.getElementById('ps-rating').textContent='4.9⭐';
+}
+
+// ═══════════════════════════════════════
+// 🔍 DEBUG FUNCTION
+// ═══════════════════════════════════════
+function debugLog(msg){
+  console.log(msg);
+  const el = document.getElementById('debug-log');
+  if(el){ el.innerHTML += msg + '<br>'; el.scrollTop=el.scrollHeight; }
+}
+
+async function runDebug(){
+  const el = document.getElementById('debug-log');
+  if(el) el.innerHTML = '';
+  debugLog('⏰ ' + new Date().toLocaleTimeString());
+  debugLog('🔥 Firebase ready: ' + (window._firebaseReady||false));
+  debugLog('🗄️ Firestore: ' + (window._db?'✅':'❌'));
+  debugLog('📡 RTDB: ' + (window._rtdb?'✅':'❌'));
+  debugLog('🟢 Online: ' + isOnline);
+  debugLog('📦 Current order: ' + (currentOrder?currentOrder.id:'none'));
+
+  if(!window._db){ debugLog('❌ Firestore not loaded!'); return; }
+
+  try{
+    debugLog('🔍 Checking ALL orders...');
+    const all = await window._db.collection('orders').limit(10).get();
+    debugLog('📋 Total orders in DB: ' + all.docs.length);
+    all.docs.forEach(d=>{
+      const data = d.data();
+      debugLog('  → #'+d.id+' status='+data.status+' user='+data.userName);
+    });
+
+    debugLog('🔍 Checking pending_rider orders...');
+    const pending = await window._db.collection('orders').where('status','==','pending_rider').get();
+    debugLog('⏳ Pending orders: ' + pending.docs.length);
+    pending.docs.forEach(d=>{
+      const data = d.data();
+      debugLog('  → #'+d.id+' from '+data.userName);
+    });
+
+    if(pending.docs.length > 0 && isOnline && !currentOrder){
+      debugLog('✅ Found order! Showing now...');
+      showRealOrder({id:pending.docs[0].id, ...pending.docs[0].data()});
+    }
+  }catch(e){
+    debugLog('❌ Error: '+e.message);
+  }
 }
 </script>
 </body>
