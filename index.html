@@ -610,135 +610,110 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 /* hide bottom nav on auth screen */
 body:not(.logged-in) .bottom-nav{display:none!important}
 
-/* ══ LIVE SEARCH ══ */
-.search-wrap{position:relative;margin:0 16px 16px}
+/* LIVE SEARCH */
+.search-wrap{position:relative;margin:0 16px 14px}
 .search-box{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:50px;padding:10px 16px;gap:10px}
 .search-box input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:.9rem;font-family:'DM Sans',sans-serif}
 .search-box input::placeholder{color:var(--muted)}
-.search-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.3);display:none;max-height:280px;overflow-y:auto}
-.search-suggestions.show{display:block}
-.suggestion-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .15s}
-.suggestion-item:hover{background:rgba(212,168,71,.08)}
-.suggestion-emoji{font-size:1.3rem;width:28px;text-align:center}
-.suggestion-info{flex:1}
-.suggestion-name{font-size:.88rem;font-weight:600;color:var(--text)}
-.suggestion-sub{font-size:.72rem;color:var(--muted);margin-top:1px}
-.suggestion-price{font-size:.82rem;font-weight:700;color:var(--gold)}
-.suggestion-type{font-size:.65rem;background:rgba(212,168,71,.1);color:var(--gold);padding:2px 8px;border-radius:20px;margin-left:8px}
+.search-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.35);display:none;max-height:260px;overflow-y:auto}
+.search-suggestions.open{display:block}
+.sugg-item{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.sugg-item:last-child{border-bottom:none}
+.sugg-item:hover{background:rgba(212,168,71,.07)}
+.sugg-emoji{font-size:1.25rem;width:26px;text-align:center}
+.sugg-name{font-size:.85rem;font-weight:600;color:var(--text)}
+.sugg-sub{font-size:.7rem;color:var(--muted)}
+.sugg-price{font-size:.82rem;font-weight:700;color:var(--gold);margin-left:auto}
+.sugg-tag{font-size:.62rem;background:rgba(212,168,71,.1);color:var(--gold);padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap}
 
-/* ══ WISHLIST HEART ══ */
-.food-fav{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.35);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:transform .2s,background .2s;backdrop-filter:blur(4px)}
+/* WISHLIST */
+.food-fav{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.35);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;transition:transform .2s;backdrop-filter:blur(4px)}
 .food-fav:active{transform:scale(1.3)}
 .food-fav.faved{background:rgba(231,76,60,.3)}
 #wishlist-screen{padding-bottom:40px}
-.wishlist-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
 .wishlist-empty{text-align:center;padding:60px 20px;color:var(--muted)}
-.wishlist-empty .we-emoji{font-size:3rem;margin-bottom:12px}
 
-/* ══ CHEF SPECIAL ══ */
-.chef-section{padding:0 16px 20px}
-.chef-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.chef-badge{background:linear-gradient(135deg,#d4a847,#b8902a);color:#000;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.05em}
-.chef-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
+/* CHEF SPECIAL */
+.chef-section{padding:0 16px 18px}
+.chef-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .chef-scroll::-webkit-scrollbar{display:none}
-.chef-card{flex:0 0 160px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .2s}
-.chef-card:active{transform:scale(.96)}
-.chef-card-img{height:90px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative}
-.chef-card-info{padding:10px}
-.chef-card-name{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:3px}
-.chef-card-rest{font-size:.68rem;color:var(--muted);margin-bottom:6px}
-.chef-card-row{display:flex;justify-content:space-between;align-items:center}
-.chef-card-price{font-size:.88rem;font-weight:800;color:var(--gold)}
+.chef-card{flex:0 0 155px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer}
+.chef-card-img{height:88px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;position:relative}
 .chef-ribbon{position:absolute;top:6px;left:6px;background:var(--gold);color:#000;font-size:.55rem;font-weight:800;padding:2px 7px;border-radius:10px}
+.chef-card-info{padding:9px}
+.chef-card-name{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.chef-card-rest{font-size:.67rem;color:var(--muted);margin-bottom:5px}
+.chef-card-row{display:flex;justify-content:space-between;align-items:center}
+.chef-card-price{font-size:.85rem;font-weight:800;color:var(--gold)}
 
-/* ══ CALORIE INFO ══ */
-.food-cal{font-size:.65rem;color:var(--muted);margin-top:2px}
-.food-cal span{color:var(--green)}
+/* CALORIE */
+.food-cal{font-size:.64rem;color:var(--muted);margin-top:1px}
+.food-cal b{color:var(--green)}
 
-/* ══ SCHEDULE ORDER ══ */
-.schedule-bar{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+/* SCHEDULE */
+.schedule-bar{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:11px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
 .schedule-bar.active{border-color:var(--gold3);background:rgba(212,168,71,.06)}
-.schedule-icon{font-size:1.3rem}
-.schedule-text{flex:1}
-.schedule-label{font-size:.8rem;font-weight:600;color:var(--text)}
-.schedule-sub{font-size:.7rem;color:var(--muted);margin-top:1px}
-.schedule-chevron{color:var(--muted);font-size:1.1rem}
 #schedule-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
-#schedule-modal.show{opacity:1;pointer-events:all}
-.schedule-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:28px 20px 48px;width:100%;transform:translateY(40px);transition:transform .3s}
-#schedule-modal.show .schedule-sheet{transform:translateY(0)}
-.schedule-times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
-.time-slot{padding:10px;border:1px solid var(--border);border-radius:12px;text-align:center;cursor:pointer;font-size:.82rem;color:var(--muted);transition:all .2s}
-.time-slot.selected{border-color:var(--gold);background:rgba(212,168,71,.1);color:var(--gold);font-weight:700}
+#schedule-modal.open{opacity:1;pointer-events:all}
+.sched-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:28px 20px 48px;width:100%;transform:translateY(40px);transition:transform .3s}
+#schedule-modal.open .sched-sheet{transform:translateY(0)}
+.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.tslot{padding:10px;border:1px solid var(--border);border-radius:12px;text-align:center;cursor:pointer;font-size:.8rem;color:var(--muted);transition:all .2s}
+.tslot.sel{border-color:var(--gold);background:rgba(212,168,71,.1);color:var(--gold);font-weight:700}
 
-/* ══ LOYALTY POINTS ══ */
-.loyalty-bar{margin:0 16px 16px;background:linear-gradient(135deg,rgba(212,168,71,.12),rgba(212,168,71,.04));border:1px solid var(--gold3);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer}
-.loyalty-coin{font-size:1.8rem}
-.loyalty-info{flex:1}
-.loyalty-pts{font-size:1.1rem;font-weight:800;color:var(--gold)}
-.loyalty-sub{font-size:.7rem;color:var(--muted);margin-top:2px}
-.loyalty-progress-wrap{height:5px;background:var(--border);border-radius:3px;margin-top:6px;overflow:hidden}
-.loyalty-progress-bar{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold));border-radius:3px;transition:width .8s ease}
+/* LOYALTY */
+.loyalty-bar{margin:0 16px 14px;background:linear-gradient(135deg,rgba(212,168,71,.1),rgba(212,168,71,.03));border:1px solid var(--gold3);border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.loy-pts-txt{font-size:1rem;font-weight:800;color:var(--gold)}
+.loy-prog{height:4px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden}
+.loy-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold));border-radius:2px;transition:width .8s ease}
 #loyalty-screen{padding-bottom:40px}
-.loyalty-hero{padding:36px 20px 28px;text-align:center;background:linear-gradient(180deg,rgba(212,168,71,.08),transparent)}
-.loyalty-big-pts{font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:700;color:var(--gold)}
-.loyalty-tier{display:inline-flex;align-items:center;gap:6px;padding:5px 16px;border-radius:20px;background:rgba(212,168,71,.12);border:1px solid var(--gold3);margin-top:8px}
-.loyalty-tier-txt{font-size:.78rem;font-weight:700;color:var(--gold)}
-.loyalty-rewards{padding:0 16px}
-.reward-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
-.reward-emoji{font-size:2rem;width:48px;text-align:center}
-.reward-info{flex:1}
-.reward-name{font-weight:600;font-size:.9rem;color:var(--text)}
-.reward-pts-needed{font-size:.72rem;color:var(--muted);margin-top:3px}
-.reward-btn{padding:7px 16px;background:var(--gold);border:none;border-radius:20px;color:#000;font-weight:700;font-size:.75rem;cursor:pointer}
+.loy-hero{padding:36px 20px 24px;text-align:center}
+.loy-big{font-family:'Cormorant Garamond',serif;font-size:3.5rem;font-weight:700;color:var(--gold)}
+.loy-tier{display:inline-block;padding:4px 16px;border-radius:20px;background:rgba(212,168,71,.1);border:1px solid var(--gold3);color:var(--gold);font-size:.78rem;font-weight:700;margin-top:8px}
+.reward-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin:0 16px 10px;display:flex;align-items:center;gap:12px}
+.reward-emoji{font-size:2rem;width:44px;text-align:center}
+.reward-name{font-weight:600;font-size:.88rem;color:var(--text)}
+.reward-need{font-size:.7rem;color:var(--muted);margin-top:2px}
+.reward-btn{margin-left:auto;padding:7px 14px;background:var(--gold);border:none;border-radius:20px;color:#000;font-weight:700;font-size:.73rem;cursor:pointer;flex-shrink:0}
 .reward-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
 
-/* ══ SCRATCH CARD ══ */
-#scratch-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
-#scratch-modal.show{opacity:1;pointer-events:all}
-.scratch-box{background:var(--card);border-radius:24px;padding:32px 24px;width:calc(100% - 48px);max-width:360px;text-align:center}
-.scratch-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:6px}
-.scratch-sub{font-size:.82rem;color:var(--muted);margin-bottom:24px}
-.scratch-canvas-wrap{position:relative;margin:0 auto 24px;width:240px;height:120px}
-#scratchCanvas{border-radius:14px;cursor:crosshair;touch-action:none}
-.scratch-reveal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:14px;flex-direction:column;gap:4px}
-.scratch-reveal-val{font-size:2rem;font-weight:900;color:var(--gold)}
-.scratch-reveal-lbl{font-size:.78rem;color:var(--muted)}
-.scratch-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:800;font-size:.95rem;cursor:pointer}
+/* SCRATCH CARD */
+#scratch-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#scratch-modal.open{opacity:1;pointer-events:all}
+.scratch-box{background:var(--card);border-radius:24px;padding:30px 22px;width:calc(100% - 48px);max-width:340px;text-align:center}
+#scratchCanvas{border-radius:14px;cursor:crosshair;touch-action:none;display:block;margin:0 auto 20px}
+.scratch-claim-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:800;font-size:.93rem;cursor:pointer;display:none}
+.scratch-skip{width:100%;padding:10px;background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;margin-top:8px}
 
-/* ══ LIVE CHAT ══ */
-#chat-btn{position:fixed;bottom:90px;right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;font-size:1.4rem;cursor:pointer;z-index:200;box-shadow:0 4px 20px rgba(212,168,71,.4);display:none;align-items:center;justify-content:center;transition:transform .2s}
-#chat-btn:active{transform:scale(.92)}
-body.logged-in #chat-btn{display:flex}
-#chat-screen{padding-bottom:0}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;height:calc(100vh - 160px)}
-.chat-bubble{max-width:78%;padding:10px 14px;border-radius:18px;font-size:.87rem;line-height:1.4}
-.chat-bubble.user{align-self:flex-end;background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000;border-bottom-right-radius:4px}
-.chat-bubble.bot{align-self:flex-start;background:var(--card2);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
-.chat-bubble.bot .chat-time{font-size:.65rem;color:var(--muted);margin-top:4px}
-.chat-input-row{display:flex;gap:10px;padding:12px 16px 32px;background:var(--card);border-top:1px solid var(--border)}
-.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:10px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none}
-.chat-send-btn{width:40px;height:40px;border-radius:50%;background:var(--gold);border:none;font-size:1.1rem;cursor:pointer}
+/* CHAT */
+#chat-fab{position:fixed;bottom:80px;right:16px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;font-size:1.3rem;cursor:pointer;z-index:200;box-shadow:0 4px 18px rgba(212,168,71,.4);display:none;align-items:center;justify-content:center}
+body.logged-in #chat-fab{display:flex}
+#chat-screen{padding-bottom:0;display:flex;flex-direction:column}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;height:calc(100vh - 160px)}
+.cbubble{max-width:76%;padding:10px 13px;border-radius:18px;font-size:.86rem;line-height:1.45}
+.cbubble.bot{align-self:flex-start;background:var(--card2);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
+.cbubble.usr{align-self:flex-end;background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000;border-bottom-right-radius:4px}
+.chat-time-lbl{font-size:.62rem;color:var(--muted);margin-top:3px}
+.chat-bar{display:flex;gap:10px;padding:10px 14px 30px;background:var(--card);border-top:1px solid var(--border);position:sticky;bottom:0}
+.chat-inp{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:10px 15px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;outline:none}
+.chat-send{width:40px;height:40px;border-radius:50%;background:var(--gold);border:none;font-size:1.1rem;cursor:pointer;flex-shrink:0}
 
-/* ══ RATINGS ══ */
-.stars-row{display:flex;gap:6px;justify-content:center;margin:12px 0}
-.star-btn{font-size:2rem;cursor:pointer;transition:transform .15s;filter:grayscale(1)}
-.star-btn.active{filter:none;transform:scale(1.15)}
-.rating-food-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px}
-
-/* ══ ORDER TIMELINE ══ */
-.timeline-wrap{padding:0 16px 20px}
-.timeline-step{display:flex;gap:14px;position:relative}
-.timeline-step:not(:last-child)::after{content:'';position:absolute;left:17px;top:36px;bottom:-8px;width:2px;background:var(--border)}
-.timeline-step.done::after{background:var(--gold3)}
+/* TIMELINE */
+.tl-step{display:flex;gap:14px;position:relative}
+.tl-step:not(:last-child)::after{content:'';position:absolute;left:17px;top:38px;bottom:-10px;width:2px;background:var(--border)}
+.tl-step.done::after{background:var(--gold3)}
 .tl-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;border:2px solid var(--border);background:var(--card);transition:all .4s}
-.tl-dot.done{background:linear-gradient(135deg,var(--gold3),var(--gold));border-color:var(--gold);color:#000}
+.tl-dot.done{background:linear-gradient(135deg,var(--gold3),var(--gold));border-color:var(--gold)}
 .tl-dot.active{border-color:var(--gold);background:rgba(212,168,71,.15);animation:pulse 1.5s infinite}
-.tl-body{padding-bottom:20px;padding-top:6px}
-.tl-label{font-weight:600;font-size:.9rem;color:var(--text)}
-.tl-sub{font-size:.72rem;color:var(--muted);margin-top:2px}
-.tl-time{font-size:.68rem;color:var(--gold);margin-top:3px;font-weight:700}
+.tl-body{padding-bottom:20px;padding-top:5px}
+.tl-lbl{font-weight:600;font-size:.88rem;color:var(--text)}
+.tl-sub{font-size:.71rem;color:var(--muted);margin-top:2px}
+.tl-status{font-size:.68rem;color:var(--gold);margin-top:3px;font-weight:700}
 
+/* STARS */
+.stars-row{display:flex;gap:6px;justify-content:center;margin:10px 0}
+.star-btn{font-size:2rem;cursor:pointer;transition:transform .15s;filter:grayscale(1);background:none;border:none}
+.star-btn.lit{filter:none;transform:scale(1.1)}
 </style>
 </head>
 <body>
@@ -900,74 +875,6 @@ body.logged-in #chat-btn{display:flex}
   <div class="notif-body">
     <button class="notif-clear-btn" onclick="clearAllNotifs()">Clear All Notifications</button>
     <div id="notif-list"></div>
-  </div>
-</div>
-
-<!-- ══ WISHLIST ══ -->
-<div class="screen" id="wishlist-screen">
-  <div class="screen-topbar">
-    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
-    <div class="screen-title">My <span class="screen-gold">Wishlist ❤️</span></div>
-  </div>
-  <div id="wishlist-grid" class="wishlist-grid"></div>
-</div>
-
-<!-- ══ LOYALTY ══ -->
-<div class="screen" id="loyalty-screen">
-  <div class="screen-topbar">
-    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
-    <div class="screen-title">Feast <span class="screen-gold">Rewards 🏆</span></div>
-  </div>
-  <div class="loyalty-hero">
-    <div style="font-size:3rem;margin-bottom:8px">🏆</div>
-    <div class="loyalty-big-pts" id="loy-pts-big">0</div>
-    <div style="font-size:.78rem;color:var(--muted);margin-top:4px">FeastCoins</div>
-    <div class="loyalty-tier" id="loy-tier-badge"><span class="loyalty-tier-txt">🥉 Bronze Member</span></div>
-    <div style="margin-top:16px;width:80%;margin-left:auto;margin-right:auto">
-      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-bottom:4px">
-        <span id="loy-prog-lbl">0 / 500 to Silver</span><span id="loy-pct">0%</span>
-      </div>
-      <div class="loyalty-progress-wrap"><div class="loyalty-progress-bar" id="loy-prog-bar" style="width:0%"></div></div>
-    </div>
-  </div>
-  <div class="loyalty-rewards">
-    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:14px">Redeem Rewards</div>
-    <div class="reward-card">
-      <div class="reward-emoji">🍕</div>
-      <div class="reward-info"><div class="reward-name">Free Margherita Pizza</div><div class="reward-pts-needed">200 FeastCoins required</div></div>
-      <button class="reward-btn" onclick="redeemReward('Free Pizza',200)" id="rwd-pizza">Redeem</button>
-    </div>
-    <div class="reward-card">
-      <div class="reward-emoji">💰</div>
-      <div class="reward-info"><div class="reward-name">₹100 Cash Discount</div><div class="reward-pts-needed">150 FeastCoins required</div></div>
-      <button class="reward-btn" onclick="redeemReward('₹100 Off',150)" id="rwd-cash">Redeem</button>
-    </div>
-    <div class="reward-card">
-      <div class="reward-emoji">🛵</div>
-      <div class="reward-info"><div class="reward-name">Free Delivery (3 orders)</div><div class="reward-pts-needed">100 FeastCoins required</div></div>
-      <button class="reward-btn" onclick="redeemReward('Free Delivery',100)" id="rwd-del">Redeem</button>
-    </div>
-    <div class="reward-card">
-      <div class="reward-emoji">🎁</div>
-      <div class="reward-info"><div class="reward-name">Mystery Surprise Box</div><div class="reward-pts-needed">500 FeastCoins required</div></div>
-      <button class="reward-btn" onclick="redeemReward('Mystery Box',500)" id="rwd-box">Redeem</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ CHAT ══ -->
-<div class="screen" id="chat-screen">
-  <div class="screen-topbar">
-    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
-    <div style="flex:1">
-      <div class="screen-title">Live <span class="screen-gold">Support 💬</span></div>
-      <div style="font-size:.7rem;color:var(--green);margin-top:1px">● Online · Typically replies instantly</div>
-    </div>
-  </div>
-  <div class="chat-messages" id="chat-messages"></div>
-  <div class="chat-input-row">
-    <input class="chat-input" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
-    <button class="chat-send-btn" onclick="sendChat()">➤</button>
   </div>
 </div>
 
@@ -1653,32 +1560,23 @@ function loadHome(u){
 }
 
 function renderFoods(items,gridId='food-grid'){
-  const g=document.getElementById(gridId);
-  if(!items.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)"><div style="font-size:2.5rem;margin-bottom:8px">🍽</div>No dishes found</div>`;return;}
-  g.innerHTML=items.map(f=>{
-    const nut=NUTRITION&&NUTRITION[f.id];
-    const calHtml=nut?`<div class="food-cal"><span>${nut.cal} kcal</span> · P:${nut.protein}g · C:${nut.carbs}g</div>`:'';
-    const isFaved=wishlist&&wishlist.includes(f.id);
-    return `<div class="food-card">
-      <div class="food-img-wrap">
-        <div class="food-ec ${f.ec||'fe-default'}"><span>${f.emoji||'🍽'}</span></div>
-        <div class="food-badge ${f.veg?'veg':''}">${f.veg?'🟢 Veg':f.badge}</div>
-        <button class="food-fav ${isFaved?'faved':''}" onclick="toggleWishlist(${f.id},this)">${isFaved?'❤️':'🤍'}</button>
-      </div>
-      <div class="food-info">
-        <div class="food-name">${f.name}</div>
-        <div class="food-rest" onclick="openRestaurant('${f.rest}')">📍 ${f.rest} →</div>
-        ${calHtml}
-        <div class="food-meta">
-          <div><div class="food-price">₹${f.price}</div><div class="food-rating">⭐ ${f.rating}</div></div>
-          <button class="add-btn" onclick="addToCart(${f.id})">+</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  var g=document.getElementById(gridId);
+  if(!items.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)"><div style="font-size:2.5rem;margin-bottom:8px">🍽</div>No dishes found</div>';return;}
+  g.innerHTML='';
+  items.forEach(function(f){
+    var nut=NUTRITION[f.id];
+    var calHtml=nut?('<div class="food-cal"><b>'+nut.cal+' kcal</b> · P:'+nut.protein+'g · C:'+nut.carbs+'g</div>'):'';
+    var faved=wishlist.indexOf(f.id)!==-1;
+    var card=document.createElement('div');card.className='food-card';
+    card.innerHTML='<div class="food-img-wrap"><div class="food-ec '+(f.ec||'fe-default')+'"><span>'+(f.emoji||'🍽')+'</span></div><div class="food-badge '+(f.veg?'veg':'')+'">'+( f.veg?'🟢 Veg':f.badge)+'</div><button class="food-fav'+(faved?' faved':'')+'">'+( faved?'❤️':'🤍')+'</button></div><div class="food-info"><div class="food-name">'+f.name+'</div><div class="food-rest">📍 '+f.rest+' →</div>'+calHtml+'<div class="food-meta"><div><div class="food-price">₹'+f.price+'</div><div class="food-rating">⭐ '+f.rating+'</div></div><button class="add-btn">+</button></div></div>';
+    card.querySelector('.food-fav').addEventListener('click',function(){toggleWishlist(f.id,this);});
+    card.querySelector('.add-btn').addEventListener('click',function(){addToCart(f.id);});
+    card.querySelector('.food-rest').addEventListener('click',function(){openRestaurant(f.rest);});
+    g.appendChild(card);
+  });
 }
 
-function toggleFav(b){b.textContent=b.textContent==='🤍'?'❤️':'🤍';}
+function toggleFav(b){b.textContent=b.textContent==='🤍'?'❤️':'🤍';} // legacy
 
 function filterCat(cat,el){
   currentCat=cat;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));el.classList.add('active');
@@ -1877,18 +1775,16 @@ const HYD_SPOTS=[
 ];
 
 function renderTrackSteps(steps){
-  document.getElementById('track-steps').innerHTML=steps.map((s,i)=>`
-    <div class="track-step">
-      <div class="step-left">
-        <div class="step-dot ${s.done?'done':s.active?'active':''}">${s.icon}</div>
-        ${i<steps.length-1?`<div class="step-line ${s.done?'done':''}"></div>`:''}
-      </div>
-      <div class="step-right">
-        <div class="step-title ${!s.done&&!s.active?'muted':''}">${s.label}</div>
-        <div class="step-sub">${s.sub}</div>
-        ${s.done||s.active?`<div class="step-time">${s.done?'✓ Done':'⏳ In progress...'}</div>`:''}
-      </div>
-    </div>`).join('');
+  var wrap=document.getElementById('track-steps');
+  wrap.innerHTML='';
+  steps.forEach(function(s,i){
+    var div=document.createElement('div');
+    div.className='tl-step'+(s.done?' done':'');
+    var dotCls='tl-dot'+(s.done?' done':s.active?' active':'');
+    var statusHtml=(s.done||s.active)?('<div class="tl-status">'+(s.done?'✓ Completed':'⏳ In progress...')+'</div>'):'';
+    div.innerHTML='<div class="'+dotCls+'">'+s.icon+'</div><div class="tl-body"><div class="tl-lbl" style="'+((!s.done&&!s.active)?'color:var(--muted)':'')+'">'+s.label+'</div><div class="tl-sub">'+s.sub+'</div>'+statusHtml+'</div>';
+    wrap.appendChild(div);
+  });
 }
 
 function openTracking(order){
@@ -2178,7 +2074,7 @@ function processPayment(){
     cart=[];appliedPromo=null;discount=0;saveCart(cart);updateCartBadge();
     addNotif('order','💳','Payment Successful!',`₹${order.total} paid via ${currentPayMethod.toUpperCase()}. Order #${orderId} confirmed!`,true);
     addLoyaltyPts(order.total);
-    setTimeout(()=>openScratchCard(),1200);
+    setTimeout(openScratchCard,1500);
     fireOrderNotifications(order);
     document.getElementById('success-orderid').textContent='Order #'+orderId;
     document.getElementById('pay-success').classList.add('show');
@@ -2513,264 +2409,334 @@ function shareReferral(){
 }
 
 });
+</script>
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 1: LIVE SEARCH WITH SUGGESTIONS
-// ═══════════════════════════════════════════════════════════════
-function liveSearch(val){
-  const clear=document.getElementById('search-clear');
-  if(clear) clear.style.display=val?'block':'none';
-  if(!val.trim()){hideSuggestions();return;}
-  const q=val.toLowerCase();
-  const foodMatches=FOOD_DATA.filter(f=>f.name.toLowerCase().includes(q)||f.rest.toLowerCase().includes(q)||f.cat.includes(q)).slice(0,4);
-  const restKeys=Object.keys(RESTAURANTS).filter(r=>r.toLowerCase().includes(q)).slice(0,2);
-  const box=document.getElementById('search-suggestions');
-  if(!foodMatches.length&&!restKeys.length){box.innerHTML='<div style="padding:14px 16px;color:var(--muted);font-size:.85rem">No results found</div>';box.classList.add('show');return;}
-  box.innerHTML=[
-    ...foodMatches.map(f=>'<div class="suggestion-item" onclick="addToCart('+f.id+');clearSearch();showToast('Added!')"><span class="suggestion-emoji">'+f.emoji+'</span><div class="suggestion-info"><div class="suggestion-name">'+f.name+'</div><div class="suggestion-sub">'+f.rest+'</div></div><span class="suggestion-price">&#8377;'+f.price+'</span><span class="suggestion-type">Food</span></div>'),
-    ...restKeys.map(r=>'<div class="suggestion-item" onclick="openRestaurant(''+r+'');clearSearch()"><span class="suggestion-emoji">'+RESTAURANTS[r].emoji+'</span><div class="suggestion-info"><div class="suggestion-name">'+r+'</div><div class="suggestion-sub">'+RESTAURANTS[r].area+'</div></div><span class="suggestion-type">Restaurant</span></div>')
-  ].join('');
-  box.classList.add('show');
-}
-function showSuggestions(){const v=document.getElementById('global-search');if(v&&v.value)liveSearch(v.value);}
-function hideSuggestions(){document.getElementById('search-suggestions')&&document.getElementById('search-suggestions').classList.remove('show');}
-function clearSearch(){const inp=document.getElementById('global-search');if(inp)inp.value='';hideSuggestions();const c=document.getElementById('search-clear');if(c)c.style.display='none';}
+<!-- WISHLIST SCREEN -->
+<div class="screen" id="wishlist-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">My <span class="screen-gold">Wishlist ❤️</span></div>
+  </div>
+  <div id="wishlist-grid" class="food-grid" style="padding:16px"></div>
+</div>
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 2: WISHLIST / FAVOURITES
-// ═══════════════════════════════════════════════════════════════
-let wishlist=JSON.parse(localStorage.getItem('fn_wishlist')||'[]');
+<!-- LOYALTY SCREEN -->
+<div class="screen" id="loyalty-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">Feast <span class="screen-gold">Rewards 🏆</span></div>
+  </div>
+  <div class="loy-hero">
+    <div style="font-size:2.8rem">🏆</div>
+    <div class="loy-big" id="loy-pts-big">0</div>
+    <div style="font-size:.76rem;color:var(--muted);margin-top:2px">FeastCoins</div>
+    <div class="loy-tier" id="loy-tier">🥉 Bronze Member</div>
+    <div style="margin:14px auto 0;width:75%">
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);margin-bottom:4px">
+        <span id="loy-prog-lbl">0 / 500 to Silver</span><span id="loy-pct">0%</span>
+      </div>
+      <div class="loy-prog"><div class="loy-prog-fill" id="loy-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div style="padding:0 16px;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:12px">Redeem Rewards</div>
+  <div class="reward-card">
+    <div class="reward-emoji">🍕</div>
+    <div><div class="reward-name">Free Margherita Pizza</div><div class="reward-need">200 FeastCoins</div></div>
+    <button class="reward-btn" id="rb-pizza" onclick="redeemReward('Free Pizza',200)">Redeem</button>
+  </div>
+  <div class="reward-card">
+    <div class="reward-emoji">💰</div>
+    <div><div class="reward-name">₹100 Cash Discount</div><div class="reward-need">150 FeastCoins</div></div>
+    <button class="reward-btn" id="rb-cash" onclick="redeemReward('₹100 Off',150)">Redeem</button>
+  </div>
+  <div class="reward-card">
+    <div class="reward-emoji">🛵</div>
+    <div><div class="reward-name">Free Delivery (3 orders)</div><div class="reward-need">100 FeastCoins</div></div>
+    <button class="reward-btn" id="rb-del" onclick="redeemReward('Free Delivery',100)">Redeem</button>
+  </div>
+  <div class="reward-card">
+    <div class="reward-emoji">🎁</div>
+    <div><div class="reward-name">Mystery Surprise Box</div><div class="reward-need">500 FeastCoins</div></div>
+    <button class="reward-btn" id="rb-box" onclick="redeemReward('Mystery Box',500)">Redeem</button>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div class="screen" id="chat-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div style="flex:1">
+      <div class="screen-title">Live <span class="screen-gold">Support 💬</span></div>
+      <div style="font-size:.7rem;color:var(--green);margin-top:1px">● Online · Replies instantly</div>
+    </div>
+  </div>
+  <div class="chat-msgs" id="chat-msgs"></div>
+  <div class="chat-bar">
+    <input class="chat-inp" id="chat-inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<!-- SCRATCH CARD MODAL -->
+<div id="scratch-modal">
+  <div class="scratch-box">
+    <div style="font-size:2.2rem;margin-bottom:6px">🎰</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--text);margin-bottom:4px">Scratch &amp; Win!</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:18px">Scratch to reveal your surprise discount</div>
+    <div style="position:relative;width:240px;margin:0 auto 4px">
+      <div id="scratch-reveal" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(135deg,rgba(212,168,71,.15),rgba(212,168,71,.05))">
+        <div id="scratch-prize-val" style="font-size:2rem;font-weight:900;color:var(--gold)">₹50 OFF</div>
+        <div id="scratch-prize-lbl" style="font-size:.75rem;color:var(--muted)">Code: SCRATCH50</div>
+      </div>
+      <canvas id="scratchCanvas" width="240" height="115"></canvas>
+    </div>
+    <button class="scratch-claim-btn" id="scratch-claim" onclick="closeScratch()">🎉 Claim Reward</button>
+    <button class="scratch-skip" onclick="closeScratch()">Maybe later</button>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div id="schedule-modal">
+  <div class="sched-sheet">
+    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.3rem;color:var(--text)">Schedule Delivery</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-top:4px">Choose when you want your food</div>
+    <div class="time-slots" id="time-slots"></div>
+    <button onclick="confirmSchedule()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:800;font-size:.93rem;cursor:pointer;margin-top:16px">Confirm</button>
+    <button onclick="closeSchedule()" style="width:100%;padding:10px;background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;margin-top:6px">Cancel</button>
+  </div>
+</div>
+
+<!-- CHAT FAB -->
+<button id="chat-fab" onclick="openChat()">💬</button>
+</body>
+</html>
+<script>
+// ══════════════════════════════════════════════════
+// ALL NEW FEATURES — safe JS, no quote conflicts
+// ══════════════════════════════════════════════════
+
+// ── Data ──────────────────────────────────────────
+var NUTRITION={1:{cal:285,protein:12,carbs:36},2:{cal:520,protein:28,carbs:42},3:{cal:450,protein:22,carbs:58},4:{cal:380,protein:14,carbs:62},5:{cal:310,protein:5,carbs:48},6:{cal:120,protein:4,carbs:22},7:{cal:620,protein:30,carbs:48},8:{cal:490,protein:32,carbs:38},9:{cal:380,protein:10,carbs:72},10:{cal:180,protein:5,carbs:28},11:{cal:210,protein:16,carbs:8},12:{cal:150,protein:3,carbs:28},13:{cal:320,protein:18,carbs:35},14:{cal:270,protein:10,carbs:38},15:{cal:180,protein:24,carbs:2},16:{cal:220,protein:8,carbs:40},17:{cal:280,protein:22,carbs:6},18:{cal:240,protein:18,carbs:8},19:{cal:350,protein:20,carbs:38},20:{cal:290,protein:12,carbs:42}};
+var wishlist=JSON.parse(localStorage.getItem('fn_wishlist')||'[]');
 function saveWishlist(){localStorage.setItem('fn_wishlist',JSON.stringify(wishlist));}
+
+// ── 1. LIVE SEARCH ────────────────────────────────
+function liveSearch(val){
+  var clr=document.getElementById('gs-clear');
+  if(clr) clr.style.display=val?'block':'none';
+  var box=document.getElementById('gs-box');
+  if(!val.trim()){box.classList.remove('open');return;}
+  var q=val.toLowerCase();
+  var fm=FOOD_DATA.filter(function(f){return f.name.toLowerCase().indexOf(q)!==-1||f.rest.toLowerCase().indexOf(q)!==-1;}).slice(0,4);
+  var rk=Object.keys(RESTAURANTS).filter(function(r){return r.toLowerCase().indexOf(q)!==-1;}).slice(0,2);
+  box.innerHTML='';
+  if(!fm.length&&!rk.length){var nd=document.createElement('div');nd.style.cssText='padding:12px 16px;color:var(--muted);font-size:.83rem';nd.textContent='No results found';box.appendChild(nd);box.classList.add('open');return;}
+  fm.forEach(function(f){
+    var el=document.createElement('div');el.className='sugg-item';
+    var tag=document.createElement('span');tag.className='sugg-tag';tag.textContent='Food';
+    var price=document.createElement('span');price.className='sugg-price';price.textContent='₹'+f.price;
+    var info=document.createElement('div');
+    var n=document.createElement('div');n.className='sugg-name';n.textContent=f.name;
+    var s=document.createElement('div');s.className='sugg-sub';s.textContent=f.rest;
+    info.appendChild(n);info.appendChild(s);
+    var em=document.createElement('span');em.className='sugg-emoji';em.textContent=f.emoji;
+    el.appendChild(em);el.appendChild(info);el.appendChild(price);el.appendChild(tag);
+    el.addEventListener('click',function(){addToCart(f.id);clearSearch();showToast('Added to cart!');});
+    box.appendChild(el);
+  });
+  rk.forEach(function(r){
+    var el=document.createElement('div');el.className='sugg-item';
+    var tag=document.createElement('span');tag.className='sugg-tag';tag.textContent='Restaurant';
+    var info=document.createElement('div');
+    var n=document.createElement('div');n.className='sugg-name';n.textContent=r;
+    var s=document.createElement('div');s.className='sugg-sub';s.textContent=RESTAURANTS[r].area;
+    info.appendChild(n);info.appendChild(s);
+    var em=document.createElement('span');em.className='sugg-emoji';em.textContent=RESTAURANTS[r].emoji;
+    el.appendChild(em);el.appendChild(info);el.appendChild(tag);
+    el.addEventListener('click',function(){openRestaurant(r);clearSearch();});
+    box.appendChild(el);
+  });
+  box.classList.add('open');
+}
+function openSugg(){var v=document.getElementById('gs-input');if(v&&v.value)liveSearch(v.value);}
+function closeSugg(){document.getElementById('gs-box').classList.remove('open');}
+function clearSearch(){var i=document.getElementById('gs-input');if(i)i.value='';closeSugg();var c=document.getElementById('gs-clear');if(c)c.style.display='none';}
+
+// ── 2. WISHLIST ───────────────────────────────────
 function toggleWishlist(id,btn){
-  const idx=wishlist.indexOf(id);
+  var idx=wishlist.indexOf(id);
   if(idx===-1){wishlist.push(id);btn.textContent='❤️';btn.classList.add('faved');showToast('❤️ Added to wishlist!');}
   else{wishlist.splice(idx,1);btn.textContent='🤍';btn.classList.remove('faved');showToast('Removed from wishlist');}
   saveWishlist();
 }
 function openWishlist(){
   showScreen('wishlist-screen');
-  const grid=document.getElementById('wishlist-grid');
-  if(!wishlist.length){grid.innerHTML='<div class="wishlist-empty"><div class="we-emoji">❤️</div><div style="font-weight:700;color:var(--text);margin-bottom:6px">No favourites yet</div><div style="font-size:.8rem">Tap the ❤️ on any food to save it</div></div>';return;}
-  const items=FOOD_DATA.filter(f=>wishlist.includes(f.id));
-  grid.innerHTML=items.map(f=>'<div class="food-card"><div class="food-img-wrap"><div class="food-ec '+f.ec+'"><span>'+f.emoji+'</span></div><div class="food-badge '+(f.veg?'veg':'')+'">'+f.badge+'</div><button class="food-fav faved" onclick="toggleWishlist('+f.id+',this)">❤️</button></div><div class="food-info"><div class="food-name">'+f.name+'</div><div class="food-rest">'+f.rest+'</div><div class="food-meta"><div><div class="food-price">&#8377;'+f.price+'</div><div class="food-rating">⭐ '+f.rating+'</div></div><button class="add-btn" onclick="addToCart('+f.id+')">+</button></div></div></div>').join('');
+  var grid=document.getElementById('wishlist-grid');
+  grid.innerHTML='';
+  var items=FOOD_DATA.filter(function(f){return wishlist.indexOf(f.id)!==-1;});
+  if(!items.length){grid.innerHTML='<div class="wishlist-empty"><div style="font-size:3rem;margin-bottom:10px">❤️</div><div style="font-weight:700;color:var(--text);margin-bottom:6px">No favourites yet</div><div style="font-size:.8rem">Tap ❤️ on any food card to save it</div></div>';return;}
+  items.forEach(function(f){
+    var card=document.createElement('div');card.className='food-card';
+    card.innerHTML='<div class="food-img-wrap"><div class="food-ec '+(f.ec||'fe-default')+'"><span>'+f.emoji+'</span></div><div class="food-badge '+(f.veg?'veg':'')+'">'+( f.veg?'🟢 Veg':f.badge)+'</div><button class="food-fav faved">❤️</button></div><div class="food-info"><div class="food-name">'+f.name+'</div><div class="food-rest">'+f.rest+'</div><div class="food-meta"><div><div class="food-price">₹'+f.price+'</div><div class="food-rating">⭐ '+f.rating+'</div></div><button class="add-btn">+</button></div></div>';
+    card.querySelector('.food-fav').addEventListener('click',function(){toggleWishlist(f.id,this);openWishlist();});
+    card.querySelector('.add-btn').addEventListener('click',function(){addToCart(f.id);});
+    grid.appendChild(card);
+  });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 3: CALORIE & NUTRITION INFO
-// ═══════════════════════════════════════════════════════════════
-const NUTRITION={1:{cal:285,protein:12,carbs:36},2:{cal:520,protein:28,carbs:42},3:{cal:450,protein:22,carbs:58},4:{cal:380,protein:14,carbs:62},5:{cal:310,protein:5,carbs:48},6:{cal:120,protein:4,carbs:22},7:{cal:620,protein:30,carbs:48},8:{cal:490,protein:32,carbs:38},9:{cal:380,protein:10,carbs:72},10:{cal:180,protein:5,carbs:28},11:{cal:210,protein:16,carbs:8},12:{cal:150,protein:3,carbs:28},13:{cal:320,protein:18,carbs:35},14:{cal:270,protein:10,carbs:38},15:{cal:180,protein:24,carbs:2},16:{cal:220,protein:8,carbs:40},17:{cal:280,protein:22,carbs:6},18:{cal:240,protein:18,carbs:8},19:{cal:350,protein:20,carbs:38},20:{cal:290,protein:12,carbs:42},21:{cal:380,protein:8,carbs:55},22:{cal:210,protein:4,carbs:38},23:{cal:340,protein:8,carbs:52},24:{cal:180,protein:6,carbs:34},25:{cal:140,protein:5,carbs:28},26:{cal:560,protein:32,carbs:46},27:{cal:160,protein:5,carbs:28},28:{cal:420,protein:12,carbs:68},29:{cal:380,protein:26,carbs:30},30:{cal:90,protein:2,carbs:18},31:{cal:60,protein:2,carbs:8},32:{cal:280,protein:6,carbs:32}};
-
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 4: CHEF SPECIAL
-// ═══════════════════════════════════════════════════════════════
-const CHEF_SPECIAL_IDS=[3,7,11,5,15,17,26,2];
+// ── 3. CHEF SPECIAL ───────────────────────────────
+var CHEF_IDS=[3,7,11,5,15,17,2,8];
 function renderChefSpecial(){
-  const wrap=document.getElementById('chef-scroll');if(!wrap)return;
-  const items=CHEF_SPECIAL_IDS.map(id=>FOOD_DATA.find(f=>f.id===id)).filter(Boolean);
-  wrap.innerHTML=items.map(f=>'<div class="chef-card" onclick="addToCart('+f.id+');showToast('Added!')"><div class="chef-card-img" style="background:linear-gradient(135deg,rgba(212,168,71,.12),rgba(212,168,71,.04))"><div class="chef-ribbon">Chef's Pick</div><span style="font-size:2.8rem">'+f.emoji+'</span></div><div class="chef-card-info"><div class="chef-card-name">'+f.name+'</div><div class="chef-card-rest">'+f.rest+'</div><div class="chef-card-row"><span class="chef-card-price">&#8377;'+f.price+'</span><span style="font-size:.65rem;color:var(--green)">⭐'+f.rating+'</span></div></div></div>').join('');
+  var wrap=document.getElementById('chef-scroll');if(!wrap)return;
+  wrap.innerHTML='';
+  CHEF_IDS.forEach(function(id){
+    var f=FOOD_DATA.find(function(x){return x.id===id;});if(!f)return;
+    var card=document.createElement('div');card.className='chef-card';
+    card.innerHTML='<div class="chef-card-img" style="background:linear-gradient(135deg,rgba(212,168,71,.12),rgba(212,168,71,.04))"><div class="chef-ribbon">Chef Pick</div><span style="font-size:2.8rem">'+f.emoji+'</span></div><div class="chef-card-info"><div class="chef-card-name">'+f.name+'</div><div class="chef-card-rest">'+f.rest+'</div><div class="chef-card-row"><span class="chef-card-price">₹'+f.price+'</span><span style="font-size:.62rem;color:var(--green)">⭐'+f.rating+'</span></div></div>';
+    card.addEventListener('click',function(){addToCart(f.id);showToast('Added to cart!');});
+    wrap.appendChild(card);
+  });
 }
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 5: SCHEDULE ORDER
-// ═══════════════════════════════════════════════════════════════
-let scheduledTime=null;
+// ── 4. SCHEDULE ORDER ─────────────────────────────
+var scheduledTime=null;
 function openSchedule(){
-  const slots=[{label:'Deliver Now',val:''}];
-  const now=new Date();
-  for(let i=1;i<=8;i++){
-    const t=new Date(now.getTime()+(i*30*60000));
-    const h=t.getHours(),m=t.getMinutes();
-    const ampm=h>=12?'PM':'AM';const hh=h%12||12;const mm=m===0?'00':String(m).padStart(2,'0');
-    slots.push({label:hh+':'+mm+' '+ampm,val:hh+':'+mm+' '+ampm});
+  var slots=[{l:'Deliver Now',v:''}];
+  var now=new Date();
+  for(var i=1;i<=8;i++){
+    var t=new Date(now.getTime()+(i*30*60000));
+    var h=t.getHours(),m=t.getMinutes(),ap=h>=12?'PM':'AM';
+    var hh=h%12||12,mm=m===0?'00':('0'+m).slice(-2);
+    var lbl=hh+':'+mm+' '+ap;
+    slots.push({l:lbl,v:lbl});
   }
-  const wrap=document.getElementById('schedule-times');
-  wrap.innerHTML=slots.map((s,i)=>'<div class="time-slot '+(((!scheduledTime&&i===0)||scheduledTime===s.val)?'selected':'')+'" onclick="selectSlot(''+s.val+'',''+s.label+'',this)">'+s.label+'</div>').join('');
-  document.getElementById('schedule-modal').classList.add('show');
-}
-function selectSlot(val,label,el){
-  document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');scheduledTime=val||null;window._pendingScheduleLabel=label;
+  var wrap=document.getElementById('time-slots');wrap.innerHTML='';
+  slots.forEach(function(s,i){
+    var el=document.createElement('div');el.className='tslot'+(((!scheduledTime&&i===0)||scheduledTime===s.v)?' sel':'');
+    el.textContent=s.l;
+    el.addEventListener('click',function(){document.querySelectorAll('.tslot').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');scheduledTime=s.v;});
+    wrap.appendChild(el);
+  });
+  document.getElementById('schedule-modal').classList.add('open');
 }
 function confirmSchedule(){
-  const label=window._pendingScheduleLabel||'Deliver Now';
-  document.getElementById('schedule-label').textContent=scheduledTime?'Scheduled: '+scheduledTime:'Deliver Now';
-  document.getElementById('schedule-sublabel').textContent=scheduledTime?'Tap to change time':'Tap to schedule for later';
-  const bar=document.getElementById('schedule-bar');
+  var bar=document.getElementById('sched-bar');
+  document.getElementById('sched-lbl').textContent=scheduledTime?'Scheduled: '+scheduledTime:'Deliver Now';
+  document.getElementById('sched-sub').textContent=scheduledTime?'Tap to change':'Tap to schedule for later';
   if(scheduledTime)bar.classList.add('active');else bar.classList.remove('active');
   closeSchedule();showToast(scheduledTime?'Scheduled for '+scheduledTime:'Delivering now!');
 }
-function closeSchedule(){document.getElementById('schedule-modal').classList.remove('show');}
+function closeSchedule(){document.getElementById('schedule-modal').classList.remove('open');}
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 6: LOYALTY POINTS & REWARDS
-// ═══════════════════════════════════════════════════════════════
-let loyaltyPts=parseInt(localStorage.getItem('fn_loyalty')||'0');
-function saveLoyalty(){localStorage.setItem('fn_loyalty',loyaltyPts.toString());}
-function addLoyaltyPts(orderTotal){
-  const earned=Math.floor(orderTotal/10);loyaltyPts+=earned;saveLoyalty();updateLoyaltyUI();
-  showToast('🏆 +'+earned+' FeastCoins earned!');
-}
+// ── 5. LOYALTY POINTS ─────────────────────────────
+var loyPts=parseInt(localStorage.getItem('fn_loyalty')||'0');
+function saveLoyalty(){localStorage.setItem('fn_loyalty',''+loyPts);}
+function addLoyaltyPts(total){var earned=Math.floor(total/10);loyPts+=earned;saveLoyalty();updateLoyaltyUI();showToast('🏆 +'+earned+' FeastCoins earned!');}
 function updateLoyaltyUI(){
-  document.querySelectorAll('#home-pts').forEach(el=>{if(el)el.textContent=loyaltyPts;});
-  const next=loyaltyPts<500?500:loyaltyPts<1500?1500:5000;
-  const base=loyaltyPts<500?0:loyaltyPts<1500?500:1500;
-  const pct=Math.min(100,Math.round(((loyaltyPts-base)/(next-base))*100));
-  document.querySelectorAll('#home-loy-bar,#loy-prog-bar').forEach(el=>{if(el)el.style.width=pct+'%';});
+  var next=loyPts<500?500:loyPts<1500?1500:5000;
+  var base=loyPts<500?0:loyPts<1500?500:1500;
+  var pct=Math.min(100,Math.round(((loyPts-base)/(next-base))*100));
+  var el=document.getElementById('home-loy-pts');if(el)el.textContent=loyPts;
+  var fill=document.getElementById('home-loy-fill');if(fill)fill.style.width=pct+'%';
 }
 function renderLoyalty(){
-  document.getElementById('loy-pts-big').textContent=loyaltyPts;
-  const tier=loyaltyPts>=5000?'🥇 Gold Member':loyaltyPts>=1500?'🥈 Silver Member':'🥉 Bronze Member';
-  document.getElementById('loy-tier-badge').querySelector('.loyalty-tier-txt').textContent=tier;
-  const next=loyaltyPts<500?500:loyaltyPts<1500?1500:5000;
-  const base=loyaltyPts<500?0:loyaltyPts<1500?500:1500;
-  const pct=Math.min(100,Math.round(((loyaltyPts-base)/(next-base))*100));
-  document.getElementById('loy-prog-bar').style.width=pct+'%';
-  document.getElementById('loy-prog-lbl').textContent=loyaltyPts+' / '+next+' to '+(next===500?'Silver':next===1500?'Gold':'Legend');
-  document.getElementById('loy-pct').textContent=pct+'%';
-  ['rwd-pizza','rwd-cash','rwd-del','rwd-box'].forEach((id,i)=>{
-    const costs=[200,150,100,500];const el=document.getElementById(id);if(el)el.disabled=loyaltyPts<costs[i];
+  var next=loyPts<500?500:loyPts<1500?1500:5000;
+  var base=loyPts<500?0:loyPts<1500?500:1500;
+  var pct=Math.min(100,Math.round(((loyPts-base)/(next-base))*100));
+  var tier=loyPts>=5000?'🥇 Gold':loyPts>=1500?'🥈 Silver':'🥉 Bronze';
+  var el;
+  el=document.getElementById('loy-pts-big');if(el)el.textContent=loyPts;
+  el=document.getElementById('loy-tier');if(el)el.textContent=tier+' Member';
+  el=document.getElementById('loy-fill');if(el)el.style.width=pct+'%';
+  el=document.getElementById('loy-prog-lbl');if(el)el.textContent=loyPts+' / '+next+' to '+(next===500?'Silver':next===1500?'Gold':'Legend');
+  el=document.getElementById('loy-pct');if(el)el.textContent=pct+'%';
+  ['rb-pizza','rb-cash','rb-del','rb-box'].forEach(function(id,i){
+    var costs=[200,150,100,500];var b=document.getElementById(id);if(b)b.disabled=loyPts<costs[i];
   });
 }
 function redeemReward(name,cost){
-  if(loyaltyPts<cost){showToast('Not enough FeastCoins');return;}
-  loyaltyPts-=cost;saveLoyalty();renderLoyalty();updateLoyaltyUI();
-  showToast('🎉 "'+name+'" redeemed!');
-  addNotif('reward','🏆','Reward Redeemed!','You redeemed "'+name+'" for '+cost+' FeastCoins!',true);
+  if(loyPts<cost){showToast('Not enough FeastCoins');return;}
+  loyPts-=cost;saveLoyalty();renderLoyalty();updateLoyaltyUI();
+  showToast('🎉 '+name+' redeemed!');
+  addNotif('reward','🏆','Reward Redeemed!','You redeemed '+name+' for '+cost+' FeastCoins!',true);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 7: SCRATCH CARD
-// ═══════════════════════════════════════════════════════════════
-const SCRATCH_PRIZES=[{val:'50 OFF',lbl:'Code: SCRATCH50'},{val:'100 OFF',lbl:'Code: SCRATCH100'},{val:'20% OFF',lbl:'Code: SCRATCHOFF'},{val:'Free Delivery',lbl:'Next 3 orders'},{val:'+50 Coins',lbl:'FeastCoins added!'},{val:'Try Again!',lbl:'Better luck next time'}];
-let scratchDone=false;
+// ── 6. SCRATCH CARD ───────────────────────────────
+var PRIZES=[{v:'₹50 OFF',l:'Code: SCRATCH50'},{v:'₹100 OFF',l:'Code: SCRATCH100'},{v:'20% OFF',l:'Code: SCRATCHOFF'},{v:'Free Delivery',l:'Next 3 orders'},{v:'+50 Coins',l:'FeastCoins added!'},{v:'Try Again!',l:'Better luck!'}];
 function openScratchCard(){
-  scratchDone=false;
-  const prize=SCRATCH_PRIZES[Math.floor(Math.random()*SCRATCH_PRIZES.length)];
-  document.getElementById('scratch-val').textContent=prize.val;
-  document.getElementById('scratch-lbl').textContent=prize.lbl;
-  document.getElementById('scratch-close-btn').style.display='none';
-  document.getElementById('scratch-modal').classList.add('show');
-  setTimeout(initScratchCanvas,100);
+  var prize=PRIZES[Math.floor(Math.random()*PRIZES.length)];
+  var pv=document.getElementById('scratch-prize-val');if(pv)pv.textContent=prize.v;
+  var pl=document.getElementById('scratch-prize-lbl');if(pl)pl.textContent=prize.l;
+  var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='none';
+  document.getElementById('scratch-modal').classList.add('open');
+  setTimeout(function(){initCanvas(prize);},80);
 }
-function initScratchCanvas(){
-  const canvas=document.getElementById('scratchCanvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const grad=ctx.createLinearGradient(0,0,240,120);
-  grad.addColorStop(0,'#b8902a');grad.addColorStop(.5,'#d4a847');grad.addColorStop(1,'#b8902a');
-  ctx.fillStyle=grad;ctx.fillRect(0,0,240,120);
-  ctx.font='bold 15px sans-serif';ctx.fillStyle='rgba(0,0,0,.4)';ctx.textAlign='center';
-  ctx.fillText('✦ SCRATCH HERE ✦',120,65);
-  let drawing=false,scratched=0;
-  function scratch(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.fill();scratched++;if(scratched>25&&!scratchDone){scratchDone=true;document.getElementById('scratch-close-btn').style.display='block';const v=document.getElementById('scratch-val').textContent;if(v.includes('Coins')){const pts=parseInt(v);if(!isNaN(pts)){loyaltyPts+=pts;saveLoyalty();updateLoyaltyUI();}}}}
-  canvas.onmousedown=e=>{drawing=true;scratch(e.offsetX,e.offsetY);};
-  canvas.onmousemove=e=>{if(drawing)scratch(e.offsetX,e.offsetY);};
-  canvas.onmouseup=()=>drawing=false;
-  canvas.ontouchstart=e=>{drawing=true;const r=canvas.getBoundingClientRect();scratch(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
-  canvas.ontouchmove=e=>{e.preventDefault();const r=canvas.getBoundingClientRect();scratch(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
-  canvas.ontouchend=()=>drawing=false;
+function initCanvas(prize){
+  var canvas=document.getElementById('scratchCanvas');if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var g=ctx.createLinearGradient(0,0,240,0);g.addColorStop(0,'#b8902a');g.addColorStop(.5,'#d4a847');g.addColorStop(1,'#b8902a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,240,115);
+  ctx.font='bold 14px sans-serif';ctx.fillStyle='rgba(0,0,0,.35)';ctx.textAlign='center';ctx.fillText('✦ SCRATCH HERE ✦',120,62);
+  var drawn=false,count=0;
+  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,20,0,Math.PI*2);ctx.fill();count++;if(count>28&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();}}}
+  var dn=false;
+  canvas.onmousedown=function(e){dn=true;go(e.offsetX,e.offsetY);};
+  canvas.onmousemove=function(e){if(dn)go(e.offsetX,e.offsetY);};
+  canvas.onmouseup=function(){dn=false;};
+  canvas.ontouchstart=function(e){e.preventDefault();dn=true;var r=canvas.getBoundingClientRect();go(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
+  canvas.ontouchmove=function(e){e.preventDefault();var r=canvas.getBoundingClientRect();go(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
+  canvas.ontouchend=function(){dn=false;};
 }
-function closeScratch(){document.getElementById('scratch-modal').classList.remove('show');}
+function closeScratch(){document.getElementById('scratch-modal').classList.remove('open');}
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 8: LIVE CHAT SUPPORT
-// ═══════════════════════════════════════════════════════════════
-const BOT_REPLIES={hi:['Hey! How can I help you?','Hello! What can I do for you?'],hello:['Hi there! How can I assist?'],order:['Your order is being prepared!','Check the Tracking screen for live updates!'],track:['Go to Tracking from your order history!','Your rider is on the way!'],cancel:['Orders can be cancelled within 2 minutes of placing.','Call 1800-FEAST-NOW for urgent cancellations.'],refund:['Refunds are processed within 3-5 business days.'],delay:["We're sorry for the delay! Your rider is doing their best."],help:['I can help with orders, tracking, refunds, or general questions!'],payment:['We accept UPI, credit/debit cards, cash on delivery, and wallets!'],offer:['Check the Offers tab! Use FEAST50 for 50% off pizzas.'],thanks:["You're welcome! Anything else?"],bye:['Goodbye! Enjoy your meal!']};
-let chatInited=false;
+// ── 7. LIVE CHAT ──────────────────────────────────
+var BOT={hi:'Hey! How can I help?',hello:'Hi there! What can I do for you?',order:'Your order is being prepared! Check Tracking for live updates.',track:'Open Order History and tap Track to see live updates!',cancel:'Orders can be cancelled within 2 minutes. Call 1800-FEAST-NOW urgently.',refund:'Refunds are processed in 3-5 business days to your original payment.',delay:'Sorry for the delay! Your rider is on the way as fast as possible.',help:'I can help with orders, tracking, refunds, offers, and more!',payment:'We accept UPI, credit/debit cards, cash on delivery, and wallets!',offer:'Check the Offers tab! Try FEAST50 for 50% off pizzas.',thanks:'Happy to help! Anything else?',bye:'Goodbye! Enjoy your meal! 😋'};
+var chatReady=false;
 function openChat(){
   showScreen('chat-screen');
-  if(!chatInited){chatInited=true;appendBotMsg("Hi! I'm FeastBot 🤖 Your 24/7 support assistant. How can I help?");setTimeout(()=>appendBotMsg('Ask me about orders, tracking, refunds, or offers! 😊'),800);}
+  if(!chatReady){chatReady=true;addBotMsg('Hi! I\'m FeastBot 🤖 Your 24/7 support assistant. How can I help?');setTimeout(function(){addBotMsg('Ask me about orders, tracking, refunds, or offers!');},900);}
 }
-function appendBotMsg(msg){
-  const wrap=document.getElementById('chat-messages');if(!wrap)return;
-  const div=document.createElement('div');div.className='chat-bubble bot';
-  div.innerHTML=msg+'<div class="chat-time">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div>';
-  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
+function addBotMsg(txt){
+  var w=document.getElementById('chat-msgs');if(!w)return;
+  var d=document.createElement('div');d.className='cbubble bot';
+  d.innerHTML=txt+'<div class="chat-time-lbl">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div>';
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
 }
-function appendUserMsg(msg){
-  const wrap=document.getElementById('chat-messages');if(!wrap)return;
-  const div=document.createElement('div');div.className='chat-bubble user';div.textContent=msg;
-  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
+function addUserMsg(txt){
+  var w=document.getElementById('chat-msgs');if(!w)return;
+  var d=document.createElement('div');d.className='cbubble usr';d.textContent=txt;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
 }
 function sendChat(){
-  const inp=document.getElementById('chat-input');const msg=(inp.value||'').trim();if(!msg)return;
-  appendUserMsg(msg);inp.value='';
-  setTimeout(()=>{
-    const lower=msg.toLowerCase();let reply=null;
-    for(const key of Object.keys(BOT_REPLIES)){if(lower.includes(key)){const arr=BOT_REPLIES[key];reply=arr[Math.floor(Math.random()*arr.length)];break;}}
-    if(!reply)reply="I'm looking into that! For urgent help call 1800-FEAST-NOW 📞";
-    appendBotMsg(reply);
-  },600+Math.random()*400);
+  var inp=document.getElementById('chat-inp');var msg=(inp.value||'').trim();if(!msg)return;
+  addUserMsg(msg);inp.value='';
+  setTimeout(function(){
+    var lower=msg.toLowerCase();var reply='';
+    var keys=Object.keys(BOT);
+    for(var i=0;i<keys.length;i++){if(lower.indexOf(keys[i])!==-1){reply=BOT[keys[i]];break;}}
+    if(!reply)reply='Let me check on that! For urgent issues call 1800-FEAST-NOW 📞';
+    addBotMsg(reply);
+  },500+Math.random()*400);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 9: ANIMATED ORDER TIMELINE
-// ═══════════════════════════════════════════════════════════════
-function renderTrackSteps(steps){
-  const wrap=document.getElementById('track-steps');if(!wrap)return;
-  wrap.innerHTML=steps.map((s,i)=>'<div class="timeline-step '+(s.done?'done':'')+'"><div class="tl-dot '+(s.done?'done':s.active?'active':'')+'">'+s.icon+'</div><div class="tl-body"><div class="tl-label" style="'+((!s.done&&!s.active)?'color:var(--muted)':'')+'">'+s.label+'</div><div class="tl-sub">'+s.sub+'</div>'+(s.done||s.active?'<div class="tl-time">'+(s.done?'✓ Completed':'⏳ In progress...')+'</div>':'')+'</div></div>').join('');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// FEATURE 10: RATE & REVIEW
-// ═══════════════════════════════════════════════════════════════
-let currentRatings={};
-function setStarRating(itemId,val){
-  currentRatings[itemId]=val;
-  document.querySelectorAll('.star-btn[data-item="'+itemId+'"]').forEach((btn,i)=>btn.classList.toggle('active',i<val));
+// ── 8. RATE ITEMS ─────────────────────────────────
+function rateItem(itemId,val,btn){
+  var row=btn.closest('.stars-row')||btn.parentNode;
+  row.querySelectorAll('.star-btn').forEach(function(s,i){s.classList.toggle('lit',i<val);});
 }
 function submitRatings(){
-  const hasRating=Object.keys(currentRatings).length>0;
-  if(!hasRating){showToast('Please rate at least one item');return;}
   showToast('⭐ Thanks for your review!');
-  addLoyaltyPts(50); // bonus pts for reviewing
-  setTimeout(()=>showScreen('home-screen'),1000);
+  addLoyaltyPts(50);
+  setTimeout(function(){showScreen('home-screen');},900);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// HOOK INTO BOOT & PAYMENT
-// ═══════════════════════════════════════════════════════════════
-const _origBoot=window.addEventListener;
-document.addEventListener('DOMContentLoaded',()=>{
-  renderChefSpecial();
+// ── WISHLIST NAV SHORTCUT ─────────────────────────
+function goWishlist(){openWishlist();}
+
+// ── BOOT HOOK ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
   updateLoyaltyUI();
+  // Delay chef special until FOOD_DATA is ready
+  setTimeout(renderChefSpecial,200);
 });
-// Patch processPayment to add loyalty points + scratch card
-const _origProcessPayment=window.processPayment;
-
 </script>
-
-<!-- ══ SCRATCH CARD MODAL ══ -->
-<div id="scratch-modal">
-  <div class="scratch-box">
-    <div style="font-size:2.5rem;margin-bottom:8px">🎰</div>
-    <div class="scratch-title">Scratch & Win!</div>
-    <div class="scratch-sub">Scratch the card to reveal your surprise discount</div>
-    <div class="scratch-canvas-wrap">
-      <div class="scratch-reveal" id="scratch-reveal">
-        <div class="scratch-reveal-val" id="scratch-val">₹50 OFF</div>
-        <div class="scratch-reveal-lbl" id="scratch-lbl">Use code SCRATCH50</div>
-      </div>
-      <canvas id="scratchCanvas" width="240" height="120"></canvas>
-    </div>
-    <button class="scratch-btn" id="scratch-close-btn" onclick="closeScratch()" style="display:none">🎉 Claim Reward</button>
-    <button class="scratch-btn" onclick="closeScratch()" style="background:var(--card2);color:var(--muted);margin-top:10px">Maybe Later</button>
-  </div>
-</div>
-
-<!-- ══ SCHEDULE MODAL ══ -->
-<div id="schedule-modal">
-  <div class="schedule-sheet">
-    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.3rem;color:var(--text);margin-bottom:4px">Schedule Delivery</div>
-    <div style="font-size:.8rem;color:var(--muted);margin-bottom:16px">Choose when you want your order delivered</div>
-    <div style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Select Time</div>
-    <div class="schedule-times" id="schedule-times"></div>
-    <button onclick="confirmSchedule()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:800;font-size:.95rem;cursor:pointer;margin-top:16px">Confirm Schedule</button>
-    <button onclick="closeSchedule()" style="width:100%;padding:12px;background:none;border:none;color:var(--muted);font-size:.88rem;cursor:pointer;margin-top:8px">Cancel</button>
-  </div>
-</div>
-
-<!-- ══ CHAT FAB ══ -->
-<button id="chat-btn" onclick="openChat()">💬</button>
-</body>
-</html>
