@@ -27,7 +27,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .auth-overlay{position:absolute;inset:0;background:linear-gradient(to top,#000 35%,transparent 80%)}
 .auth-content{position:relative;z-index:2;width:100%;padding:0 28px;text-align:center}
 .auth-icon{font-size:3.5rem;margin-bottom:12px;display:block;filter:drop-shadow(0 0 20px rgba(212,168,71,.5))}
-.auth-logo{font-family:'Cormorant Garamond',serif;font-size:3.2rem;font-weight:700;color:var(--text);letter-spacing:-1px;line-height:1}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:3.2rem;font-weight:700;color:#fff;letter-spacing:-1px;line-height:1}
 .auth-logo span{color:var(--gold)}
 .auth-tagline{font-size:.82rem;color:rgba(240,236,228,.4);margin:8px 0 10px;letter-spacing:.12em;text-transform:uppercase}
 .auth-divider{display:flex;align-items:center;gap:12px;margin:28px 0 24px}
@@ -541,9 +541,101 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 /* TOAST */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);padding:11px 22px;border-radius:50px;font-size:.82rem;color:var(--text);white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* SPLASH SCREEN */
+#splash{position:fixed;inset:0;z-index:99999;background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;transition:opacity .5s ease,transform .5s ease}
+#splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash-logo{font-family:'Cormorant Garamond',serif;font-size:3.6rem;font-weight:700;color:#fff;letter-spacing:-1px;animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) .2s both}
+.splash-logo span{color:#d4a847}
+.splash-icon{font-size:3rem;margin-bottom:12px;animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both;filter:drop-shadow(0 0 24px rgba(212,168,71,.6))}
+.splash-tagline{font-size:.8rem;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase;margin-top:10px;animation:splashFade .5s ease .6s both}
+.splash-bar-wrap{position:absolute;bottom:60px;width:120px;height:3px;background:rgba(255,255,255,.08);border-radius:50px;overflow:hidden}
+.splash-bar{height:100%;width:0;background:linear-gradient(to right,#8a6a1a,#d4a847);border-radius:50px;animation:splashLoad 1.6s ease .3s forwards}
+@keyframes splashPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes splashFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashLoad{to{width:100%}}
+
+/* ONBOARDING */
+#onboarding{position:fixed;inset:0;z-index:9999;background:#0d0d0d;display:none;flex-direction:column}
+#onboarding.show{display:flex}
+.ob-slides{flex:1;display:flex;overflow:hidden}
+.ob-slide{flex:0 0 100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.ob-emoji{font-size:5rem;margin-bottom:24px;filter:drop-shadow(0 0 30px rgba(212,168,71,.3));animation:splashPop .5s cubic-bezier(.34,1.56,.64,1) both}
+.ob-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.2}
+.ob-sub{font-size:.88rem;color:rgba(255,255,255,.45);line-height:1.7;max-width:280px}
+.ob-dots{display:flex;justify-content:center;gap:8px;padding:20px 0}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s;cursor:pointer}
+.ob-dot.active{width:22px;border-radius:4px;background:#d4a847}
+.ob-footer{padding:20px 28px 44px;display:flex;gap:12px}
+.ob-skip{flex:1;padding:15px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:50px;color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;font-size:.88rem;cursor:pointer}
+.ob-next{flex:2;padding:15px;background:linear-gradient(135deg,#8a6a1a,#d4a847);border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer}
+
+/* FOOD CARD UPGRADE */
+.food-card{background:var(--card);border-radius:22px;overflow:hidden;border:1px solid var(--border);animation:fadeUp .4s ease backwards;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.food-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.15)}
+.food-card:active{transform:scale(.95)}
+.food-img-wrap{position:relative;height:140px;overflow:hidden}
+.food-ec{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;transition:transform .3s}
+.food-card:hover .food-ec{transform:scale(1.08)}
+.food-info{padding:12px 12px 14px}
+.food-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:2px;line-height:1.2}
+.food-rest{font-size:.68rem;color:var(--muted);margin-bottom:8px;cursor:pointer}
+.food-meta{display:flex;align-items:center;justify-content:space-between}
+.food-price{font-weight:700;font-size:1rem;color:var(--gold)}
+.food-rating{font-size:.68rem;color:var(--muted);margin-top:2px}
+.add-btn{width:34px;height:34px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:10px;color:#000;font-size:1.2rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s}
+.add-btn:active{transform:scale(.85)}
+.add-btn:hover{box-shadow:0 4px 14px rgba(212,168,71,.4)}
+
+/* NOTIFICATION UPGRADE */
+.notif-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:10px;display:flex;gap:14px;animation:fadeUp .3s ease backwards;position:relative;transition:transform .15s}
+.notif-card:active{transform:scale(.98)}
+.notif-card.unread{border-left:3px solid var(--gold);background:rgba(212,168,71,.03)}
+.notif-icon-wrap{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+
+/* hide bottom nav on auth screen */
+body:not(.logged-in) .bottom-nav{display:none!important}
 </style>
 </head>
 <body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <span class="splash-icon">🍽</span>
+  <div class="splash-logo">Feast<span>Now</span></div>
+  <div class="splash-tagline">Fine dining · Fast delivery</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-slides" id="ob-slides" style="transition:transform .4s cubic-bezier(.4,0,.2,1)">
+    <div class="ob-slide">
+      <div class="ob-emoji">🍽</div>
+      <div class="ob-title">Discover Amazing Food</div>
+      <div class="ob-sub">Explore hundreds of dishes from the best restaurants near you in Hyderabad</div>
+    </div>
+    <div class="ob-slide">
+      <div class="ob-emoji">⚡</div>
+      <div class="ob-title">Lightning Fast Delivery</div>
+      <div class="ob-sub">Get your favourite meals delivered hot and fresh in 20–40 minutes or less</div>
+    </div>
+    <div class="ob-slide">
+      <div class="ob-emoji">🎉</div>
+      <div class="ob-title">Exclusive Deals Daily</div>
+      <div class="ob-sub">Save big with promo codes, flash deals, and cashback offers every single day</div>
+    </div>
+  </div>
+  <div class="ob-dots">
+    <span class="ob-dot active" onclick="goToSlide(0)"></span>
+    <span class="ob-dot" onclick="goToSlide(1)"></span>
+    <span class="ob-dot" onclick="goToSlide(2)"></span>
+  </div>
+  <div class="ob-footer">
+    <button class="ob-skip" onclick="finishOnboarding()">Skip</button>
+    <button class="ob-next" id="ob-next-btn" onclick="nextSlide()">Next →</button>
+  </div>
+</div>
+
 <div id="app">
 
 <!-- ══ AUTH ══ -->
@@ -1213,7 +1305,7 @@ function loginUser(u){
   const users=getUsers();const i=users.findIndex(x=>x.id===u.id);
   if(i>=0)users[i]={...users[i],...u};else users.push(u);
   saveUsers(users);saveSess(u);currentUser=u;cart=getCart();orders=getOrders();
-  addresses=getAddrs();showLoading(false);loadHome(u);showScreen('home-screen');
+  addresses=getAddrs();showLoading(false);loadHome(u);document.body.classList.add('logged-in');showScreen('home-screen');
   showToast('✨ Welcome back, '+u.name.split(' ')[0]+'!');
   addNotif('order','🎉','Welcome back!','Good to see you '+u.name.split(' ')[0]+'! Ready to feast?');
 }
@@ -1222,10 +1314,15 @@ function signInGuest(){
   currentUser={name:'Guest',email:'guest@feastnow.app',photo:null,provider:'guest',id:'guest',loginTime:new Date().toLocaleString(),loginDate:new Date().toDateString()};
   const users=getUsers();if(!users.find(u=>u.id==='guest'))users.push(currentUser);saveUsers(users);
   cart=getCart();orders=getOrders();addresses=getAddrs();
-  loadHome(currentUser);showScreen('home-screen');showToast('👀 Browsing as Guest');
+  loadHome(currentUser);document.body.classList.add('logged-in');showScreen('home-screen');showToast('👀 Browsing as Guest');
 }
 
-function doLogout(){closeSidebar();clearSess();cart=[];showToast('Signed out · See you soon!');setTimeout(()=>showScreen('auth-screen'),500);}
+function doLogout(){
+  closeSidebar();clearSess();cart=[];
+  document.body.classList.remove('logged-in');
+  showToast('Signed out · See you soon!');
+  setTimeout(()=>showScreen('auth-screen'),500);
+}
 
 function greet(){const h=new Date().getHours();return h<12?'Good morning ☀️':h<17?'Good afternoon 👋':'Good evening 🌙';}
 
@@ -1861,6 +1958,46 @@ function showFoodReviews(itemId,itemName){
   document.getElementById('rest-food-grid').after(sec);
 }
 
+// ─── SPLASH + ONBOARDING ───
+let obIndex=0;
+function nextSlide(){
+  const slides=document.getElementById('ob-slides');
+  const dots=document.querySelectorAll('.ob-dot');
+  const btn=document.getElementById('ob-next-btn');
+  if(obIndex<2){
+    obIndex++;
+    slides.style.transform=`translateX(-${obIndex*100}%)`;
+    dots.forEach((d,i)=>d.classList.toggle('active',i===obIndex));
+    if(obIndex===2) btn.textContent='Get Started 🚀';
+  } else {
+    finishOnboarding();
+  }
+}
+function goToSlide(i){
+  obIndex=i;
+  document.getElementById('ob-slides').style.transform=`translateX(-${i*100}%)`;
+  document.querySelectorAll('.ob-dot').forEach((d,idx)=>d.classList.toggle('active',idx===i));
+  document.getElementById('ob-next-btn').textContent=i===2?'Get Started 🚀':'Next →';
+}
+function finishOnboarding(){
+  localStorage.setItem('fn_onboarded','1');
+  document.getElementById('onboarding').classList.remove('show');
+}
+function showSplash(){
+  return new Promise(res=>{
+    const splash=document.getElementById('splash');
+    const seen=localStorage.getItem('fn_onboarded');
+    setTimeout(()=>{
+      splash.classList.add('hide');
+      setTimeout(()=>{
+        splash.style.display='none';
+        if(!seen){document.getElementById('onboarding').classList.add('show');}
+        res();
+      },500);
+    },1800);
+  });
+}
+
 // ─── BANNER AUTO SLIDE ───
 let bannerIndex=0,bannerTimer=null,bannerPaused=false;
 function initBannerSlider(){
@@ -1912,12 +2049,13 @@ function initTheme(){
 
 // ── BOOT ──
 window.addEventListener('DOMContentLoaded',async()=>{
+  await showSplash();
   initParticles();
   initBannerSlider();
   const handled=await handleRedirect();if(handled)return;
   const sess=getSess();
   initTheme();
-  if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);showScreen('home-screen');return;}
+  if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);document.body.classList.add('logged-in');showScreen('home-screen');return;}
   showScreen('auth-screen');
   setTimeout(renderAddresses,100);
 
