@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FeastNow Partner 🛵</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0f;--card:#12121a;--card2:#1a1a26;--border:#252535;
+  --green:#00e676;--green2:#00c853;--red:#ff5252;--gold:#f5c842;
+  --text:#f0eeff;--muted:#6b6890;--blue:#4fc3f7;
+  --r:16px;
+}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+#app{width:100%;height:100dvh;position:relative;overflow:hidden}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;transform:translateY(20px);background:var(--bg);overflow-y:auto}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+
+/* SPLASH */
+#splash-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg)}
+.splash-logo{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:var(--green);letter-spacing:-1px}
+.splash-logo span{color:var(--text)}
+.splash-sub{color:var(--muted);font-size:.9rem;margin-top:6px;letter-spacing:2px;text-transform:uppercase}
+.splash-bike{font-size:4rem;margin-bottom:24px;animation:bounce 1s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* LOGIN */
+#login-screen{display:flex;flex-direction:column;justify-content:flex-end;padding:32px 24px 48px}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(0,230,118,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(79,195,247,.08) 0%,transparent 50%);pointer-events:none}
+.login-title{font-family:'Syne',sans-serif;font-size:2.4rem;font-weight:800;line-height:1.1;margin-bottom:8px}
+.login-title span{color:var(--green)}
+.login-sub{color:var(--muted);font-size:.9rem;margin-bottom:32px}
+.inp-group{margin-bottom:16px}
+.inp-label{font-size:.75rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.inp{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--green)}
+.inp::placeholder{color:var(--muted)}
+.btn-green{width:100%;padding:16px;background:linear-gradient(135deg,var(--green2),var(--green));border:none;border-radius:50px;color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .15s,opacity .2s;margin-top:8px}
+.btn-green:active{transform:scale(.97)}
+.btn-outline{width:100%;padding:14px;background:transparent;border:1.5px solid var(--border);border-radius:50px;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;font-size:.95rem;cursor:pointer;margin-top:10px}
+
+/* TOP BAR */
+.top-bar{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.top-bar-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800}
+
+/* ONLINE TOGGLE */
+.online-toggle{display:flex;align-items:center;gap:10px}
+.toggle-label{font-size:.8rem;color:var(--muted);font-weight:600}
+.toggle-switch{width:52px;height:28px;background:var(--card2);border-radius:50px;position:relative;cursor:pointer;transition:background .3s;border:1.5px solid var(--border)}
+.toggle-switch.on{background:var(--green2)}
+.toggle-knob{position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .3s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.toggle-switch.on .toggle-knob{left:25px}
+
+/* STATUS BAR */
+.status-bar{margin:16px;background:var(--card);border-radius:var(--r);padding:16px;border:1px solid var(--border);display:flex;gap:12px}
+.status-item{flex:1;text-align:center}
+.status-val{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--green)}
+.status-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* MAP */
+#rider-map{height:280px;border-radius:var(--r);margin:0 16px;overflow:hidden;border:1px solid var(--border)}
+
+/* ORDER CARD */
+.order-card{margin:16px;background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.order-card-header{padding:16px;background:linear-gradient(135deg,rgba(0,230,118,.08),rgba(0,200,83,.04));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.order-card-id{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--green)}
+.order-earn{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--gold)}
+.order-card-body{padding:16px}
+.order-route{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.route-point{display:flex;align-items:center;gap:12px}
+.route-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.route-dot.rest{background:var(--blue)}
+.route-dot.home{background:var(--green)}
+.route-info{flex:1}
+.route-name{font-weight:600;font-size:.9rem}
+.route-addr{font-size:.75rem;color:var(--muted)}
+.route-line{width:2px;height:20px;background:var(--border);margin-left:4px}
+.order-meta{display:flex;gap:12px;margin-bottom:16px}
+.meta-chip{background:var(--card2);border-radius:8px;padding:6px 12px;font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:5px}
+.meta-chip b{color:var(--text)}
+.order-actions{display:flex;gap:10px}
+.btn-accept{flex:1;padding:14px;background:linear-gradient(135deg,var(--green2),var(--green));border:none;border-radius:50px;color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .15s}
+.btn-accept:active{transform:scale(.97)}
+.btn-reject{flex:1;padding:14px;background:var(--card2);border:1.5px solid var(--red);border-radius:50px;color:var(--red);font-family:'DM Sans',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer}
+.timer-bar{height:4px;background:var(--card2);border-radius:0 0 4px 4px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transition:width .5s linear;width:100%}
+
+/* ACTIVE DELIVERY */
+.delivery-steps{margin:16px;display:flex;flex-direction:column;gap:0}
+.del-step{display:flex;align-items:flex-start;gap:14px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:0;position:relative}
+.del-step:first-child{border-radius:var(--r) var(--r) 0 0}
+.del-step:last-child{border-radius:0 0 var(--r) var(--r)}
+.del-step+.del-step{border-top:none}
+.del-step.done{opacity:.5}
+.del-step.active{background:rgba(0,230,118,.06);border-color:var(--green)}
+.del-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;background:var(--card2);border:2px solid var(--border)}
+.del-step.active .del-icon{background:rgba(0,230,118,.15);border-color:var(--green)}
+.del-step.done .del-icon{background:rgba(0,230,118,.1);border-color:var(--green2)}
+.del-step-info{flex:1}
+.del-step-lbl{font-weight:600;font-size:.9rem}
+.del-step-sub{font-size:.78rem;color:var(--muted);margin-top:2px}
+.del-step-status{font-size:.72rem;color:var(--green);margin-top:4px;font-weight:600}
+.btn-action{width:calc(100% - 32px);margin:0 16px 16px;padding:16px;background:linear-gradient(135deg,var(--green2),var(--green));border:none;border-radius:50px;color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .15s}
+.btn-action:active{transform:scale(.97)}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:12px 0 10px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:opacity .2s;border:none;background:none;color:var(--muted)}
+.nav-btn.active{color:var(--green)}
+.nav-icon{font-size:1.4rem}
+.nav-lbl{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* EARNINGS */
+.earn-header{margin:16px;background:linear-gradient(135deg,rgba(0,230,118,.12),rgba(0,200,83,.04));border:1px solid rgba(0,230,118,.2);border-radius:var(--r);padding:24px;text-align:center}
+.earn-total{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:var(--green)}
+.earn-label{color:var(--muted);font-size:.85rem;margin-top:4px}
+.earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 16px 16px}
+.earn-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.earn-card-val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text)}
+.earn-card-lbl{font-size:.72rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.earn-history{margin:0 16px}
+.earn-history-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.earn-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.earn-row-info{}
+.earn-row-id{font-weight:600;font-size:.88rem}
+.earn-row-time{font-size:.75rem;color:var(--muted);margin-top:2px}
+.earn-row-amt{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--green)}
+
+/* HISTORY */
+.hist-item{margin:0 16px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.hist-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hist-id{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem}
+.hist-status{font-size:.72rem;padding:4px 10px;border-radius:20px;background:rgba(0,230,118,.1);color:var(--green);font-weight:600}
+.hist-route{font-size:.8rem;color:var(--muted)}
+.hist-meta{display:flex;gap:16px;margin-top:10px}
+.hist-meta-item{font-size:.78rem;color:var(--muted)}
+.hist-meta-item b{color:var(--text)}
+
+/* PROFILE */
+.profile-card{margin:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:24px;text-align:center}
+.profile-av{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--blue));display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px;border:3px solid var(--green)}
+.profile-name{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800}
+.profile-phone{color:var(--muted);font-size:.85rem;margin-top:4px}
+.profile-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);border-radius:20px;padding:6px 14px;font-size:.78rem;color:var(--green);font-weight:600;margin-top:12px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin:16px;border-radius:var(--r);overflow:hidden}
+.profile-stat{background:var(--card);padding:16px;text-align:center}
+.profile-stat-val{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--green)}
+.profile-stat-lbl{font-size:.7rem;color:var(--muted);margin-top:4px}
+.profile-menu{margin:0 16px}
+.profile-menu-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.profile-menu-left{display:flex;align-items:center;gap:12px}
+.profile-menu-icon{font-size:1.2rem}
+.profile-menu-lbl{font-weight:500;font-size:.9rem}
+
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--card2);border:1px solid var(--border);border-radius:50px;padding:10px 20px;font-size:.85rem;font-weight:500;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* INCOMING PULSE */
+.incoming-pulse{animation:incomingPulse 1s infinite}
+@keyframes incomingPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.4)}50%{box-shadow:0 0 0 12px rgba(0,230,118,0)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.5);opacity:.2}}
+
+.no-order{text-align:center;padding:48px 24px;color:var(--muted)}
+.no-order-icon{font-size:3rem;margin-bottom:12px}
+.no-order-title{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px}
+.pb-nav{padding-bottom:80px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SPLASH -->
+<div class="screen active" id="splash-screen">
+  <div class="splash-bike">🛵</div>
+  <div class="splash-logo">Feast<span>Partner</span></div>
+  <div class="splash-sub">Delivery Partner App</div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="login-screen">
+  <div class="login-bg"></div>
+  <div style="font-size:3rem;margin-bottom:16px">🛵</div>
+  <div class="login-title">Welcome,<br><span>Partner!</span></div>
+  <div class="login-sub">Sign in to start earning with FeastNow</div>
+  <div class="inp-group">
+    <div class="inp-label">Full Name</div>
+    <input class="inp" id="login-name" placeholder="Enter your name" type="text">
+  </div>
+  <div class="inp-group">
+    <div class="inp-label">Mobile Number</div>
+    <input class="inp" id="login-phone" placeholder="10-digit mobile number" type="tel" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+  </div>
+  <div class="inp-group">
+    <div class="inp-label">Vehicle Number</div>
+    <input class="inp" id="login-vehicle" placeholder="e.g. TS09AB1234" style="text-transform:uppercase">
+  </div>
+  <button class="btn-green" onclick="doLogin()">🚀 Start Delivering</button>
+  <button class="btn-outline" onclick="doDemo()">Try Demo Mode</button>
+</div>
+
+<!-- HOME / DASHBOARD -->
+<div class="screen" id="home-screen">
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-title" id="rider-greeting">Good morning! 👋</div>
+      <div style="font-size:.75rem;color:var(--muted)" id="rider-name-small">Partner</div>
+    </div>
+    <div class="online-toggle">
+      <div class="toggle-label" id="toggle-lbl">OFFLINE</div>
+      <div class="toggle-switch" id="online-toggle" onclick="toggleOnline()">
+        <div class="toggle-knob"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pb-nav">
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-val" id="stat-today">₹0</div>
+        <div class="status-lbl">Today</div>
+      </div>
+      <div class="status-item">
+        <div class="status-val" id="stat-orders">0</div>
+        <div class="status-lbl">Orders</div>
+      </div>
+      <div class="status-item">
+        <div class="status-val" id="stat-rating">5.0 ⭐</div>
+        <div class="status-lbl">Rating</div>
+      </div>
+      <div class="status-item">
+        <div class="status-val" id="stat-km">0 km</div>
+        <div class="status-lbl">Distance</div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="rider-map"></div>
+
+    <!-- Order incoming / active delivery / waiting -->
+    <div id="order-area"></div>
+  </div>
+</div>
+
+<!-- EARNINGS -->
+<div class="screen" id="earnings-screen">
+  <div class="top-bar">
+    <div class="top-bar-title">💰 Earnings</div>
+    <div style="font-size:.8rem;color:var(--muted)" id="earn-date"></div>
+  </div>
+  <div class="pb-nav">
+    <div class="earn-header">
+      <div class="earn-total" id="earn-total">₹0</div>
+      <div class="earn-label">Total Earned Today</div>
+    </div>
+    <div class="earn-grid">
+      <div class="earn-card">
+        <div class="earn-card-val" id="earn-orders">0</div>
+        <div class="earn-card-lbl">Orders Delivered</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-card-val" id="earn-avg">₹0</div>
+        <div class="earn-card-lbl">Avg per Order</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-card-val" id="earn-km">0 km</div>
+        <div class="earn-card-lbl">Distance Covered</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-card-val" id="earn-hrs">0h</div>
+        <div class="earn-card-lbl">Hours Online</div>
+      </div>
+    </div>
+    <div class="earn-history">
+      <div class="earn-history-title">Today's Deliveries</div>
+      <div id="earn-history-list"><div style="color:var(--muted);font-size:.85rem;text-align:center;padding:24px">No deliveries yet today</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="history-screen">
+  <div class="top-bar">
+    <div class="top-bar-title">📋 Order History</div>
+  </div>
+  <div class="pb-nav" style="padding-top:16px">
+    <div id="history-list"><div class="no-order"><div class="no-order-icon">📦</div><div class="no-order-title">No orders yet</div><div>Accept your first order to see history here</div></div></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="profile-screen">
+  <div class="top-bar">
+    <div class="top-bar-title">👤 Profile</div>
+    <button onclick="doLogout()" style="background:none;border:1px solid var(--red);border-radius:20px;padding:6px 14px;color:var(--red);font-size:.78rem;cursor:pointer">Sign Out</button>
+  </div>
+  <div class="pb-nav">
+    <div class="profile-card">
+      <div class="profile-av" id="profile-av">🛵</div>
+      <div class="profile-name" id="profile-name">Partner</div>
+      <div class="profile-phone" id="profile-phone">+91 XXXXXXXXXX</div>
+      <div class="profile-badge">✅ Verified Partner</div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="profile-stat-val" id="ps-total">₹0</div><div class="profile-stat-lbl">Total Earned</div></div>
+      <div class="profile-stat"><div class="profile-stat-val" id="ps-orders">0</div><div class="profile-stat-lbl">Deliveries</div></div>
+      <div class="profile-stat"><div class="profile-stat-val" id="ps-rating">5.0⭐</div><div class="profile-stat-lbl">Rating</div></div>
+    </div>
+    <div class="profile-menu">
+      <div class="profile-menu-item"><div class="profile-menu-left"><div class="profile-menu-icon">🚗</div><div><div class="profile-menu-lbl">Vehicle Details</div><div style="font-size:.75rem;color:var(--muted)" id="profile-vehicle">Not set</div></div></div><div style="color:var(--muted)">›</div></div>
+      <div class="profile-menu-item"><div class="profile-menu-left"><div class="profile-menu-icon">💳</div><div class="profile-menu-lbl">Payment Details</div></div><div style="color:var(--muted)">›</div></div>
+      <div class="profile-menu-item"><div class="profile-menu-left"><div class="profile-menu-icon">📞</div><div class="profile-menu-lbl">Support</div></div><div style="color:var(--muted)">›</div></div>
+      <div class="profile-menu-item"><div class="profile-menu-left"><div class="profile-menu-icon">⭐</div><div class="profile-menu-lbl">Rate the App</div></div><div style="color:var(--muted)">›</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn active" id="nav-home" onclick="showTab('home')"><div class="nav-icon">🏠</div><div class="nav-lbl">Home</div></button>
+  <button class="nav-btn" id="nav-earnings" onclick="showTab('earnings')"><div class="nav-icon">💰</div><div class="nav-lbl">Earnings</div></button>
+  <button class="nav-btn" id="nav-history" onclick="showTab('history')"><div class="nav-icon">📋</div><div class="nav-lbl">History</div></button>
+  <button class="nav-btn" id="nav-profile" onclick="showTab('profile')"><div class="nav-icon">👤</div><div class="nav-lbl">Profile</div></button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let rider = JSON.parse(localStorage.getItem('fn_partner') || 'null');
+let isOnline = false;
+let todayEarnings = 0;
+let todayOrders = 0;
+let totalKm = 0;
+let onlineHrs = 0;
+let onlineStart = null;
+let allDeliveries = JSON.parse(localStorage.getItem('fn_deliveries') || '[]');
+let currentOrder = null;
+let deliveryPhase = 0; // 0=none,1=going to restaurant,2=going to customer
+let riderMap = null, riderMarker = null, destMarker = null, routeLine = null, riderAnimTimer = null;
+let incomingTimer = null, incomingInterval = null;
+
+const HYD_SPOTS = [
+  {name:'Banjara Hills',lat:17.4126,lng:78.4483},
+  {name:'Jubilee Hills',lat:17.4239,lng:78.4085},
+  {name:'Madhapur',lat:17.4435,lng:78.3772},
+  {name:'Hitech City',lat:17.4474,lng:78.3762},
+  {name:'Gachibowli',lat:17.4401,lng:78.3489},
+  {name:'Kondapur',lat:17.4600,lng:78.3615},
+  {name:'Ameerpet',lat:17.4374,lng:78.4487},
+  {name:'Secunderabad',lat:17.4399,lng:78.4983},
+];
+
+const RESTAURANTS = ['Pizza Palace','BurgerCo','Bawarchi','Wok Express','Sweet Spot','Spice Garden','Paradise','Café Mocha'];
+const FOOD_ITEMS = ['Margherita Pizza','Hyderabadi Biryani','Smoky BBQ Burger','Hakka Noodles','Paneer Tikka','Veg Biryani','Cold Coffee','Gulab Jamun'];
+const AREAS = ['Banjara Hills','Jubilee Hills','Madhapur','Hitech City','Gachibowli','Kondapur','Ameerpet','Secunderabad'];
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(()=>{
+    if(rider){ goHome(); }
+    else { showScreen('login-screen'); }
+  }, 1800);
+});
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showTab(tab){
+  showScreen(tab+'-screen');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='earnings') renderEarnings();
+  if(tab==='history') renderHistory();
+  if(tab==='profile') renderProfile();
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+function doLogin(){
+  const name = document.getElementById('login-name').value.trim();
+  const phone = document.getElementById('login-phone').value.trim();
+  const vehicle = document.getElementById('login-vehicle').value.trim().toUpperCase();
+  if(!name){ showToast('Enter your name'); return; }
+  if(phone.length!==10){ showToast('Enter valid 10-digit number'); return; }
+  if(!vehicle){ showToast('Enter vehicle number'); return; }
+  rider = { name, phone, vehicle, id:'R'+Date.now() };
+  localStorage.setItem('fn_partner', JSON.stringify(rider));
+  goHome();
+}
+
+function doDemo(){
+  rider = { name:'Demo Rider', phone:'9999999999', vehicle:'TS09DM0001', id:'RDEMO' };
+  localStorage.setItem('fn_partner', JSON.stringify(rider));
+  goHome();
+}
+
+function doLogout(){
+  localStorage.removeItem('fn_partner');
+  rider=null; isOnline=false;
+  showScreen('login-screen');
+  document.getElementById('bottom-nav').style.display='none';
+}
+
+// ═══════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════
+function goHome(){
+  const hour = new Date().getHours();
+  const greet = hour<12?'Good morning':'hour<17?Good afternoon':'Good evening';
+  document.getElementById('rider-greeting').textContent = (hour<12?'Good morning! 👋':hour<17?'Good afternoon! ☀️':'Good evening! 🌙');
+  document.getElementById('rider-name-small').textContent = rider?.name || 'Partner';
+  document.getElementById('bottom-nav').style.display='flex';
+  showScreen('home-screen');
+  showTab('home');
+  updateStats();
+  setTimeout(initRiderMap, 400);
+  renderOrderArea();
+}
+
+function updateStats(){
+  document.getElementById('stat-today').textContent='₹'+todayEarnings;
+  document.getElementById('stat-orders').textContent=todayOrders;
+  document.getElementById('stat-km').textContent=totalKm.toFixed(1)+' km';
+}
+
+// ═══════════════════════════════════════
+// ONLINE TOGGLE
+// ═══════════════════════════════════════
+function toggleOnline(){
+  isOnline=!isOnline;
+  const toggle=document.getElementById('online-toggle');
+  const lbl=document.getElementById('toggle-lbl');
+  toggle.classList.toggle('on',isOnline);
+  lbl.textContent=isOnline?'ONLINE':'OFFLINE';
+  lbl.style.color=isOnline?'var(--green)':'var(--muted)';
+  if(isOnline){
+    onlineStart=Date.now();
+    showToast('✅ You are now Online! Looking for orders...');
+    renderOrderArea();
+    // Simulate incoming order after 4 seconds
+    setTimeout(()=>{ if(isOnline && !currentOrder) showIncomingOrder(); }, 4000);
+  } else {
+    showToast('🔴 You are Offline');
+    if(incomingTimer){ clearTimeout(incomingTimer); incomingTimer=null; }
+    if(incomingInterval){ clearInterval(incomingInterval); incomingInterval=null; }
+    renderOrderArea();
+  }
+}
+
+// ═══════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════
+function initRiderMap(){
+  if(riderMap){ riderMap.remove(); riderMap=null; }
+  const center = HYD_SPOTS[Math.floor(Math.random()*HYD_SPOTS.length)];
+  riderMap = L.map('rider-map',{center:[center.lat,center.lng],zoom:13,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(riderMap);
+  const myIcon = L.divIcon({html:'<div style="font-size:26px;filter:drop-shadow(0 2px 6px rgba(0,230,118,.8))">🛵</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+  riderMarker = L.marker([center.lat,center.lng],{icon:myIcon}).addTo(riderMap).bindPopup('<b>📍 You are here</b>').openPopup();
+}
+
+function updateMapForDelivery(restPos, destPos){
+  if(!riderMap) return;
+  const restIcon = L.divIcon({html:'<div style="font-size:24px">🍽</div>',iconSize:[32,32],iconAnchor:[16,32],className:''});
+  const homeIcon = L.divIcon({html:'<div style="position:relative"><div style="position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(0,230,118,0.25);animation:pulse 1.4s infinite;top:-20px;left:-20px"></div><div style="font-size:28px">🏠</div></div>',iconSize:[32,32],iconAnchor:[16,32],className:''});
+  L.marker([restPos.lat,restPos.lng],{icon:restIcon}).addTo(riderMap).bindPopup('<b>🍽 Restaurant</b>');
+  if(destMarker) destMarker.remove();
+  destMarker = L.marker([destPos.lat,destPos.lng],{icon:homeIcon}).addTo(riderMap).bindPopup('<b>🏠 Customer Home</b>').openPopup();
+  if(routeLine) routeLine.remove();
+  routeLine = L.polyline([[riderMarker.getLatLng().lat,riderMarker.getLatLng().lng],[restPos.lat,restPos.lng]],{color:'#4fc3f7',weight:3,dashArray:'8 5'}).addTo(riderMap);
+  riderMap.fitBounds([[riderMarker.getLatLng().lat,riderMarker.getLatLng().lng],[destPos.lat,destPos.lng]],{padding:[50,50]});
+}
+
+function animateRiderTo(targetPos, onDone){
+  if(riderAnimTimer){ clearInterval(riderAnimTimer); riderAnimTimer=null; }
+  const start = riderMarker.getLatLng();
+  let step=0; const total=40;
+  riderAnimTimer = setInterval(()=>{
+    step++;
+    if(step>=total){
+      clearInterval(riderAnimTimer); riderAnimTimer=null;
+      riderMarker.setLatLng([targetPos.lat,targetPos.lng]);
+      if(typeof onDone==='function') onDone();
+      return;
+    }
+    const t=step/total;
+    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    riderMarker.setLatLng([start.lat+(targetPos.lat-start.lat)*e, start.lng+(targetPos.lng-start.lng)*e]);
+    if(routeLine){
+      const cur=riderMarker.getLatLng();
+      routeLine.setLatLngs([[cur.lat,cur.lng],[targetPos.lat,targetPos.lng]]);
+    }
+    if(step%8===0) riderMap?.panTo(riderMarker.getLatLng(),{animate:true,duration:.8});
+  },1000);
+}
+
+// ═══════════════════════════════════════
+// ORDER AREA
+// ═══════════════════════════════════════
+function renderOrderArea(){
+  const area = document.getElementById('order-area');
+  if(!isOnline){
+    area.innerHTML=`<div class="no-order"><div class="no-order-icon">💤</div><div class="no-order-title">You are Offline</div><div>Go Online to receive orders</div></div>`;
+    return;
+  }
+  if(currentOrder && deliveryPhase>0){
+    renderActiveDelivery();
+    return;
+  }
+  area.innerHTML=`<div class="no-order"><div class="no-order-icon" style="animation:bounce 1s infinite">🔍</div><div class="no-order-title">Looking for orders...</div><div>Stay online to receive orders nearby</div></div>`;
+}
+
+// ═══════════════════════════════════════
+// INCOMING ORDER
+// ═══════════════════════════════════════
+function showIncomingOrder(){
+  if(!isOnline || currentOrder) return;
+
+  const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+  let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+  while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
+
+  const restName = RESTAURANTS[Math.floor(Math.random()*RESTAURANTS.length)];
+  const items = Math.floor(Math.random()*3)+1;
+  const earn = 40 + Math.floor(Math.random()*60);
+  const dist = (1.5+Math.random()*4).toFixed(1);
+
+  currentOrder = {
+    id:'FN'+Date.now().toString().slice(-6),
+    rest: restName,
+    restPos: HYD_SPOTS[restIdx],
+    destPos: HYD_SPOTS[destIdx],
+    items, earn, dist,
+    customer: 'Customer '+Math.floor(Math.random()*999+1),
+    area: HYD_SPOTS[destIdx].name,
+    time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+  };
+
+  let timeLeft = 25;
+  const area = document.getElementById('order-area');
+  area.innerHTML=`
+    <div class="order-card incoming-pulse" id="incoming-card">
+      <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+      <div class="order-card-header">
+        <div>
+          <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">New Order!</div>
+          <div class="order-card-id">#${currentOrder.id}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="order-earn">₹${currentOrder.earn}</div>
+          <div style="font-size:.72rem;color:var(--muted)">${currentOrder.dist} km</div>
+        </div>
+      </div>
+      <div class="order-card-body">
+        <div class="order-route">
+          <div class="route-point">
+            <div class="route-dot rest"></div>
+            <div class="route-info">
+              <div class="route-name">${currentOrder.rest}</div>
+              <div class="route-addr">${currentOrder.restPos.name} · Pick up</div>
+            </div>
+          </div>
+          <div style="margin-left:4px"><div class="route-line"></div></div>
+          <div class="route-point">
+            <div class="route-dot home"></div>
+            <div class="route-info">
+              <div class="route-name">${currentOrder.customer}</div>
+              <div class="route-addr">${currentOrder.area} · Drop off</div>
+            </div>
+          </div>
+        </div>
+        <div class="order-meta">
+          <div class="meta-chip">🍽 <b>${currentOrder.items}</b> item${currentOrder.items>1?'s':''}</div>
+          <div class="meta-chip">⏱ <b id="order-timer">${timeLeft}s</b></div>
+          <div class="meta-chip">📍 <b>${currentOrder.dist} km</b></div>
+        </div>
+        <div class="order-actions">
+          <button class="btn-reject" onclick="rejectOrder()">✕ Reject</button>
+          <button class="btn-accept" onclick="acceptOrder()">✓ Accept</button>
+        </div>
+      </div>
+    </div>`;
+
+  // Countdown timer
+  incomingInterval = setInterval(()=>{
+    timeLeft--;
+    const timerEl=document.getElementById('order-timer');
+    const fillEl=document.getElementById('timer-fill');
+    if(timerEl) timerEl.textContent=timeLeft+'s';
+    if(fillEl) fillEl.style.width=(timeLeft/25*100)+'%';
+    if(timeLeft<=0){
+      clearInterval(incomingInterval);
+      autoRejectOrder();
+    }
+  },1000);
+
+  updateMapForDelivery(currentOrder.restPos, currentOrder.destPos);
+}
+
+function rejectOrder(){
+  clearInterval(incomingInterval);
+  currentOrder=null; deliveryPhase=0;
+  showToast('❌ Order rejected');
+  renderOrderArea();
+  // New order after 6 seconds
+  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+}
+
+function autoRejectOrder(){
+  currentOrder=null; deliveryPhase=0;
+  showToast('⏰ Order expired');
+  renderOrderArea();
+  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+}
+
+function acceptOrder(){
+  clearInterval(incomingInterval);
+  deliveryPhase=1; // Going to restaurant
+  showToast('✅ Order accepted! Head to restaurant');
+  renderActiveDelivery();
+  // Animate rider to restaurant
+  animateRiderTo(currentOrder.restPos, ()=>{
+    // arrived at restaurant - update route line to customer
+    if(routeLine) routeLine.remove();
+    routeLine = L.polyline([[currentOrder.restPos.lat,currentOrder.restPos.lng],[currentOrder.destPos.lat,currentOrder.destPos.lng]],{color:'#00e676',weight:3,dashArray:'8 5'}).addTo(riderMap);
+  });
+}
+
+// ═══════════════════════════════════════
+// ACTIVE DELIVERY
+// ═══════════════════════════════════════
+function renderActiveDelivery(){
+  const area = document.getElementById('order-area');
+  const phase1Done = deliveryPhase>=2;
+  const phase2Done = deliveryPhase>=3;
+  area.innerHTML=`
+    <div style="padding:16px 16px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem">Active Delivery</div>
+        <div style="font-size:.8rem;color:var(--gold);font-weight:700">₹${currentOrder.earn} earning</div>
+      </div>
+    </div>
+    <div class="delivery-steps">
+      <div class="del-step ${phase1Done?'done':'active'}">
+        <div class="del-icon">${phase1Done?'✅':'🔵'}</div>
+        <div class="del-step-info">
+          <div class="del-step-lbl">Go to Restaurant</div>
+          <div class="del-step-sub">${currentOrder.rest} · ${currentOrder.restPos.name}</div>
+          ${!phase1Done?'<div class="del-step-status">⏳ Head here now...</div>':'<div class="del-step-status">✓ Picked up!</div>'}
+        </div>
+      </div>
+      <div class="del-step ${phase2Done?'done':phase1Done?'active':''}">
+        <div class="del-icon">${phase2Done?'✅':phase1Done?'🟢':'🏠'}</div>
+        <div class="del-step-info">
+          <div class="del-step-lbl">Deliver to Customer</div>
+          <div class="del-step-sub">${currentOrder.customer} · ${currentOrder.area}</div>
+          ${phase1Done&&!phase2Done?'<div class="del-step-status">⏳ On the way...</div>':phase2Done?'<div class="del-step-status">✓ Delivered!</div>':''}
+        </div>
+      </div>
+    </div>
+    ${!phase1Done?`<button class="btn-action" onclick="confirmPickup()">📦 Confirm Pickup from Restaurant</button>`:''}
+    ${phase1Done&&!phase2Done?`<button class="btn-action" style="background:linear-gradient(135deg,#00c853,#00e676)" onclick="confirmDelivery()">🏠 Confirm Delivery to Customer</button>`:''}
+    ${phase2Done?`<button class="btn-action" style="background:linear-gradient(135deg,#f5c842,#ffb300);color:#000" onclick="completeOrder()">🎉 Complete & Get Next Order</button>`:''}
+  `;
+}
+
+function confirmPickup(){
+  deliveryPhase=2;
+  showToast('📦 Picked up! Now deliver to customer');
+  renderActiveDelivery();
+  // Animate to customer
+  animateRiderTo(currentOrder.destPos, ()=>{
+    if(routeLine) routeLine.remove();
+  });
+}
+
+function confirmDelivery(){
+  deliveryPhase=3;
+  showToast('🎉 Delivered! Great job!');
+  renderActiveDelivery();
+}
+
+function completeOrder(){
+  // Save earnings
+  const delivery = {
+    id: currentOrder.id,
+    rest: currentOrder.rest,
+    area: currentOrder.area,
+    earn: currentOrder.earn,
+    dist: parseFloat(currentOrder.dist),
+    time: currentOrder.time,
+    date: new Date().toDateString(),
+  };
+  allDeliveries.unshift(delivery);
+  localStorage.setItem('fn_deliveries', JSON.stringify(allDeliveries));
+
+  todayEarnings += currentOrder.earn;
+  todayOrders++;
+  totalKm += parseFloat(currentOrder.dist);
+  updateStats();
+
+  showToast('💰 ₹'+currentOrder.earn+' added to earnings!');
+  currentOrder=null; deliveryPhase=0;
+  renderOrderArea();
+
+  // Next order after 5 seconds
+  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 5000);
+}
+
+// ═══════════════════════════════════════
+// EARNINGS
+// ═══════════════════════════════════════
+function renderEarnings(){
+  document.getElementById('earn-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('earn-total').textContent='₹'+todayEarnings;
+  document.getElementById('earn-orders').textContent=todayOrders;
+  document.getElementById('earn-avg').textContent=todayOrders>0?'₹'+Math.round(todayEarnings/todayOrders):'₹0';
+  document.getElementById('earn-km').textContent=totalKm.toFixed(1)+' km';
+  const hrs = onlineStart?((Date.now()-onlineStart)/3600000).toFixed(1):0;
+  document.getElementById('earn-hrs').textContent=hrs+'h';
+
+  const today = new Date().toDateString();
+  const todayDeliveries = allDeliveries.filter(d=>d.date===today);
+  const list = document.getElementById('earn-history-list');
+  if(!todayDeliveries.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:24px">No deliveries yet today</div>';
+    return;
+  }
+  list.innerHTML = todayDeliveries.map(d=>`
+    <div class="earn-row">
+      <div class="earn-row-info">
+        <div class="earn-row-id">#${d.id} · ${d.rest}</div>
+        <div class="earn-row-time">${d.area} · ${d.time} · ${d.dist} km</div>
+      </div>
+      <div class="earn-row-amt">+₹${d.earn}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════
+function renderHistory(){
+  const list = document.getElementById('history-list');
+  if(!allDeliveries.length){
+    list.innerHTML=`<div class="no-order"><div class="no-order-icon">📦</div><div class="no-order-title">No orders yet</div><div>Accept your first order to see history here</div></div>`;
+    return;
+  }
+  list.innerHTML = allDeliveries.map(d=>`
+    <div class="hist-item">
+      <div class="hist-item-top">
+        <div class="hist-id">#${d.id}</div>
+        <div class="hist-status">✅ Delivered</div>
+      </div>
+      <div class="hist-route">🍽 ${d.rest} → 🏠 ${d.area}</div>
+      <div class="hist-meta">
+        <div class="hist-meta-item">💰 <b>₹${d.earn}</b></div>
+        <div class="hist-meta-item">📍 <b>${d.dist} km</b></div>
+        <div class="hist-meta-item">🕐 <b>${d.time}</b></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════
+function renderProfile(){
+  if(!rider) return;
+  document.getElementById('profile-av').textContent = rider.name.charAt(0).toUpperCase();
+  document.getElementById('profile-name').textContent = rider.name;
+  document.getElementById('profile-phone').textContent = '+91 '+rider.phone;
+  document.getElementById('profile-vehicle').textContent = rider.vehicle;
+  const total = allDeliveries.reduce((s,d)=>s+d.earn,0);
+  document.getElementById('ps-total').textContent='₹'+total;
+  document.getElementById('ps-orders').textContent=allDeliveries.length;
+  document.getElementById('ps-rating').textContent='4.9⭐';
+}
+</script>
+</body>
+</html>
