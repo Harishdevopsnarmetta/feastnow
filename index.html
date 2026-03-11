@@ -3179,27 +3179,35 @@ let bannerIndex=0,bannerTimer=null,bannerPaused=false;
 function initBannerSlider(){
   const scroll=document.getElementById('banner-scroll');
   if(!scroll)return;
-  const banners=scroll.querySelectorAll('.banner');
+  // Clear any existing timer and reset state
+  clearInterval(bannerTimer);
+  bannerTimer=null;
+  bannerIndex=0;
+  bannerPaused=false;
+  // Clone node to wipe all old event listeners
+  const fresh=scroll.cloneNode(true);
+  scroll.parentNode.replaceChild(fresh,scroll);
+  const s=document.getElementById('banner-scroll');
+  const banners=s.querySelectorAll('.banner');
   const total=banners.length;
+  if(!total)return;
   function updateDots(i){
     document.querySelectorAll('.bdot').forEach((d,idx)=>d.classList.toggle('active',idx===i));
   }
   function slideTo(i){
     bannerIndex=(i+total)%total;
     const bw=banners[0].offsetWidth+14;
-    scroll.scrollTo({left:bannerIndex*bw,behavior:'smooth'});
+    s.scrollTo({left:bannerIndex*bw,behavior:'smooth'});
     updateDots(bannerIndex);
   }
   window.goToBanner=function(i){slideTo(i);resetTimer();};
   function startTimer(){bannerTimer=setInterval(()=>{if(!bannerPaused)slideTo(bannerIndex+1);},3000);}
   function resetTimer(){clearInterval(bannerTimer);startTimer();}
-  // pause on touch
-  scroll.addEventListener('touchstart',()=>{bannerPaused=true;},{ passive:true });
-  scroll.addEventListener('touchend',()=>{bannerPaused=false;resetTimer();},{ passive:true });
-  // sync dot on manual scroll
-  scroll.addEventListener('scroll',()=>{
+  s.addEventListener('touchstart',()=>{bannerPaused=true;},{passive:true});
+  s.addEventListener('touchend',()=>{bannerPaused=false;resetTimer();},{passive:true});
+  s.addEventListener('scroll',()=>{
     const bw=banners[0].offsetWidth+14;
-    const idx=Math.round(scroll.scrollLeft/bw);
+    const idx=Math.round(s.scrollLeft/bw);
     if(idx!==bannerIndex){bannerIndex=idx;updateDots(idx);}
   },{passive:true});
   startTimer();
