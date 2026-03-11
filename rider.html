@@ -336,6 +336,64 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 <script>
 // ═══════════════════════════════════════
+// 🔊 SOUND ENGINE
+// ═══════════════════════════════════════
+const SFX = (()=>{
+  let ctx = null;
+  function getCtx(){
+    if(!ctx) ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+  function play(notes, type='sine', vol=0.3){
+    try{
+      const c = getCtx();
+      notes.forEach(([freq,start,dur,endFreq])=>{
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.connect(gain); gain.connect(c.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, c.currentTime+start);
+        if(endFreq) osc.frequency.linearRampToValueAtTime(endFreq, c.currentTime+start+dur);
+        gain.gain.setValueAtTime(vol, c.currentTime+start);
+        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime+start+dur);
+        osc.start(c.currentTime+start);
+        osc.stop(c.currentTime+start+dur+0.05);
+      });
+    }catch(e){}
+  }
+  function incomingOrder(){
+    play([[80,0,0.25,50],[80,0.35,0.25,50],[80,0.7,0.25,50]],'sine',0.55);
+    play([[440,0,0.12,600],[600,0.18,0.12,800],[800,0.36,0.18,1000]],'triangle',0.25);
+    setTimeout(()=>{
+      play([[80,0,0.25,50],[80,0.35,0.25,50]],'sine',0.55);
+      play([[500,0,0.12,700],[700,0.18,0.2,950]],'triangle',0.22);
+    },1100);
+  }
+  function accept(){
+    play([[120,0,0.25]],'sine',0.4);
+    play([[350,0,0.08],[500,0.1,0.08],[700,0.2,0.1],[900,0.32,0.18]],'sine',0.22);
+  }
+  function reject(){
+    play([[300,0,0.12,150],[150,0.15,0.25,70]],'sawtooth',0.22);
+    play([[90,0,0.35,60]],'sine',0.3);
+  }
+  function pickup(){
+    play([[100,0,0.15]],'sine',0.35);
+    play([[500,0,0.08],[700,0.1,0.08],[900,0.2,0.14]],'sine',0.18);
+  }
+  function delivered(){
+    play([[90,0,0.35],[110,0.4,0.3]],'sine',0.45);
+    play([[523,0,0.1],[659,0.13,0.1],[784,0.27,0.1],[1047,0.42,0.15],[1319,0.6,0.2],[1047,0.82,0.1],[1319,0.95,0.38]],'sine',0.22);
+    play([[220,0,0.1],[277,0.15,0.1],[330,0.3,0.22]],'triangle',0.12);
+  }
+  function kaching(){
+    play([[1200,0,0.06],[1500,0.09,0.06],[1800,0.18,0.08],[2100,0.28,0.14]],'sine',0.18);
+  }
+  return { incomingOrder, accept, reject, pickup, delivered, kaching };
+})();
+
+// ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
 let rider = JSON.parse(localStorage.getItem('fn_partner') || 'null');
@@ -617,11 +675,13 @@ function showIncomingOrder(){
     }
   },1000);
 
+  SFX.incomingOrder();
   updateMapForDelivery(currentOrder.restPos, currentOrder.destPos);
 }
 
 function rejectOrder(){
   clearInterval(incomingInterval);
+  SFX.reject();
   currentOrder=null; deliveryPhase=0;
   showToast('❌ Order rejected');
   renderOrderArea();
@@ -638,6 +698,7 @@ function autoRejectOrder(){
 
 function acceptOrder(){
   clearInterval(incomingInterval);
+  SFX.accept();
   deliveryPhase=1; // Going to restaurant
   showToast('✅ Order accepted! Head to restaurant');
   renderActiveDelivery();
@@ -688,6 +749,7 @@ function renderActiveDelivery(){
 }
 
 function confirmPickup(){
+  SFX.pickup();
   deliveryPhase=2;
   showToast('📦 Picked up! Now deliver to customer');
   renderActiveDelivery();
@@ -699,6 +761,7 @@ function confirmPickup(){
 
 function confirmDelivery(){
   deliveryPhase=3;
+  SFX.delivered();
   showToast('🎉 Delivered! Great job!');
   renderActiveDelivery();
 }
@@ -722,6 +785,7 @@ function completeOrder(){
   totalKm += parseFloat(currentOrder.dist);
   updateStats();
 
+  SFX.kaching();
   showToast('💰 ₹'+currentOrder.earn+' added to earnings!');
   currentOrder=null; deliveryPhase=0;
   renderOrderArea();
