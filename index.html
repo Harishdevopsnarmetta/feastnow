@@ -90,6 +90,14 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .bg1{background:linear-gradient(135deg,#1a0800,#5c2000 50%,#a03800)}
 .bg2{background:linear-gradient(135deg,#000d1a,#001a3d 50%,#003366)}
 .bg3{background:linear-gradient(135deg,#0a1a00,#1a3d00 50%,#2d6600)}
+.bg4{background:linear-gradient(135deg,#0d0d2b,#1a1a5c 50%,#2d2d8a)}
+.bg5{background:linear-gradient(135deg,#2b0a1a,#5c1a3d 50%,#8a2d5c)}
+.banner-carousel-wrap{position:relative;padding-bottom:4px}
+.banner-scroll{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.banner{scroll-snap-align:start}
+.banner-dots{display:flex;justify-content:center;gap:6px;padding:8px 0 4px}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .3s}
+.bdot.active{width:18px;border-radius:4px;background:var(--gold)}
 .banner-shine{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.06),transparent);animation:shine 4s ease infinite}
 @keyframes shine{0%,100%{left:-100%}50%{left:150%}}
 .b-emoji{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.25}
@@ -578,10 +586,21 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     </div>
   </div>
 
-  <div class="banner-scroll">
-    <div class="banner bg1"><div class="banner-shine"></div><div class="b-emoji">🍕</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">🔥 LIMITED</div><div class="banner-title">50% Off<br>All Pizzas</div><div class="banner-sub">Use code FEAST50</div></div></div>
-    <div class="banner bg2"><div class="banner-shine"></div><div class="b-emoji">🍔</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">✨ NEW</div><div class="banner-title">Gourmet<br>Burgers</div><div class="banner-sub">Free delivery over ₹299</div></div></div>
-    <div class="banner bg3"><div class="banner-shine"></div><div class="b-emoji">🍛</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">👨‍🍳 CHEF'S PICK</div><div class="banner-title">Hyderabadi<br>Special</div><div class="banner-sub">Authentic dum biryani</div></div></div>
+  <div class="banner-carousel-wrap" id="banner-carousel-wrap">
+    <div class="banner-scroll" id="banner-scroll">
+      <div class="banner bg1"><div class="banner-shine"></div><div class="b-emoji">🍕</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">🔥 LIMITED</div><div class="banner-title">50% Off<br>All Pizzas</div><div class="banner-sub">Use code FEAST50</div></div></div>
+      <div class="banner bg2"><div class="banner-shine"></div><div class="b-emoji">🍔</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">✨ NEW</div><div class="banner-title">Gourmet<br>Burgers</div><div class="banner-sub">Free delivery over ₹299</div></div></div>
+      <div class="banner bg3"><div class="banner-shine"></div><div class="b-emoji">🍛</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">👨‍🍳 CHEF'S PICK</div><div class="banner-title">Hyderabadi<br>Special</div><div class="banner-sub">Authentic dum biryani</div></div></div>
+      <div class="banner bg4"><div class="banner-shine"></div><div class="b-emoji">🍜</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">⚡ FLASH DEAL</div><div class="banner-title">Noodles &amp;<br>Ramen Bowls</div><div class="banner-sub">Buy 1 Get 1 Free today</div></div></div>
+      <div class="banner bg5"><div class="banner-shine"></div><div class="b-emoji">🍰</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">🎂 SWEET TREAT</div><div class="banner-title">Desserts<br>From ₹49</div><div class="banner-sub">Use code SWEET20</div></div></div>
+    </div>
+    <div class="banner-dots" id="banner-dots">
+      <span class="bdot active" onclick="goToBanner(0)"></span>
+      <span class="bdot" onclick="goToBanner(1)"></span>
+      <span class="bdot" onclick="goToBanner(2)"></span>
+      <span class="bdot" onclick="goToBanner(3)"></span>
+      <span class="bdot" onclick="goToBanner(4)"></span>
+    </div>
   </div>
 
   <div class="cats">
@@ -1799,6 +1818,37 @@ function showFoodReviews(itemId,itemName){
   document.getElementById('rest-food-grid').after(sec);
 }
 
+// ─── BANNER AUTO SLIDE ───
+let bannerIndex=0,bannerTimer=null,bannerPaused=false;
+function initBannerSlider(){
+  const scroll=document.getElementById('banner-scroll');
+  if(!scroll)return;
+  const banners=scroll.querySelectorAll('.banner');
+  const total=banners.length;
+  function updateDots(i){
+    document.querySelectorAll('.bdot').forEach((d,idx)=>d.classList.toggle('active',idx===i));
+  }
+  function slideTo(i){
+    bannerIndex=(i+total)%total;
+    const bw=banners[0].offsetWidth+14;
+    scroll.scrollTo({left:bannerIndex*bw,behavior:'smooth'});
+    updateDots(bannerIndex);
+  }
+  window.goToBanner=function(i){slideTo(i);resetTimer();};
+  function startTimer(){bannerTimer=setInterval(()=>{if(!bannerPaused)slideTo(bannerIndex+1);},3000);}
+  function resetTimer(){clearInterval(bannerTimer);startTimer();}
+  // pause on touch
+  scroll.addEventListener('touchstart',()=>{bannerPaused=true;},{ passive:true });
+  scroll.addEventListener('touchend',()=>{bannerPaused=false;resetTimer();},{ passive:true });
+  // sync dot on manual scroll
+  scroll.addEventListener('scroll',()=>{
+    const bw=banners[0].offsetWidth+14;
+    const idx=Math.round(scroll.scrollLeft/bw);
+    if(idx!==bannerIndex){bannerIndex=idx;updateDots(idx);}
+  },{passive:true});
+  startTimer();
+}
+
 // ─── THEME TOGGLE ───
 function toggleTheme(){
   const isLight=document.body.classList.toggle('light');
@@ -1820,6 +1870,7 @@ function initTheme(){
 // ── BOOT ──
 window.addEventListener('DOMContentLoaded',async()=>{
   initParticles();
+  initBannerSlider();
   const handled=await handleRedirect();if(handled)return;
   const sess=getSess();
   initTheme();
