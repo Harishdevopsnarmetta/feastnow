@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FeastNow 🍽</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0d0d0d;--card:#161616;--card2:#1e1e1e;--gold:#d4a847;--gold2:#f0c96a;--gold3:#8a6a1a;--text:#f0ece4;--muted:#6b6560;--border:#2a2520;--green:#27ae60;--red:#e74c3c;--blue:#3498db;--r:18px}
@@ -256,11 +258,20 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .step-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
 .step-time{font-size:.7rem;color:var(--gold);margin-top:3px}
 
-.map-placeholder{background:var(--card);border:1px solid var(--border);border-radius:16px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;position:relative;overflow:hidden}
-.map-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:30px 30px;opacity:.4}
-.map-pin{font-size:2rem;position:relative;z-index:1;animation:bounce 1s ease infinite}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.map-label{font-size:.78rem;color:var(--muted);position:relative;z-index:1}
+#delivery-map{height:220px;border-radius:16px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden;z-index:1;position:relative}
+.map-status-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px}
+.map-status-left{display:flex;align-items:center;gap:10px}
+.rider-dot{width:10px;height:10px;background:var(--green);border-radius:50%;animation:blink 1.2s ease infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.map-status-txt{font-size:.82rem;font-weight:600;color:var(--text)}
+.map-status-sub{font-size:.7rem;color:var(--muted);margin-top:2px}
+.map-eta-chip{background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);border-radius:50px;padding:4px 12px;font-size:.78rem;font-weight:700;color:var(--green)}
+/* Leaflet dark override */
+.leaflet-tile{filter:brightness(.75) saturate(.8) hue-rotate(180deg) invert(1) contrast(.85)}
+.leaflet-container{background:#1a1a1a !important}
+.rider-marker{font-size:1.6rem;animation:riderBounce .8s ease infinite;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+@keyframes riderBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.dest-marker{font-size:1.6rem;display:block;filter:drop-shadow(0 3px 6px rgba(212,168,71,.6))}
 
 .track-order-items{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
 .track-item-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem}
@@ -467,11 +478,17 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
       <div><div class="order-id-label">Order ID</div><div class="order-id-val" id="track-order-id">#FN000000</div></div>
       <div class="order-eta"><div class="eta-label">Est. Arrival</div><div class="eta-val" id="track-eta">30 min</div></div>
     </div>
-    <div class="map-placeholder">
-      <div class="map-grid"></div>
-      <div class="map-pin">📍</div>
-      <div class="map-label">Tracking your delivery...</div>
+    <div class="map-status-bar">
+      <div class="map-status-left">
+        <div class="rider-dot"></div>
+        <div>
+          <div class="map-status-txt" id="map-status-txt">🛵 Rider is on the way</div>
+          <div class="map-status-sub" id="map-status-sub">Live location updating...</div>
+        </div>
+      </div>
+      <div class="map-eta-chip" id="map-eta-chip">~30 min</div>
     </div>
+    <div id="delivery-map"></div>
     <div class="track-steps" id="track-steps"></div>
     <div class="track-order-items" id="track-order-items"></div>
   </div>
@@ -546,7 +563,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
   <div class="sb-top">
     <div id="sb-av"></div>
     <div class="sb-name" id="sb-name">Guest</div>
-    <div class="sb-email" id="sb-email">guest@feastnow.app</div>
+    <div class="sb-email" id="sb-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3552405046417553505446415b5a421b544545">[email&#160;protected]</a></div>
     <div class="sb-badge" id="sb-badge">👤 Guest</div>
   </div>
   <div class="sb-body">
@@ -614,7 +631,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 <div id="loading"><div class="spinner"></div><div class="loading-text">Signing you in...</div></div>
 <div id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const CLIENT_ID='435708658011-frif4tv8shqov6uhnh1b007bqeir45hh.apps.googleusercontent.com';
 const REDIRECT_URI='https://harishdevopsnarmetta.github.io/feastnow';
 
@@ -872,15 +889,21 @@ function doCheckout(){
   setTimeout(()=>openTracking(order),600);
 }
 
-// TRACKING
-function openTracking(order){
-  document.getElementById('track-order-id').textContent='#'+order.id;
-  const steps=[
-    {icon:'✅',label:'Order Placed',sub:'We received your order',done:true,active:false},
-    {icon:'👨‍🍳',label:'Preparing',sub:'Kitchen is preparing your food',done:false,active:true},
-    {icon:'🛵',label:'Out for Delivery',sub:'Rider is on the way',done:false,active:false},
-    {icon:'🏠',label:'Delivered',sub:'Enjoy your meal!',done:false,active:false},
-  ];
+// TRACKING with real OpenStreetMap (Leaflet.js)
+let leafletMap=null,riderMarker=null,destMarker=null,riderAnimTimer=null,trackingTimer=null;
+
+const HYD_SPOTS=[
+  {name:'Banjara Hills',lat:17.4126,lng:78.4483},
+  {name:'Jubilee Hills',lat:17.4239,lng:78.4085},
+  {name:'Madhapur',lat:17.4435,lng:78.3772},
+  {name:'Hitech City',lat:17.4474,lng:78.3762},
+  {name:'Gachibowli',lat:17.4401,lng:78.3489},
+  {name:'Kondapur',lat:17.4600,lng:78.3615},
+  {name:'Ameerpet',lat:17.4374,lng:78.4487},
+  {name:'Begumpet',lat:17.4415,lng:78.4636},
+];
+
+function renderTrackSteps(steps){
   document.getElementById('track-steps').innerHTML=steps.map((s,i)=>`
     <div class="track-step">
       <div class="step-left">
@@ -890,24 +913,112 @@ function openTracking(order){
       <div class="step-right">
         <div class="step-title ${!s.done&&!s.active?'muted':''}">${s.label}</div>
         <div class="step-sub">${s.sub}</div>
-        ${s.done||s.active?`<div class="step-time">${s.done?'Completed':'In progress...'}</div>`:''}
+        ${s.done||s.active?`<div class="step-time">${s.done?'✓ Done':'⏳ In progress...'}</div>`:''}
       </div>
     </div>`).join('');
+}
+
+function openTracking(order){
+  document.getElementById('track-order-id').textContent='#'+order.id;
+  document.getElementById('track-eta').textContent='~30 min';
+  document.getElementById('map-eta-chip').textContent='~30 min';
+  document.getElementById('map-status-txt').textContent='🛵 Rider is on the way';
+  document.getElementById('map-status-sub').textContent='Live location updating...';
+
+  const steps=[
+    {icon:'✅',label:'Order Placed',sub:'We received your order',done:true,active:false},
+    {icon:'👨‍🍳',label:'Preparing',sub:'Kitchen is preparing your food',done:false,active:true},
+    {icon:'🛵',label:'Out for Delivery',sub:'Rider is on the way',done:false,active:false},
+    {icon:'🏠',label:'Delivered',sub:'Enjoy your meal!',done:false,active:false},
+  ];
+  renderTrackSteps(steps);
+
   document.getElementById('track-order-items').innerHTML=
     `<div style="font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:10px">Order Summary</div>`+
     order.items.map(i=>`<div class="track-item-row"><span>${i.emoji} ${i.name} ×${i.qty}</span><span style="color:var(--gold)">₹${i.price*i.qty}</span></div>`).join('')+
     `<div class="track-item-row" style="font-weight:700"><span>Total</span><span style="color:var(--gold)">₹${order.total}</span></div>`;
-  // Simulate progress
-  let step=1;const timer=setInterval(()=>{
-    step++;if(step>3){clearInterval(timer);document.getElementById('track-eta').textContent='Delivered!';addNotif('order','🏠','Order Delivered!','Your order has been delivered. Enjoy your meal! 😋',true);return;}
-    const etaMap={2:'20 min',3:'5 min'};
-    document.getElementById('track-eta').textContent=etaMap[step]||'30 min';
-    const dots=document.querySelectorAll('.step-dot');
-    const lines=document.querySelectorAll('.step-line');
-    for(let j=0;j<step;j++){dots[j]&&dots[j].classList.replace('active','done');dots[j]&&dots[j].classList.add('done');lines[j-1]&&lines[j-1].classList.add('done');}
-    dots[step]&&(dots[step].className='step-dot active');
-  },8000);
+
   showScreen('tracking-screen');
+  setTimeout(()=>initDeliveryMap(order),400);
+
+  // Auto-progress steps
+  let stepNum=1;
+  if(trackingTimer)clearInterval(trackingTimer);
+  trackingTimer=setInterval(()=>{
+    stepNum++;
+    if(stepNum>3){
+      clearInterval(trackingTimer);
+      document.getElementById('track-eta').textContent='Delivered!';
+      document.getElementById('map-eta-chip').textContent='✅ Here!';
+      document.getElementById('map-status-txt').textContent='🎉 Order Delivered!';
+      document.getElementById('map-status-sub').textContent='Enjoy your meal!';
+      steps.forEach((s,i)=>{s.done=true;s.active=false;});
+      renderTrackSteps(steps);
+      addNotif('order','🏠','Order Delivered!','Enjoy your meal! 😋',true);
+      return;
+    }
+    const etaMap={2:'~20 min',3:'~5 min'};
+    const statusMap={
+      2:{txt:'👨‍🍳 Preparing your order',sub:'Almost ready!'},
+      3:{txt:'🛵 Out for delivery!',sub:'Rider is heading your way'}
+    };
+    document.getElementById('track-eta').textContent=etaMap[stepNum];
+    document.getElementById('map-eta-chip').textContent=etaMap[stepNum];
+    if(statusMap[stepNum]){
+      document.getElementById('map-status-txt').textContent=statusMap[stepNum].txt;
+      document.getElementById('map-status-sub').textContent=statusMap[stepNum].sub;
+    }
+    for(let j=0;j<stepNum;j++){steps[j].done=true;steps[j].active=false;}
+    if(stepNum<steps.length)steps[stepNum].active=true;
+    renderTrackSteps(steps);
+  },8000);
+}
+
+function initDeliveryMap(order){
+  if(leafletMap){leafletMap.remove();leafletMap=null;}
+  if(riderAnimTimer){clearInterval(riderAnimTimer);riderAnimTimer=null;}
+
+  const dest=HYD_SPOTS[Math.floor(Math.random()*HYD_SPOTS.length)];
+  const riderStart={
+    lat:dest.lat+(Math.random()-.5)*.022,
+    lng:dest.lng+(Math.random()-.5)*.022
+  };
+
+  leafletMap=L.map('delivery-map',{
+    center:[riderStart.lat,riderStart.lng],
+    zoom:15,zoomControl:false,attributionControl:false
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
+
+  const riderIcon=L.divIcon({html:`<span class="rider-marker">🛵</span>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+  const destIcon=L.divIcon({html:`<span class="dest-marker">🏠</span>`,iconSize:[32,32],iconAnchor:[16,32],className:''});
+
+  riderMarker=L.marker([riderStart.lat,riderStart.lng],{icon:riderIcon}).addTo(leafletMap);
+  destMarker=L.marker([dest.lat,dest.lng],{icon:destIcon}).addTo(leafletMap)
+    .bindPopup(`<b>📍 Delivery Here</b><br><small>${order.address||dest.name}</small>`,{closeButton:false});
+
+  const routeLine=L.polyline(
+    [[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],
+    {color:'#d4a847',weight:3,dashArray:'8 6',opacity:.8}
+  ).addTo(leafletMap);
+
+  leafletMap.fitBounds([[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],{padding:[50,50]});
+
+  // Animate rider moving toward destination over ~2 minutes
+  let progress=0;
+  const totalSteps=120;
+  riderAnimTimer=setInterval(()=>{
+    progress++;
+    if(progress>=totalSteps){clearInterval(riderAnimTimer);riderMarker.setLatLng([dest.lat,dest.lng]);return;}
+    const t=progress/totalSteps;
+    const easedT=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // ease in-out
+    const newLat=riderStart.lat+(dest.lat-riderStart.lat)*easedT;
+    const newLng=riderStart.lng+(dest.lng-riderStart.lng)*easedT;
+    riderMarker.setLatLng([newLat,newLng]);
+    routeLine.setLatLngs([[newLat,newLng],[dest.lat,dest.lng]]);
+    if(progress%20===0)leafletMap.panTo([newLat,newLng],{animate:true,duration:.8});
+  },1000);
 }
 
 function openTrackingFromSidebar(){
@@ -1030,11 +1141,4 @@ window.addEventListener('DOMContentLoaded',async()=>{
   initParticles();
   const handled=await handleRedirect();if(handled)return;
   const sess=getSess();
-  if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);showScreen('home-screen');return;}
-  showScreen('auth-screen');
-  // Load address screen
-  setTimeout(renderAddresses,100);
-});
-</script>
-</body>
-</html>
+  if(sess){currentUser=
