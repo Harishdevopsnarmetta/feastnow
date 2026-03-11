@@ -631,14 +631,15 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     </div>
   </div>
   <div class="food-grid" id="food-grid"></div>
+</div>
 
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="showScreen('home-screen')"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-    <div class="nav-item" onclick="openNotifs()"><div class="nav-icon">🔔</div><div class="nav-label">Alerts</div><div class="nav-dot" id="nav-notif-dot"></div></div>
-    <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
-    <div class="nav-item" onclick="showScreen('address-screen')"><div class="nav-icon">📍</div><div class="nav-label">Address</div></div>
-    <div class="nav-item" onclick="openSidebar()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
-  </div>
+<!-- BOTTOM NAV — outside all screens so it never scrolls -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="showScreen('home-screen')"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+  <div class="nav-item" onclick="openNotifs()"><div class="nav-icon">🔔</div><div class="nav-label">Alerts</div><div class="nav-dot" id="nav-notif-dot"></div></div>
+  <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
+  <div class="nav-item" onclick="showScreen('address-screen')"><div class="nav-icon">📍</div><div class="nav-label">Address</div></div>
+  <div class="nav-item" onclick="openSidebar()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
 </div>
 
 <!-- ══ NOTIFICATIONS ══ -->
