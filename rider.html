@@ -284,7 +284,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <!-- Order incoming / active delivery / waiting -->
     <div id="order-area"></div>
     <!-- DEBUG PANEL -->
-    <div id="debug-panel" style="margin:16px;background:#0a1a0a;border:1px solid #00e676;border-radius:12px;padding:14px;display:none">
+    <div id="debug-panel" style="margin:16px;background:#0a1a0a;border:1px solid #00e676;border-radius:12px;padding:14px;display:block">
       <div style="font-family:Syne,sans-serif;font-size:.8rem;color:#00e676;margin-bottom:8px">🔍 Debug Info</div>
       <div id="debug-log" style="font-size:.72rem;color:#aaa;line-height:1.8;font-family:monospace"></div>
       <button onclick="runDebug()" style="margin-top:10px;background:#00e676;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">🔄 Re-check Firebase</button>
@@ -649,36 +649,49 @@ function renderOrderArea(){
 // ═══════════════════════════════════════
 let _orderListener = null;
 
-function startListeningForOrders(){
+async function startListeningForOrders(){
+  // Wait for Firebase up to 8 seconds
+  let attempts = 0;
+  while((!window._firebaseReady || !window._db) && attempts < 16){
+    await new Promise(r=>setTimeout(r,500));
+    attempts++;
+  }
+
   if(!window._firebaseReady || !window._db) {
-    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
+    debugLog('⚠️ Firebase not ready — using demo mode');
+    showToast('⚠️ Demo mode — Firebase not connected');
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 2000);
     return;
   }
   if(_orderListener) _orderListener(); // unsub previous
 
-  console.log('👂 Listening for real orders from Firestore...');
+  debugLog('👂 Listening for real orders from Firestore...');
+  showToast('🔥 Connected to Firebase — watching for orders...');
 
   // Simple query — no orderBy to avoid index requirement
   _orderListener = window._db.collection('orders')
     .where('status','==','pending_rider')
     .onSnapshot(snap=>{
-      if(!isOnline || currentOrder) return;
-      console.log('📦 Firestore snapshot:', snap.docs.length, 'pending orders');
+      debugLog('📦 Snapshot: ' + snap.docs.length + ' pending orders, isOnline=' + isOnline + ' hasOrder=' + !!currentOrder);
+      if(!isOnline) return;  // removed currentOrder check so new orders always show
+      if(currentOrder && deliveryPhase > 0) return; // only block if actively delivering
       
-      // Show the most recent pending order
       if(snap.docs.length > 0){
         // Sort by createdAt client-side (most recent first)
         const sorted = snap.docs
           .map(d=>({id:d.id,...d.data()}))
           .sort((a,b)=>{
-            const ta = a.createdAt?.toMillis?.() || 0;
-            const tb = b.createdAt?.toMillis?.() || 0;
+            const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+            const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
             return tb - ta;
           });
+        debugLog('🎯 Showing order: ' + sorted[0].id + ' from ' + sorted[0].userName);
         showRealOrder(sorted[0]);
+      } else {
+        debugLog('ℹ️ No pending orders right now');
       }
     }, err=>{ 
-      console.warn('Order listener error:', err);
+      debugLog('❌ Listener error: ' + err.message + ' code=' + err.code);
       // Fallback to demo
       setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 3000);
     });
@@ -732,12 +745,8 @@ function showDemoOrder(){
 }
 
 function showIncomingOrder(){
-  // Use real Firebase orders if available, else demo
-  if(window._firebaseReady && window._db){
-    startListeningForOrders();
-  } else {
-    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
-  }
+  // Always try real Firebase first (startListeningForOrders now awaits Firebase internally)
+  startListeningForOrders();
 }
 
 function showIncomingOrderCard(){
