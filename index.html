@@ -51,6 +51,16 @@
             console.log('✅ Firebase + Firestore + RTDB ready');
             // Load dynamic data from Firestore
             loadDynamicData();
+            // Show Firebase status indicator
+            setTimeout(()=>{
+              const el = document.getElementById('fb-status');
+              if(el) el.textContent = '🔥 Firebase: Connected';
+              console.log('✅ Firebase fully ready - db:', !!window._db, 'rtdb:', !!window._rtdb);
+              // Test write immediately
+              window._db.collection('_test').doc('ping').set({t: Date.now()})
+                .then(()=>console.log('✅ Firestore write test PASSED'))
+                .catch(e=>console.error('❌ Firestore write test FAILED:', e.message));
+            }, 500);
           }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
         });
       });
@@ -2802,8 +2812,8 @@ function doCheckout(){
   addNotif('order','📦','Order Placed!','Your order #'+orderId+' is confirmed. Estimated delivery: 30 min.',true);
   showToast('🎉 Order #'+orderId+' placed!');
   // 🔥 Save order + user to Firestore dynamically
-  if(typeof saveOrderToFirestore==='function') saveOrderToFirestore(order);
-  if(typeof saveUserToFirestore==='function' && currentUser) saveUserToFirestore(currentUser);
+  if(typeof window.saveOrderToFirestore==='function') window.saveOrderToFirestore(order);
+  if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
   setTimeout(()=>openTracking(order),600);
 }
 
@@ -3413,8 +3423,8 @@ function processPayment(){
     };
     orders=[order,...getOrders()];saveOrders(orders);
     // 🔥 Save to Firestore so rider app picks it up
-    if(typeof saveOrderToFirestore==='function') saveOrderToFirestore(order);
-    if(typeof saveUserToFirestore==='function' && currentUser) saveUserToFirestore(currentUser);
+    if(typeof window.saveOrderToFirestore==='function') window.saveOrderToFirestore(order);
+    if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
     cart=[];appliedPromo=null;discount=0;tipAmount=0;useFeastCoins=false;
     saveCart(cart);updateCartBadge();
     if(coinsOff>0){loyPts=Math.max(0,loyPts-coinsOff);saveLoyalty();updateLoyaltyUI();}
@@ -4089,18 +4099,26 @@ async function loadDynamicData(){
 }
 
 // ── Save order to Firestore ──
-async function saveOrderToFirestore(order){
-  // Retry up to 5 times waiting for Firebase to be ready
+window.saveOrderToFirestore = async function saveOrderToFirestore(order){
+  console.log('🔄 saveOrderToFirestore called, order:', order.id);
+  console.log('📊 Firebase state - ready:', window._firebaseReady, 'db:', !!window._db);
+  
+  // Wait for Firebase up to 8 seconds
   let attempts = 0;
-  while((!window._db || !window._firebaseReady) && attempts < 10){
+  while((!window._db || !window._firebaseReady) && attempts < 16){
+    console.log('⏳ Waiting for Firebase... attempt', attempts+1);
     await new Promise(r=>setTimeout(r,500));
     attempts++;
   }
+  
   if(!window._db || !window._firebaseReady){
-    console.warn('❌ Firebase not ready after retries - order not saved to Firestore');
+    console.error('❌ Firebase STILL not ready after 8s! db:', !!window._db, 'ready:', window._firebaseReady);
+    showToast('⚠️ Firebase not connected - order saved locally only');
     return;
   }
+  
   try{
+    console.log('📝 Writing order to Firestore...');
     const orderData = {
       id: order.id,
       userId: currentUser?.id || 'guest',
@@ -4109,32 +4127,45 @@ async function saveOrderToFirestore(order){
       items: order.items || [],
       subtotal: order.subtotal || 0,
       total: order.total || 0,
-      discount: order.discount || 0,
-      address: order.address || '',
-      time: order.time || new Date().toLocaleString(),
       status: 'pending_rider',
-      riderId: null,
-      riderName: null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
     await window._db.collection('orders').doc(order.id).set(orderData);
-    console.log('✅ Order saved to Firestore:', order.id, orderData);
-
-    // Create RTDB tracking node
+    console.log('✅✅✅ ORDER SAVED TO FIRESTORE:', order.id);
+    showToast('🔥 Order synced to Firebase!');
+    
     if(window._rtdb){
       await window._rtdb.ref('tracking/' + order.id).set({
         status: 'pending_rider',
-        riderLat: null,
-        riderLng: null,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
       });
+      console.log('✅ RTDB tracking created');
     }
-    console.log('✅ RTDB tracking created for:', order.id);
-  } catch(e){ console.error('❌ saveOrderToFirestore error:', e.message, e); }
+  } catch(e){ 
+    console.error('❌❌❌ saveOrderToFirestore FAILED:', e.code, e.message);
+    showToast('❌ Firebase error: ' + e.message);
+  }
 }
 
+// Manual test function - call from browser console: testFirebaseWrite()
+window.testFirebaseWrite = async function(){
+  console.log('🧪 Manual Firebase test...');
+  if(!window._db){ console.error('❌ _db not available'); return; }
+  try{
+    await window._db.collection('orders').doc('TEST123').set({
+      id:'TEST123', userName:'Test', status:'pending_rider',
+      items:[], total:99, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('✅ Manual test PASSED - check Firebase console for TEST123');
+    alert('✅ Firebase write SUCCESS! Check rider app now.');
+  }catch(e){
+    console.error('❌ Manual test FAILED:', e.message);
+    alert('❌ Firebase write FAILED: ' + e.message);
+  }
+};
+
 // ── Save user to Firestore on login ──
-async function saveUserToFirestore(user){
+window.saveUserToFirestore = async function saveUserToFirestore(user){
   if(!window._db || !user) return;
   try{
     await window._db.collection('users').doc(user.id || user.uid || 'guest').set({
