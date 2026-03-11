@@ -309,25 +309,105 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .notif-clear-btn{width:100%;padding:12px;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:12px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;margin-bottom:16px}
 
 /* RESTAURANT SCREEN */
-#restaurant-screen{padding-bottom:80px}
-.rest-hero{height:220px;position:relative;overflow:hidden;flex-shrink:0}
-.rest-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:6rem;transition:transform .4s ease}
-.rest-hero:hover .rest-hero-bg{transform:scale(1.04)}
-.rest-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 0%,rgba(0,0,0,.2) 60%)}
-.rest-back{position:absolute;top:52px;left:16px;background:var(--card);backdrop-filter:blur(8px);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:1.1rem;cursor:pointer;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.2)}
-.rest-cart-fab{position:absolute;top:52px;right:16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;padding:8px 16px;display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#000;cursor:pointer;box-shadow:0 4px 16px rgba(212,168,71,.4);transition:transform .15s}
+#restaurant-screen{padding-bottom:100px;overflow-y:auto}
+.rest-hero{height:260px;position:relative;overflow:hidden;flex-shrink:0}
+.rest-hero-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:7rem;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.rest-hero-bg.zoomed{transform:scale(1.08)}
+.rest-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 5%,rgba(0,0,0,.15) 70%)}
+.rest-back{position:absolute;top:52px;left:16px;background:rgba(0,0,0,.45);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.3);z-index:5}
+.rest-cart-fab{position:fixed;bottom:90px;right:16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;padding:12px 20px;display:none;align-items:center;gap:8px;font-size:.82rem;font-weight:700;color:#000;cursor:pointer;box-shadow:0 6px 24px rgba(212,168,71,.5);transition:transform .15s,box-shadow .15s;z-index:50;animation:fabPop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fabPop{from{transform:scale(0) translateY(20px)}to{transform:scale(1) translateY(0)}}
+.rest-cart-fab.show{display:flex}
 .rest-cart-fab:active{transform:scale(.93)}
-.rest-cart-fab-count{background:rgba(0,0,0,.2);border-radius:50px;padding:1px 6px;font-size:.7rem}
-.rest-info{padding:0 20px 16px;border-bottom:1px solid var(--border);margin-bottom:4px}
-.rest-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.6rem;color:var(--text)}
-.rest-meta{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
-.rest-meta-item{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted)}
-.rest-meta-item span{color:var(--text);font-weight:500}
-.rest-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rest-cart-fab-count{background:rgba(0,0,0,.25);border-radius:50px;padding:2px 8px;font-size:.72rem}
+.rest-cart-fab-price{font-size:.78rem;opacity:.8}
+
+/* REST INFO BLOCK */
+.rest-info-block{padding:16px 20px 0}
+.rest-name{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2rem;color:var(--text);line-height:1.1;margin-bottom:6px}
+.rest-tagline{font-size:.8rem;color:var(--muted);margin-bottom:14px;font-style:italic}
+.rest-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.rest-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 8px;text-align:center}
+.rest-stat-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.15rem;color:var(--gold)}
+.rest-stat-lbl{font-size:.6rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.rest-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .rest-tag{padding:4px 10px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.15);border-radius:50px;font-size:.7rem;color:var(--gold)}
-.rest-offer-strip{display:flex;gap:8px;padding:10px 20px 0;overflow-x:auto;scrollbar-width:none}
+.rest-status-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.rest-open-badge{display:flex;align-items:center;gap:5px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);border-radius:50px;padding:4px 12px;font-size:.72rem;color:var(--green);font-weight:600}
+.rest-open-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease infinite}
+.rest-pure-veg{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.25);border-radius:50px;padding:4px 10px;font-size:.7rem;color:var(--green)}
+
+/* OFFER STRIP */
+.rest-offer-strip{display:flex;gap:8px;padding:0 20px 14px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
 .rest-offer-strip::-webkit-scrollbar{display:none}
-.rest-offer-pill{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:50px;padding:5px 12px;font-size:.7rem;color:var(--green);font-weight:500}
+.rest-offer-pill{flex:0 0 auto;display:flex;align-items:center;gap:5px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:50px;padding:6px 12px;font-size:.72rem;color:var(--green);font-weight:500;white-space:nowrap}
+
+/* MENU CATEGORY TABS */
+.rest-menu-header{padding:16px 20px 0;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.rest-menu-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.rest-menu-count{font-size:.75rem;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400}
+.rest-cat-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:12px}
+.rest-cat-tabs::-webkit-scrollbar{display:none}
+.rest-cat-tab{flex:0 0 auto;padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:50px;font-size:.75rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.rest-cat-tab.active{background:linear-gradient(135deg,var(--gold3),var(--gold));border-color:var(--gold);color:#000}
+
+/* VEG FILTER */
+.rest-veg-toggle{display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border)}
+.rest-veg-lbl{font-size:.78rem;color:var(--muted);flex:1}
+.rest-veg-switch{position:relative;width:44px;height:24px;background:var(--border);border-radius:50px;cursor:pointer;transition:background .3s;flex-shrink:0}
+.rest-veg-switch.on{background:var(--green)}
+.rest-veg-knob{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .3s cubic-bezier(.34,1.4,.64,1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.rest-veg-switch.on .rest-veg-knob{transform:translateX(20px)}
+
+/* MENU LIST ITEMS */
+.rest-menu-body{padding:8px 20px}
+.rest-section-head{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);padding:16px 0 10px;display:flex;align-items:center;gap:8px}
+.rest-section-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.rest-menu-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);animation:fadeUp .3s ease backwards}
+.rest-menu-item:last-child{border-bottom:none}
+.rmi-info{flex:1;min-width:0}
+.rmi-badges{display:flex;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+.rmi-veg-dot{width:16px;height:16px;border:1.5px solid var(--green);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rmi-veg-dot::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--green)}
+.rmi-nveg-dot{width:16px;height:16px;border:1.5px solid var(--red);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rmi-nveg-dot::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--red)}
+.rmi-badge{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:50px;background:rgba(212,168,71,.12);border:1px solid rgba(212,168,71,.2);color:var(--gold);letter-spacing:.04em}
+.rmi-badge.best{background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2);color:var(--green)}
+.rmi-name{font-weight:600;font-size:.95rem;color:var(--text);margin-bottom:4px;line-height:1.3}
+.rmi-desc{font-size:.75rem;color:var(--muted);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rmi-bottom{display:flex;align-items:center;gap:10px}
+.rmi-price{font-weight:700;font-size:1rem;color:var(--text)}
+.rmi-rating{font-size:.7rem;color:var(--muted)}
+.rmi-img{width:100px;height:100px;border-radius:14px;flex-shrink:0;position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:3rem}
+.rmi-img-overlay{position:absolute;inset:0;background:linear-gradient(135deg,var(--card2),transparent)}
+.rmi-add-btn{position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:0 0 14px 14px;width:100%;padding:6px 0;font-size:.75rem;font-weight:700;color:#000;cursor:pointer;transition:all .15s;letter-spacing:.02em}
+.rmi-add-btn:active{background:var(--gold2)}
+.rmi-qty-ctrl{position:absolute;bottom:-1px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--gold3),var(--gold));border-radius:0 0 14px 14px;padding:4px 6px;display:none}
+.rmi-qty-ctrl.show{display:flex}
+.rmi-qty-btn{background:rgba(0,0,0,.2);border:none;border-radius:6px;width:24px;height:22px;color:#000;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.rmi-qty-num{font-weight:700;font-size:.82rem;color:#000}
+
+/* REVIEWS SECTION */
+.rest-reviews-wrap{padding:0 20px 20px}
+.rest-reviews-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--text);margin-bottom:14px;padding-top:4px}
+.rest-rating-big{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px}
+.rrb-score{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:700;color:var(--gold);line-height:1}
+.rrb-stars{font-size:1.1rem;margin-bottom:4px}
+.rrb-count{font-size:.72rem;color:var(--muted)}
+.rrb-bars{flex:1}
+.rrb-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.rrb-bar-lbl{font-size:.65rem;color:var(--muted);width:10px;text-align:right;flex-shrink:0}
+.rrb-bar-track{flex:1;height:5px;background:var(--border);border-radius:50px;overflow:hidden}
+.rrb-bar-fill{height:100%;background:linear-gradient(to right,var(--gold3),var(--gold));border-radius:50px;transition:width .8s ease}
+.rest-review-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;animation:fadeUp .35s ease backwards}
+.rrc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rrc-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#000;flex-shrink:0}
+.rrc-name{font-weight:600;font-size:.85rem;color:var(--text)}
+.rrc-stars{font-size:.75rem;margin-top:1px}
+.rrc-time{font-size:.65rem;color:var(--muted);margin-left:auto}
+.rrc-text{font-size:.82rem;color:var(--muted);line-height:1.6}
+.rrc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.rrc-tag{font-size:.65rem;padding:3px 8px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.15);border-radius:50px;color:var(--gold)}
 
 /* ADMIN SCREEN */
 #admin-screen{padding-bottom:40px}
@@ -1027,34 +1107,71 @@ body.logged-in #chat-fab{display:flex}
 
 <!-- ══ RESTAURANT DETAIL ══ -->
 <div class="screen" id="restaurant-screen">
+  <!-- Hero -->
   <div class="rest-hero" id="rest-hero">
     <div class="rest-hero-bg" id="rest-hero-bg"></div>
     <div class="rest-hero-overlay"></div>
     <button class="rest-back" onclick="showScreen('home-screen')">←</button>
-    <button class="rest-cart-fab" onclick="openCart()" id="rest-cart-fab" style="display:none">🛒 Cart <span class="rest-cart-fab-count" id="rest-cart-fab-count">0</span></button>
   </div>
-  <div class="rest-info">
+
+  <!-- Info Block -->
+  <div class="rest-info-block">
     <div class="rest-name" id="rest-name">Restaurant</div>
-    <div class="rest-meta">
-      <div class="rest-meta-item">⭐ <span id="rest-rating">4.5</span></div>
-      <div class="rest-meta-item">🕐 <span id="rest-time">25-30 min</span></div>
-      <div class="rest-meta-item">🛵 <span>Free delivery</span></div>
-      <div class="rest-meta-item">📍 <span id="rest-area">Banjara Hills</span></div>
+    <div class="rest-tagline" id="rest-tagline">Authentic flavours, delivered fresh</div>
+    <div class="rest-stats-row">
+      <div class="rest-stat"><div class="rest-stat-val" id="rst-rating">4.5</div><div class="rest-stat-lbl">⭐ Rating</div></div>
+      <div class="rest-stat"><div class="rest-stat-val" id="rst-time">30m</div><div class="rest-stat-lbl">🕐 Delivery</div></div>
+      <div class="rest-stat"><div class="rest-stat-val" id="rst-orders">1.2k</div><div class="rest-stat-lbl">📦 Orders</div></div>
+      <div class="rest-stat"><div class="rest-stat-val">FREE</div><div class="rest-stat-lbl">🛵 Delivery</div></div>
+    </div>
+    <div class="rest-status-row">
+      <div class="rest-open-badge"><div class="rest-open-dot"></div>Open Now</div>
+      <div id="rest-pure-veg-badge"></div>
     </div>
     <div class="rest-tags" id="rest-tags"></div>
   </div>
-  <div class="rest-offer-strip">
+
+  <!-- Offer Strip -->
+  <div class="rest-offer-strip" id="rest-offer-strip">
     <div class="rest-offer-pill">🎉 50% off up to ₹100</div>
     <div class="rest-offer-pill">🛵 Free delivery</div>
-    <div class="rest-offer-pill">⚡ 20–30 min</div>
     <div class="rest-offer-pill">💳 5% cashback on UPI</div>
+    <div class="rest-offer-pill">⚡ Fast delivery</div>
   </div>
-  <div class="section" style="margin-top:16px">
-    <div class="section-row"><div class="section-title">Menu</div></div>
+
+  <!-- Sticky Menu Header with category tabs -->
+  <div class="rest-menu-header">
+    <div class="rest-menu-title">
+      Menu
+      <span class="rest-menu-count" id="rest-menu-count"></span>
+    </div>
+    <div class="rest-cat-tabs" id="rest-cat-tabs"></div>
   </div>
-  <div class="food-grid" id="rest-food-grid"></div>
-  <div style="height:20px"></div>
+
+  <!-- Veg toggle -->
+  <div class="rest-veg-toggle">
+    <span class="rest-veg-lbl">🟢 Veg Only</span>
+    <div class="rest-veg-switch" id="rest-veg-switch" onclick="toggleRestVeg()">
+      <div class="rest-veg-knob"></div>
+    </div>
+  </div>
+
+  <!-- Menu Items -->
+  <div class="rest-menu-body" id="rest-menu-body"></div>
+
+  <!-- Reviews -->
+  <div class="rest-reviews-wrap">
+    <div class="rest-reviews-title">Ratings & Reviews</div>
+    <div class="rest-rating-big" id="rest-rating-big"></div>
+    <div id="rest-reviews-list"></div>
+  </div>
 </div>
+
+<!-- Floating cart FAB (outside screen so it stays fixed) -->
+<button class="rest-cart-fab" onclick="openCart()" id="rest-cart-fab">
+  🛒 <span id="rest-cart-fab-count">0</span> items
+  <span class="rest-cart-fab-price" id="rest-cart-fab-price"></span>
+</button>
 
 <!-- ══ ADMIN ══ -->
 <div class="screen" id="admin-screen">
@@ -1852,20 +1969,276 @@ function saveProfile(){
   showToast('✅ Profile saved!');
 }
 
-// RESTAURANT DETAIL
-function openRestaurant(restName){
-  const r=RESTAURANTS[restName];if(!r)return;
-  document.getElementById('rest-name').textContent=restName;
-  document.getElementById('rest-rating').textContent=r.rating;
-  document.getElementById('rest-time').textContent=r.time;
-  document.getElementById('rest-area').textContent=r.area;
-  document.getElementById('rest-hero-bg').style.background=`linear-gradient(135deg,${r.bg},${r.bg}99)`;
-  document.getElementById('rest-hero-bg').innerHTML=`<span style="font-size:6rem;filter:drop-shadow(0 0 30px rgba(212,168,71,.3))">${r.emoji}</span>`;
-  document.getElementById('rest-tags').innerHTML=r.tags.map(t=>`<div class="rest-tag">${t}</div>`).join('');
-  const restFoods=FOOD_DATA.filter(f=>f.rest===restName);
-  renderFoods(restFoods,'rest-food-grid');
+// ── RESTAURANT DETAIL ──────────────────────────────────
+let restVegOnly = false;
+let restCurrentCat = 'all';
+let restName = '';
+
+const REST_TAGLINES = {
+  'Pizza Palace':'Wood-fired perfection, every single slice',
+  'BurgerCo':'Stacked high, loaded with flavour',
+  'Bawarchi':'Hyderabad\'s most legendary biryani since 1973',
+  'Wok Express':'Asian street food, express delivered',
+  'Sweet Spot':'Life is short, eat dessert first',
+  'Desi Drinks':'Fresh, chilled, and totally desi',
+  'Paradise':'The original Hyderabadi biryani experience',
+  'Café Mocha':'Good coffee, great vibes',
+  'Spice Garden':'Traditional Indian recipes, modern kitchen',
+  'Taco Fiesta':'Fiesta in every bite',
+  'Sushi Hub':'Japan in every roll',
+  'Kebab King':'Smoky, juicy, royal kebabs',
+  'The Sandwich Co.':'Fresh ingredients, big flavours',
+  'Ice Cream Factory':'Scoops of happiness, daily',
+  'South Spice':'Authentic South Indian, made with love',
+  'The Grill House':'Fire-kissed flavours for meat lovers',
+  'Pasta Prima':'Al dente pasta, Italian soul',
+  'Pav Bhaji Point':'Mumbai on your plate',
+  'Thai Orchid':'Thai street food, Hyderabad heart',
+  'Rolls Republic':'Roll into flavour',
+};
+
+const FAKE_REVIEWS = [
+  {name:'Arjun K.',stars:5,time:'2 days ago',text:'Absolutely amazing food! Arrived hot and fresh. Will definitely order again.',tags:['Fast Delivery','Hot Food']},
+  {name:'Priya S.',stars:4,time:'1 week ago',text:'Loved the taste. Packaging was great. Just slightly late on delivery.',tags:['Great Taste','Good Packaging']},
+  {name:'Rahul M.',stars:5,time:'3 days ago',text:'Best restaurant on FeastNow hands down. Every item was cooked to perfection.',tags:['Must Try','Value for Money']},
+  {name:'Sneha R.',stars:4,time:'5 days ago',text:'Consistent quality. The portion sizes are generous and prices are fair.',tags:['Good Portions','Fair Price']},
+  {name:'Vikram P.',stars:5,time:'Yesterday',text:'Ordered twice this week already! The flavors are just unmatched.',tags:['Addictive','Fresh']},
+];
+
+function openRestaurant(name) {
+  const r = RESTAURANTS[name]; if(!r) return;
+  restName = name;
+  restVegOnly = false;
+  restCurrentCat = 'all';
+
+  // Hero
+  document.getElementById('rest-hero-bg').style.background = `linear-gradient(135deg,${r.bg} 0%,${r.bg}cc 100%)`;
+  document.getElementById('rest-hero-bg').innerHTML = `<span style="font-size:7rem;filter:drop-shadow(0 0 40px rgba(212,168,71,.4))">${r.emoji}</span>`;
+  setTimeout(()=>document.getElementById('rest-hero-bg').classList.add('zoomed'),100);
+
+  // Info
+  document.getElementById('rest-name').textContent = name;
+  document.getElementById('rest-tagline').textContent = REST_TAGLINES[name] || 'Fresh food, fast delivery';
+  document.getElementById('rst-rating').textContent = r.rating;
+  document.getElementById('rst-time').textContent = r.time.split('-')[0]+'m';
+  document.getElementById('rst-orders').textContent = (Math.floor(Math.random()*5)+1)+'.'+(Math.floor(Math.random()*9))+'k';
+  document.getElementById('rest-tags').innerHTML = r.tags.map(t=>`<div class="rest-tag">${t}</div>`).join('');
+
+  // Pure veg badge
+  const restFoods = FOOD_DATA.filter(f=>f.rest===name);
+  const allVeg = restFoods.every(f=>f.veg);
+  const pvb = document.getElementById('rest-pure-veg-badge');
+  pvb.innerHTML = allVeg ? '<div class="rest-pure-veg">🟢 Pure Veg</div>' : '';
+
+  // Veg toggle reset
+  restVegOnly = false;
+  document.getElementById('rest-veg-switch').classList.remove('on');
+
+  // Build category tabs from this restaurant's items
+  buildRestCatTabs(restFoods);
+
+  // Render menu
+  renderRestMenu(restFoods);
+
+  // Rating big block
+  renderRestRating(r.rating);
+
+  // Reviews
+  renderRestReviews();
+
+  // Update cart FAB
+  updateRestCartFab();
+
   showScreen('restaurant-screen');
+  // Scroll to top
+  setTimeout(()=>document.getElementById('restaurant-screen').scrollTop=0, 50);
 }
+
+function buildRestCatTabs(foods) {
+  const cats = ['all', ...new Set(foods.map(f=>f.cat))];
+  const labels = {all:'All',pizza:'🍕 Pizza',burger:'🍔 Burgers',biryani:'🍛 Biryani',noodles:'🍜 Noodles',dessert:'🍰 Desserts',drinks:'🥤 Drinks'};
+  const wrap = document.getElementById('rest-cat-tabs');
+  wrap.innerHTML = cats.map(c=>`
+    <div class="rest-cat-tab${c==='all'?' active':''}" onclick="setRestCat('${c}',this)">
+      ${labels[c]||c}
+    </div>`).join('');
+}
+
+function setRestCat(cat, el) {
+  restCurrentCat = cat;
+  document.querySelectorAll('.rest-cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const foods = FOOD_DATA.filter(f=>f.rest===restName);
+  renderRestMenu(foods);
+}
+
+function toggleRestVeg() {
+  restVegOnly = !restVegOnly;
+  document.getElementById('rest-veg-switch').classList.toggle('on', restVegOnly);
+  const foods = FOOD_DATA.filter(f=>f.rest===restName);
+  renderRestMenu(foods);
+}
+
+function renderRestMenu(allFoods) {
+  let foods = allFoods.filter(f => {
+    const catOk = restCurrentCat==='all' || f.cat===restCurrentCat;
+    const vegOk = !restVegOnly || f.veg;
+    return catOk && vegOk;
+  });
+
+  document.getElementById('rest-menu-count').textContent = foods.length + ' items';
+
+  if(!foods.length) {
+    document.getElementById('rest-menu-body').innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+        <div style="font-size:2.5rem;margin-bottom:10px">🥗</div>
+        <div style="font-weight:600;color:var(--text)">No items found</div>
+        <div style="font-size:.8rem;margin-top:4px">Try removing the veg filter</div>
+      </div>`;
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  foods.forEach(f => {
+    if(!groups[f.cat]) groups[f.cat] = [];
+    groups[f.cat].push(f);
+  });
+
+  const catNames = {pizza:'Pizza',burger:'Burgers & Wraps',biryani:'Rice & Biryani',noodles:'Noodles & Asian',dessert:'Desserts',drinks:'Drinks'};
+  const showHeaders = restCurrentCat === 'all' && Object.keys(groups).length > 1;
+
+  let html = '';
+  Object.entries(groups).forEach(([cat, items]) => {
+    if(showHeaders) html += `<div class="rest-section-head">${catNames[cat]||cat}</div>`;
+    items.forEach((f, i) => {
+      const inCart = cart.find(c=>c.id===f.id);
+      const qty = inCart ? inCart.qty : 0;
+      const descs = {
+        1:'Classic tomato base, mozzarella, fresh basil. A timeless favourite.',
+        2:'Smoky BBQ sauce, crispy chicken, cheddar, pickles.',
+        3:'Dum-cooked with aged basmati, whole spices, saffron.',
+        4:'Stir-fried noodles with vegetables in Hakka sauce.',
+        5:'Molten chocolate centre, served with vanilla ice cream.',
+        6:'Fresh mango blended with chilled creamy yogurt.',
+      };
+      const desc = descs[f.id] || `${f.veg?'Veg':'Non-veg'} · ${f.cat} · Freshly prepared`;
+      html += `
+        <div class="rest-menu-item" style="animation-delay:${i*0.04}s">
+          <div class="rmi-info">
+            <div class="rmi-badges">
+              <div class="${f.veg?'rmi-veg-dot':'rmi-nveg-dot'}"></div>
+              ${f.badge?`<span class="rmi-badge${f.badge.includes('Bestseller')||f.badge.includes('#1')||f.badge.includes('Must')?' best':''}">${f.badge}</span>`:''}
+            </div>
+            <div class="rmi-name">${f.name}</div>
+            <div class="rmi-desc">${desc}</div>
+            <div class="rmi-bottom">
+              <div class="rmi-price">₹${f.price}</div>
+              <div class="rmi-rating">⭐ ${f.rating}</div>
+            </div>
+          </div>
+          <div class="rmi-img">
+            <span style="position:relative;z-index:1">${f.emoji}</span>
+            <div class="rmi-img-overlay"></div>
+            ${qty===0
+              ? `<button class="rmi-add-btn" onclick="restAddToCart(${f.id})">+ ADD</button>`
+              : `<div class="rmi-qty-ctrl show" id="rqc-${f.id}">
+                  <button class="rmi-qty-btn" onclick="restChangeQty(${f.id},-1)">−</button>
+                  <span class="rmi-qty-num">${qty}</span>
+                  <button class="rmi-qty-btn" onclick="restChangeQty(${f.id},1)">+</button>
+                 </div>`
+            }
+          </div>
+        </div>`;
+    });
+  });
+
+  document.getElementById('rest-menu-body').innerHTML = html;
+}
+
+function restAddToCart(id) {
+  addToCart(id);
+  updateRestCartFab();
+  // Swap add button to qty ctrl
+  const f = FOOD_DATA.find(x=>x.id===id);
+  const item = event.target.closest('.rmi-img');
+  if(item) {
+    item.querySelector('.rmi-add-btn').style.display='none';
+    const ctrl = document.createElement('div');
+    ctrl.className='rmi-qty-ctrl show';
+    ctrl.id='rqc-'+id;
+    ctrl.innerHTML=`<button class="rmi-qty-btn" onclick="restChangeQty(${id},-1)">−</button><span class="rmi-qty-num">1</span><button class="rmi-qty-btn" onclick="restChangeQty(${id},1)">+</button>`;
+    item.appendChild(ctrl);
+  }
+}
+
+function restChangeQty(id, delta) {
+  changeQty(id, delta);
+  updateRestCartFab();
+  // Update qty display
+  const ctrl = document.getElementById('rqc-'+id);
+  const inCart = cart.find(c=>c.id===id);
+  if(!inCart) {
+    // Item removed — restore add button
+    const foods = FOOD_DATA.filter(f=>f.rest===restName);
+    renderRestMenu(foods);
+    return;
+  }
+  if(ctrl) {
+    const numEl = ctrl.querySelector('.rmi-qty-num');
+    if(numEl) numEl.textContent = inCart.qty;
+  }
+}
+
+function updateRestCartFab() {
+  const fab = document.getElementById('rest-cart-fab');
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  const value = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  if(total > 0) {
+    fab.classList.add('show');
+    document.getElementById('rest-cart-fab-count').textContent = total;
+    document.getElementById('rest-cart-fab-price').textContent = '· ₹'+value;
+  } else {
+    fab.classList.remove('show');
+  }
+}
+
+function renderRestRating(rating) {
+  const count = Math.floor(Math.random()*800)+200;
+  const bars = [5,4,3,2,1].map(s=>{
+    const pct = s===5?55:s===4?28:s===3?10:s===2?4:3;
+    return `<div class="rrb-bar-row">
+      <div class="rrb-bar-lbl">${s}</div>
+      <div class="rrb-bar-track"><div class="rrb-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  const stars = '⭐'.repeat(Math.round(rating));
+  document.getElementById('rest-rating-big').innerHTML = `
+    <div>
+      <div class="rrb-score">${rating}</div>
+      <div class="rrb-stars">${stars}</div>
+      <div class="rrb-count">${count}+ ratings</div>
+    </div>
+    <div class="rrb-bars">${bars}</div>`;
+}
+
+function renderRestReviews() {
+  const reviews = FAKE_REVIEWS.sort(()=>Math.random()-.5).slice(0,3);
+  document.getElementById('rest-reviews-list').innerHTML = reviews.map((rv,i)=>`
+    <div class="rest-review-card" style="animation-delay:${i*.08}s">
+      <div class="rrc-top">
+        <div class="rrc-av">${rv.name.charAt(0)}</div>
+        <div>
+          <div class="rrc-name">${rv.name}</div>
+          <div class="rrc-stars">${'⭐'.repeat(rv.stars)}${'☆'.repeat(5-rv.stars)}</div>
+        </div>
+        <div class="rrc-time">${rv.time}</div>
+      </div>
+      <div class="rrc-text">${rv.text}</div>
+      <div class="rrc-tags">${rv.tags.map(t=>`<span class="rrc-tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+// ──────────────────────────────────────────────────────
 
 // SIDEBAR
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('open');}
@@ -1897,13 +2270,10 @@ function addToCart(id){
 function updateCartBadge(){
   const t=cart.reduce((s,i)=>s+i.qty,0);
   const b=document.getElementById('cart-badge');b.textContent=t;b.classList.toggle('show',t>0);
-  // count pill in cart header
   const pill=document.getElementById('cart-count-pill');
   if(pill){pill.textContent=t+' item'+(t!==1?'s':'');pill.style.display=t>0?'inline-flex':'none';}
-  // floating cart FAB on restaurant screen
-  const fab=document.getElementById('rest-cart-fab');
-  const fabCount=document.getElementById('rest-cart-fab-count');
-  if(fab){fab.style.display=t>0?'flex':'none';if(fabCount)fabCount.textContent=t;}
+  // sync restaurant FAB
+  if(typeof updateRestCartFab==='function') updateRestCartFab();
 }
 function openCart(){document.getElementById('cart-panel').classList.add('open');renderCart();}
 function closeCart(){document.getElementById('cart-panel').classList.remove('open');}
@@ -2304,7 +2674,7 @@ function selectPayMethod(method,el){
 }
 
 // ── UPI DEEP LINK + QR ─────────────────────────────────
-const FEAST_UPI_VPA = 'ismart.youtube@ybl';       // ← replace with your real VPA
+const FEAST_UPI_VPA = 'feastnow@upi';       // ← replace with your real VPA
 const FEAST_PAYEE   = 'FeastNow';
 
 let upiCurrentTab = 'qr';
