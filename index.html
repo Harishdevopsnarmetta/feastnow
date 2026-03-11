@@ -1833,6 +1833,7 @@ function addToCart(id){
   const f=FOOD_DATA.find(x=>x.id===id);if(!f)return;
   const ex=cart.find(c=>c.id===id);if(ex)ex.qty++;else cart.push({...f,qty:1});
   saveCart(cart);updateCartBadge();showToast('✅ '+f.name+' added!');
+  SFX.addToCart();
 }
 function updateCartBadge(){
   const t=cart.reduce((s,i)=>s+i.qty,0);
@@ -1969,6 +1970,7 @@ function openTracking(order){
       document.getElementById('map-status-sub').textContent='Enjoy your meal!';
       steps.forEach((s,i)=>{s.done=true;s.active=false;});
       renderTrackSteps(steps);
+      SFX.delivered();
       addNotif('order','🏠','Order Delivered!','Enjoy your meal! 😋',true);
       return;
     }
@@ -1977,6 +1979,7 @@ function openTracking(order){
       2:{txt:'👨‍🍳 Preparing your order',sub:'Almost ready!'},
       3:{txt:'🛵 Out for delivery!',sub:'Rider is heading your way'}
     };
+    if(stepNum===3) SFX.outForDelivery();
     document.getElementById('track-eta').textContent=etaMap[stepNum];
     document.getElementById('map-eta-chip').textContent=etaMap[stepNum];
     if(statusMap[stepNum]){
@@ -2246,6 +2249,7 @@ function processPayment(){
   // Show inline processing overlay
   const overlay=document.getElementById('pay-proc-overlay');
   overlay.classList.add('show');
+  SFX.processing();
   const steps=[document.getElementById('pps-1'),document.getElementById('pps-2'),document.getElementById('pps-3')];
   steps.forEach(s=>{s.className='pay-proc-step';s.querySelector('.pay-proc-step-dot').textContent=s.id.replace('pps-','');});
   let si=0;
@@ -2280,6 +2284,7 @@ function processPayment(){
     addLoyaltyPts(finalTotal);
     fireOrderNotifications(order);
     showSuccessScreen(order);
+    setTimeout(()=>SFX.coins(), 800);
     pendingOrder=null;
     setTimeout(()=>prepareRatings(order),3000);
   },2100);
@@ -2299,6 +2304,7 @@ function showSuccessScreen(order){
   // Launch confetti
   launchConfetti();
   launchSparkles();
+  SFX.orderConfirmed();
   document.getElementById('pay-success').classList.add('show');
   // Scratch card after 2s
   setTimeout(openScratchCard,2200);
@@ -2938,7 +2944,7 @@ function initCanvas(prize){
   ctx.fillStyle=g;ctx.fillRect(0,0,240,115);
   ctx.font='bold 14px sans-serif';ctx.fillStyle='rgba(0,0,0,.35)';ctx.textAlign='center';ctx.fillText('✦ SCRATCH HERE ✦',120,62);
   var drawn=false,count=0;
-  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.fill();count++;if(count>22&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();}}}
+  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.fill();count++;if(count>22&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';SFX.scratchReveal();if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();SFX.coins();}}}
   function getPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;return{x:(e.clientX-r.left)*scaleX,y:(e.clientY-r.top)*scaleY};}
   function getTouchPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;var t=e.touches[0];return{x:(t.clientX-r.left)*scaleX,y:(t.clientY-r.top)*scaleY};}
   var dn=false;
@@ -2994,6 +3000,46 @@ function submitRatings(){
 
 // ── WISHLIST NAV SHORTCUT ─────────────────────────
 function goWishlist(){openWishlist();}
+
+// ── SOUND ENGINE (Web Audio API) ──────────────────────
+const SFX = (() => {
+  let ctx = null;
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function play(notes, type='sine', vol=0.18) {
+    try {
+      const c = getCtx();
+      notes.forEach(([freq, start, dur, endFreq]) => {
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.connect(gain); gain.connect(c.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, c.currentTime + start);
+        if (endFreq) osc.frequency.linearRampToValueAtTime(endFreq, c.currentTime + start + dur);
+        gain.gain.setValueAtTime(vol, c.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + start + dur);
+        osc.start(c.currentTime + start);
+        osc.stop(c.currentTime + start + dur + 0.01);
+      });
+    } catch(e) {}
+  }
+  return {
+    addToCart()    { play([[520,0,0.06],[780,0.07,0.08]],'sine',0.12); },
+    processing()   { play([[200,0,0.15,400],[400,0.1,0.2,600],[600,0.25,0.15,500]],'sine',0.1); },
+    orderConfirmed(){ play([[523.25,0,0.15],[659.25,0.18,0.15],[783.99,0.36,0.25],[1046.5,0.54,0.4]],'sine',0.2); },
+    outForDelivery(){ play([[880,0,0.12],[1100,0.15,0.18]],'triangle',0.13); },
+    delivered()    {
+      play([[523.25,0,0.1],[659.25,0.12,0.1],[783.99,0.24,0.1],[1046.5,0.36,0.12],[1318.5,0.5,0.12],[1046.5,0.65,0.08],[1318.5,0.75,0.35]],'sine',0.18);
+      play([[392,0,0.1],[523.25,0.12,0.1],[659.25,0.24,0.3]],'triangle',0.08);
+    },
+    scratchReveal(){ play([[400,0,0.08,800],[800,0.1,0.08,600],[600,0.2,0.15],[900,0.38,0.3]],'sine',0.14); },
+    coins()        { play([[1200,0,0.06],[1500,0.08,0.06],[1800,0.16,0.1]],'sine',0.1); }
+  };
+})();
+// ──────────────────────────────────────────────────────
 
 // ── BOOT HOOK ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded',function(){
