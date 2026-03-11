@@ -10,6 +10,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0d0d0d;--card:#161616;--card2:#1e1e1e;--gold:#d4a847;--gold2:#f0c96a;--gold3:#8a6a1a;--text:#f0ece4;--muted:#6b6560;--border:#2a2520;--green:#27ae60;--red:#e74c3c;--blue:#3498db;--r:18px}
+body.light{--bg:#f5f0eb;--card:#ffffff;--card2:#f0ebe4;--text:#1a1208;--muted:#8a7a6a;--border:#e0d5c5;--gold3:#b8902a}
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
 #app{width:100%;height:100dvh;position:relative;overflow:hidden}
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;transform:translateY(20px);background:var(--bg);overflow-y:auto}
@@ -412,6 +413,80 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .rc-text{font-size:.82rem;color:rgba(240,236,228,.7);line-height:1.5}
 
 
+
+/* DARK/LIGHT TOGGLE */
+.theme-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--card2);border-radius:14px;margin:0 24px 8px;cursor:pointer}
+.theme-toggle-label{font-size:.85rem;color:var(--text);font-weight:500}
+.toggle-track{width:44px;height:24px;background:var(--border);border-radius:50px;position:relative;transition:background .3s}
+.toggle-track.on{background:var(--gold3)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-track.on .toggle-thumb{transform:translateX(20px)}
+
+/* ORDER HISTORY */
+#history-screen{padding-bottom:40px}
+.history-body{padding:16px 20px}
+.history-empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.history-empty-icon{font-size:3rem;margin-bottom:12px}
+.order-hist-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;animation:fadeUp .35s ease backwards}
+.ohc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ohc-id{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1rem;color:var(--text)}
+.ohc-status{font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:50px}
+.ohc-status.delivered{background:rgba(39,174,96,.12);color:var(--green)}
+.ohc-status.placed{background:rgba(212,168,71,.12);color:var(--gold)}
+.ohc-items{font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.ohc-bottom{display:flex;align-items:center;justify-content:space-between}
+.ohc-total{font-weight:700;font-size:.95rem;color:var(--gold)}
+.ohc-date{font-size:.7rem;color:var(--muted)}
+.ohc-reorder{padding:7px 16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.75rem;cursor:pointer}
+
+/* OFFERS PAGE */
+#offers-screen{padding-bottom:40px}
+.offers-body{padding:16px 20px}
+.offer-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;animation:fadeUp .35s ease backwards}
+.offer-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;opacity:.07}
+.offer-card.gold-offer::before{background:var(--gold)}
+.offer-card.green-offer::before{background:var(--green)}
+.offer-card.blue-offer::before{background:var(--blue)}
+.offer-tag{display:inline-block;font-size:.62rem;font-weight:700;padding:3px 10px;border-radius:50px;margin-bottom:10px;letter-spacing:.05em;text-transform:uppercase}
+.ot-gold{background:rgba(212,168,71,.15);color:var(--gold)}
+.ot-green{background:rgba(39,174,96,.15);color:var(--green)}
+.ot-blue{background:rgba(52,152,219,.15);color:var(--blue)}
+.offer-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--text);margin-bottom:6px}
+.offer-desc{font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.offer-code-row{display:flex;align-items:center;gap:10px}
+.offer-code{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;color:var(--gold);background:rgba(212,168,71,.08);border:1.5px dashed rgba(212,168,71,.3);padding:8px 16px;border-radius:10px;letter-spacing:.08em;flex:1;text-align:center}
+.offer-copy-btn{padding:8px 16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:10px;color:#000;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;white-space:nowrap}
+.offer-validity{font-size:.68rem;color:var(--muted);margin-top:10px}
+.offers-hero{background:linear-gradient(135deg,rgba(212,168,71,.1),rgba(212,168,71,.03));border:1px solid rgba(212,168,71,.15);border-radius:18px;padding:20px;margin-bottom:20px;text-align:center}
+.offers-hero-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.4rem;color:var(--text);margin-bottom:6px}
+.offers-hero-sub{font-size:.8rem;color:var(--muted)}
+
+/* REFERRAL */
+#referral-screen{padding-bottom:40px}
+.referral-body{padding:16px 20px}
+.referral-hero{background:linear-gradient(135deg,rgba(212,168,71,.12),rgba(212,168,71,.03));border:1px solid rgba(212,168,71,.2);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:20px}
+.referral-icon{font-size:3rem;margin-bottom:12px}
+.referral-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--text);margin-bottom:8px}
+.referral-sub{font-size:.82rem;color:var(--muted);line-height:1.7}
+.referral-code-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center}
+.rc-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.rc-code{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:2rem;color:var(--gold);letter-spacing:.15em;margin-bottom:14px}
+.rc-share-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.92rem;cursor:pointer}
+.rewards-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:14px}
+.reward-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.reward-icon{width:48px;height:48px;border-radius:12px;background:rgba(212,168,71,.1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.reward-info{flex:1}
+.reward-name{font-weight:600;font-size:.88rem;color:var(--text)}
+.reward-desc{font-size:.75rem;color:var(--muted);margin-top:3px}
+.reward-pts{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--gold)}
+.pts-bar-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px}
+.pts-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pts-label{font-size:.8rem;color:var(--muted)}
+.pts-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--gold)}
+.pts-bar{height:8px;background:var(--border);border-radius:50px;overflow:hidden}
+.pts-fill{height:100%;background:linear-gradient(to right,var(--gold3),var(--gold));border-radius:50px;transition:width .6s ease}
+.pts-hint{font-size:.7rem;color:var(--muted);margin-top:8px}
+
 /* FILTER BAR */
 .filter-bar{display:flex;gap:8px;padding:10px 20px 0;overflow-x:auto;scrollbar-width:none;align-items:center}
 .filter-bar::-webkit-scrollbar{display:none}
@@ -803,6 +878,115 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <button class="profile-save-btn" onclick="saveProfile()">Save Changes ✓</button>
   </div>
 </div>
+
+<!-- ══ ORDER HISTORY ══ -->
+<div class="screen" id="history-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">Order <span class="screen-gold">History 📋</span></div>
+  </div>
+  <div class="history-body" id="history-body"></div>
+</div>
+
+<!-- ══ OFFERS ══ -->
+<div class="screen" id="offers-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">Offers & <span class="screen-gold">Coupons 🏷️</span></div>
+  </div>
+  <div class="offers-body">
+    <div class="offers-hero">
+      <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
+      <div class="offers-hero-title">Exclusive Deals for You</div>
+      <div class="offers-hero-sub">Tap any code to copy it instantly</div>
+    </div>
+    <div class="offer-card gold-offer" style="animation-delay:.05s">
+      <div class="offer-tag ot-gold">🔥 Hot Deal</div>
+      <div class="offer-title">50% Off All Pizzas</div>
+      <div class="offer-desc">Get half off on any pizza order. Valid on all sizes and toppings from Pizza Palace.</div>
+      <div class="offer-code-row">
+        <div class="offer-code">FEAST50</div>
+        <button class="offer-copy-btn" onclick="copyCode('FEAST50')">Copy</button>
+      </div>
+      <div class="offer-validity">Valid till 31 Mar 2026 · Min order ₹199</div>
+    </div>
+    <div class="offer-card green-offer" style="animation-delay:.1s">
+      <div class="offer-tag ot-green">🎁 New User</div>
+      <div class="offer-title">₹150 Off Your First Order</div>
+      <div class="offer-desc">Welcome to FeastNow! Enjoy ₹150 off on your very first order with us.</div>
+      <div class="offer-code-row">
+        <div class="offer-code">NEWUSER</div>
+        <button class="offer-copy-btn" onclick="copyCode('NEWUSER')">Copy</button>
+      </div>
+      <div class="offer-validity">First order only · No minimum order</div>
+    </div>
+    <div class="offer-card blue-offer" style="animation-delay:.15s">
+      <div class="offer-tag ot-blue">💙 Weekend</div>
+      <div class="offer-title">₹100 Off on ₹299+</div>
+      <div class="offer-desc">Save ₹100 on orders above ₹299. Perfect for a weekend feast with family!</div>
+      <div class="offer-code-row">
+        <div class="offer-code">FREE100</div>
+        <button class="offer-copy-btn" onclick="copyCode('FREE100')">Copy</button>
+      </div>
+      <div class="offer-validity">Valid on weekends · Min order ₹299</div>
+    </div>
+    <div class="offer-card gold-offer" style="animation-delay:.2s">
+      <div class="offer-tag ot-gold">👑 Premium</div>
+      <div class="offer-title">20% Off Storewide</div>
+      <div class="offer-desc">Gold member exclusive. Enjoy 20% off on your entire order, every time.</div>
+      <div class="offer-code-row">
+        <div class="offer-code">GOLD20</div>
+        <button class="offer-copy-btn" onclick="copyCode('GOLD20')">Copy</button>
+      </div>
+      <div class="offer-validity">Gold members only · No expiry</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REFERRAL ══ -->
+<div class="screen" id="referral-screen">
+  <div class="screen-topbar">
+    <button class="back-btn" onclick="showScreen('home-screen')">←</button>
+    <div class="screen-title">Refer & <span class="screen-gold">Earn 🎁</span></div>
+  </div>
+  <div class="referral-body">
+    <div class="referral-hero">
+      <div class="referral-icon">🤝</div>
+      <div class="referral-title">Invite Friends, Earn Rewards</div>
+      <div class="referral-sub">Share your code with friends. You earn <b style="color:var(--gold)">₹100</b> and they get <b style="color:var(--gold)">₹50</b> off their first order!</div>
+    </div>
+    <div class="pts-bar-wrap">
+      <div class="pts-top">
+        <div class="pts-label">Your Points Balance</div>
+        <div class="pts-val" id="ref-points">0 pts</div>
+      </div>
+      <div class="pts-bar"><div class="pts-fill" id="pts-fill" style="width:0%"></div></div>
+      <div class="pts-hint" id="pts-hint">Earn 500 pts to unlock ₹50 reward</div>
+    </div>
+    <div class="referral-code-box">
+      <div class="rc-label">Your Referral Code</div>
+      <div class="rc-code" id="ref-code">—</div>
+      <button class="rc-share-btn" onclick="shareReferral()">📤 Share with Friends</button>
+    </div>
+    <div class="rewards-title">How It Works</div>
+    <div class="reward-card">
+      <div class="reward-icon">📤</div>
+      <div class="reward-info"><div class="reward-name">Share Your Code</div><div class="reward-desc">Send your unique code to friends</div></div>
+      <div class="reward-pts">Step 1</div>
+    </div>
+    <div class="reward-card">
+      <div class="reward-icon">🛒</div>
+      <div class="reward-info"><div class="reward-name">Friend Places Order</div><div class="reward-desc">They use your code on first order</div></div>
+      <div class="reward-pts">Step 2</div>
+    </div>
+    <div class="reward-card">
+      <div class="reward-icon">🎉</div>
+      <div class="reward-info"><div class="reward-name">Both Get Rewarded</div><div class="reward-desc">You get ₹100, they get ₹50 off</div></div>
+      <div class="reward-pts">Step 3</div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <!-- SIDEBAR -->
@@ -824,15 +1008,20 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="sb-item" onclick="closeSidebar();openProfile()"><span class="si">👤</span> Edit Profile</div>
     <div class="sb-item" onclick="closeSidebar();openPaymentFromSidebar()"><span class="si">💳</span> Payment Methods</div>
     <div class="sb-item" onclick="closeSidebar();openRatingsFromSidebar()"><span class="si">⭐</span> Rate Orders</div>
-    <div class="sb-item" onclick="closeSidebar()"><span class="si">🎁</span> Refer & Earn</div>
-    <div class="sb-item" onclick="closeSidebar()"><span class="si">⚙️</span> Settings</div>
+    <div class="sb-item" onclick="closeSidebar();openReferral()"><span class="si">🎁</span> Refer & Earn</div>
+    <div class="sb-item" onclick="closeSidebar();showScreen('offers-screen')"><span class="si">🏷️</span> Offers & Coupons</div>
+    <div class="sb-item" onclick="closeSidebar();showScreen('history-screen');renderHistory()"><span class="si">📋</span> Order History</div>
     <div class="sb-lbl">Admin</div>
     <div class="sb-item gold" onclick="closeSidebar();openAdmin()"><span class="si">👑</span> Admin Panel</div>
     <div class="sb-lbl">Support</div>
     <div class="sb-item" onclick="closeSidebar()"><span class="si">💬</span> Help & Support</div>
     <div class="sb-item danger" onclick="doLogout()"><span class="si">🚪</span> Sign Out</div>
   </div>
-  <div class="sb-foot">FeastNow v5.0 · Full Featured ✨</div>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <span class="theme-toggle-label" id="theme-label">🌙 Dark Mode</span>
+    <div class="toggle-track" id="toggle-track"><div class="toggle-thumb"></div></div>
+  </div>
+  <div class="sb-foot">FeastNow v6.0 · Full Featured ✨</div>
 </div>
 
 <!-- CART -->
@@ -1615,9 +1804,106 @@ window.addEventListener('DOMContentLoaded',async()=>{
   initParticles();
   const handled=await handleRedirect();if(handled)return;
   const sess=getSess();
+  initTheme();
   if(sess){currentUser=sess;cart=getCart();orders=getOrders();addresses=getAddrs();loadHome(sess);showScreen('home-screen');return;}
   showScreen('auth-screen');
   setTimeout(renderAddresses,100);
+
+// ─── THEME TOGGLE ───
+function toggleTheme(){
+  const isLight=document.body.classList.toggle('light');
+  localStorage.setItem('fn_theme', isLight?'light':'dark');
+  document.getElementById('theme-label').textContent=isLight?'☀️ Light Mode':'🌙 Dark Mode';
+  document.getElementById('toggle-track').classList.toggle('on', isLight);
+}
+function initTheme(){
+  const t=localStorage.getItem('fn_theme');
+  if(t==='light'){
+    document.body.classList.add('light');
+    const lbl=document.getElementById('theme-label');
+    const trk=document.getElementById('toggle-track');
+    if(lbl) lbl.textContent='☀️ Light Mode';
+    if(trk) trk.classList.add('on');
+  }
+}
+
+// ─── ORDER HISTORY ───
+function renderHistory(){
+  const allOrders=getOrders().filter(o=>!currentUser||o.userId===currentUser.id);
+  const body=document.getElementById('history-body');
+  if(!allOrders.length){
+    body.innerHTML=`<div class="history-empty"><div class="history-empty-icon">📦</div><div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px">No orders yet</div><div style="font-size:.82rem">Your past orders will appear here</div></div>`;
+    return;
+  }
+  body.innerHTML=allOrders.map((o,i)=>`
+    <div class="order-hist-card" style="animation-delay:${i*0.05}s">
+      <div class="ohc-top">
+        <div class="ohc-id">#${o.id}</div>
+        <div class="ohc-status ${o.status==='Delivered'?'delivered':'placed'}">${o.status||'Placed'}</div>
+      </div>
+      <div class="ohc-items">${o.items.map(it=>it.emoji+' '+it.name+' ×'+it.qty).join(' · ')}</div>
+      <div class="ohc-bottom">
+        <div>
+          <div class="ohc-total">₹${o.total}</div>
+          <div class="ohc-date">${o.time||o.date||''}</div>
+        </div>
+        <button class="ohc-reorder" onclick="reorder(${JSON.stringify(o.items).replace(/"/g,'&quot;')})">Reorder 🔄</button>
+      </div>
+    </div>`).join('');
+}
+function reorder(items){
+  items.forEach(it=>{
+    const existing=cart.find(c=>c.id===it.id);
+    if(existing) existing.qty+=it.qty;
+    else cart.push({...it});
+  });
+  saveCart(cart);updateCartBadge();
+  showScreen('home-screen');
+  setTimeout(openCart,400);
+  showToast('🛒 Items added to cart!');
+}
+
+// ─── OFFERS ───
+function copyCode(code){
+  navigator.clipboard.writeText(code).catch(()=>{});
+  showToast('✅ Code '+code+' copied!');
+  // auto-fill promo if cart open
+  const inp=document.getElementById('promo-input');
+  if(inp) inp.value=code;
+}
+
+// ─── REFERRAL ───
+function openReferral(){
+  showScreen('referral-screen');
+  const code=genRefCode();
+  document.getElementById('ref-code').textContent=code;
+  const pts=getReferralPts();
+  document.getElementById('ref-points').textContent=pts+' pts';
+  const pct=Math.min(100,(pts/500)*100);
+  document.getElementById('pts-fill').style.width=pct+'%';
+  document.getElementById('pts-hint').textContent=pts>=500?'🎉 Reward unlocked! Use GOLD20 for ₹50 off':'Earn '+(500-pts)+' more pts to unlock ₹50 reward';
+}
+function genRefCode(){
+  if(!currentUser) return 'FEAST'+Math.random().toString(36).slice(2,7).toUpperCase();
+  const stored=localStorage.getItem('fn_refcode_'+currentUser.id);
+  if(stored) return stored;
+  const code='FN'+currentUser.name.slice(0,3).toUpperCase()+Math.floor(Math.random()*900+100);
+  localStorage.setItem('fn_refcode_'+currentUser.id, code);
+  return code;
+}
+function getReferralPts(){
+  return parseInt(localStorage.getItem('fn_refpts_'+(currentUser?.id||'guest'))||'0');
+}
+function shareReferral(){
+  const code=document.getElementById('ref-code').textContent;
+  if(navigator.share){
+    navigator.share({title:'FeastNow',text:'Use my code '+code+' to get ₹50 off your first FeastNow order! 🍔',url:'https://harishdevopsnarmetta.github.io/feastnow'}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText('Use my code '+code+' to get ₹50 off your first FeastNow order! 🍔 https://harishdevopsnarmetta.github.io/feastnow').catch(()=>{});
+    showToast('📋 Referral message copied!');
+  }
+}
+
 });
 </script>
 </body>
