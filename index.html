@@ -762,6 +762,47 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 /* FOOD CARD UPGRADE */
 .food-card{background:var(--card);border-radius:22px;overflow:hidden;border:1px solid var(--border);animation:fadeUp .4s ease backwards;cursor:pointer;transition:transform .2s,box-shadow .2s}
+
+/* ══ SKELETON LOADERS ══════════════════════════════════ */
+@keyframes shimmer{
+  0%{background-position:-600px 0}
+  100%{background-position:600px 0}
+}
+.sk{
+  background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);
+  background-size:1200px 100%;
+  animation:shimmer 1.5s ease-in-out infinite;
+  border-radius:8px;
+  display:block;
+}
+/* Food grid card skeleton */
+.sk-food-card{background:var(--card);border-radius:22px;overflow:hidden;border:1px solid var(--border)}
+.sk-food-img{height:140px;width:100%;border-radius:0}
+.sk-food-body{padding:12px 12px 14px}
+.sk-food-name{height:15px;width:78%;margin-bottom:8px}
+.sk-food-sub{height:10px;width:48%;margin-bottom:12px}
+.sk-food-row{display:flex;align-items:center;justify-content:space-between}
+.sk-food-price{height:14px;width:30%}
+.sk-food-btn{height:34px;width:34px;border-radius:10px}
+/* Banner skeleton */
+.sk-banner{flex:0 0 85%;height:160px;border-radius:20px;overflow:hidden;scroll-snap-align:start;flex-shrink:0}
+/* Chef card skeleton */
+.sk-chef-card{flex:0 0 155px;background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.sk-chef-img{height:88px;width:100%;border-radius:0}
+.sk-chef-body{padding:9px}
+.sk-chef-name{height:11px;width:72%;margin-bottom:6px}
+.sk-chef-price{height:10px;width:40%;margin-bottom:9px}
+/* Restaurant menu item skeleton */
+.sk-rmi{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.sk-rmi:last-child{border-bottom:none}
+.sk-rmi-info{flex:1;display:flex;flex-direction:column;gap:6px}
+.sk-rmi-badge{height:10px;width:28%}
+.sk-rmi-name{height:15px;width:82%}
+.sk-rmi-desc{height:10px;width:98%}
+.sk-rmi-desc2{height:10px;width:60%}
+.sk-rmi-price{height:14px;width:22%;margin-top:4px}
+.sk-rmi-img{width:100px;height:100px;border-radius:14px;flex-shrink:0}
+/* ═══════════════════════════════════════════════════════ */
 .food-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.15)}
 .food-card:active{transform:scale(.95)}
 .food-img-wrap{position:relative;height:140px;overflow:hidden}
@@ -1868,6 +1909,54 @@ function doLogout(){
 
 function greet(){const h=new Date().getHours();return h<12?'Good morning ☀️':h<17?'Good afternoon 👋':'Good evening 🌙';}
 
+// ══ SKELETON LOADERS ════════════════════════════════════
+function skFoodCard(){
+  return `<div class="sk-food-card">
+    <div class="sk sk-food-img"></div>
+    <div class="sk-food-body">
+      <div class="sk sk-food-name"></div>
+      <div class="sk sk-food-sub"></div>
+      <div class="sk-food-row">
+        <div class="sk sk-food-price"></div>
+        <div class="sk sk-food-btn"></div>
+      </div>
+    </div>
+  </div>`;
+}
+function showFoodSkeleton(gridId='food-grid', count=6){
+  const g=document.getElementById(gridId);
+  if(g) g.innerHTML=Array(count).fill(skFoodCard()).join('');
+}
+function showBannerSkeleton(){
+  const s=document.getElementById('banner-scroll');
+  if(s) s.innerHTML=Array(3).fill(`<div class="sk-banner"><div class="sk" style="width:100%;height:100%"></div></div>`).join('');
+}
+function showChefSkeleton(){
+  const s=document.getElementById('chef-scroll');
+  if(s) s.innerHTML=Array(4).fill(`<div class="sk-chef-card"><div class="sk sk-chef-img"></div><div class="sk-chef-body"><div class="sk sk-chef-name"></div><div class="sk sk-chef-price"></div></div></div>`).join('');
+}
+function skRestMenuItem(){
+  return `<div class="sk-rmi">
+    <div class="sk-rmi-info">
+      <div class="sk sk-rmi-badge"></div>
+      <div class="sk sk-rmi-name"></div>
+      <div class="sk sk-rmi-desc"></div>
+      <div class="sk sk-rmi-desc2"></div>
+      <div class="sk sk-rmi-price"></div>
+    </div>
+    <div class="sk sk-rmi-img"></div>
+  </div>`;
+}
+function showRestMenuSkeleton(count=5){
+  const b=document.getElementById('rest-menu-body');
+  if(b) b.innerHTML=Array(count).fill(skRestMenuItem()).join('');
+  const rb=document.getElementById('rest-rating-big');
+  if(rb) rb.innerHTML=`<div class="sk" style="height:90px;width:100%;border-radius:14px"></div>`;
+  const rl=document.getElementById('rest-reviews-list');
+  if(rl) rl.innerHTML=`<div class="sk" style="height:90px;width:100%;border-radius:14px;margin-bottom:10px"></div><div class="sk" style="height:90px;width:100%;border-radius:14px"></div>`;
+}
+// ════════════════════════════════════════════════════════
+
 function loadHome(u){
   document.getElementById('top-greet').textContent=greet();
   document.getElementById('top-name').textContent=u.name.split(' ')[0];
@@ -1878,7 +1967,13 @@ function loadHome(u){
   sa.innerHTML=u.photo?`<img class="sb-av-img" src="${u.photo}" onerror="this.outerHTML='<div class=sb-av-txt>${u.name.charAt(0)}</div>'">`:`<div class="sb-av-txt">${u.provider==='guest'?'😊':u.name.charAt(0).toUpperCase()}</div>`;
   const ta=document.getElementById('tb-av');
   ta.innerHTML=u.photo?`<img class="tb-avatar" src="${u.photo}" onclick="openSidebar()">`:`<div class="tb-avatar-txt" onclick="openSidebar()">${u.provider==='guest'?'😊':u.name.charAt(0).toUpperCase()}</div>`;
-  renderFoods(FOOD_DATA);updateCartBadge();updateNotifDot();renderChefSpecial();updateLoyaltyUI();
+  // Show skeletons immediately
+  showBannerSkeleton();
+  showChefSkeleton();
+  showFoodSkeleton('food-grid',6);
+  // Render real content after simulated load
+  setTimeout(()=>{renderChefSpecial();},400);
+  setTimeout(()=>{renderFoods(FOOD_DATA);updateCartBadge();updateNotifDot();updateLoyaltyUI();},800);
 }
 
 function renderFoods(items,gridId='food-grid'){
@@ -2034,24 +2129,19 @@ function openRestaurant(name) {
   restVegOnly = false;
   document.getElementById('rest-veg-switch').classList.remove('on');
 
-  // Build category tabs from this restaurant's items
+  // Build category tabs
   buildRestCatTabs(restFoods);
 
-  // Render menu
-  renderRestMenu(restFoods);
-
-  // Rating big block
-  renderRestRating(r.rating);
-
-  // Reviews
-  renderRestReviews();
-
-  // Update cart FAB
+  // Show skeletons immediately, render real content after delay
+  showRestMenuSkeleton(5);
   updateRestCartFab();
-
   showScreen('restaurant-screen');
-  // Scroll to top
-  setTimeout(()=>document.getElementById('restaurant-screen').scrollTop=0, 50);
+  setTimeout(()=>document.getElementById('restaurant-screen').scrollTop=0,50);
+  setTimeout(()=>{
+    renderRestMenu(restFoods);
+    renderRestRating(r.rating);
+    renderRestReviews();
+  },750);
 }
 
 function buildRestCatTabs(foods) {
