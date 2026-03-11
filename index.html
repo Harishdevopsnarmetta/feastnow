@@ -638,17 +638,47 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .history-body{padding:16px 20px}
 .history-empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .history-empty-icon{font-size:3rem;margin-bottom:12px}
-.order-hist-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;animation:fadeUp .35s ease backwards}
-.ohc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.order-hist-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;animation:fadeUp .35s ease backwards;overflow:hidden}
+.ohc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .ohc-id{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1rem;color:var(--text)}
 .ohc-status{font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:50px}
 .ohc-status.delivered{background:rgba(39,174,96,.12);color:var(--green)}
 .ohc-status.placed{background:rgba(212,168,71,.12);color:var(--gold)}
-.ohc-items{font-size:.8rem;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.ohc-rest{font-size:.72rem;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.ohc-item-thumbs{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.ohc-thumb{width:44px;height:44px;background:var(--card2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;position:relative;flex-shrink:0}
+.ohc-thumb-qty{position:absolute;top:-5px;right:-5px;background:var(--gold);color:#000;font-size:.55rem;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .ohc-bottom{display:flex;align-items:center;justify-content:space-between}
 .ohc-total{font-weight:700;font-size:.95rem;color:var(--gold)}
-.ohc-date{font-size:.7rem;color:var(--muted)}
-.ohc-reorder{padding:7px 16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.75rem;cursor:pointer}
+.ohc-date{font-size:.7rem;color:var(--muted);margin-top:2px}
+.ohc-reorder{display:flex;align-items:center;gap:6px;padding:9px 18px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:"DM Sans",sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 14px rgba(212,168,71,.25)}
+.ohc-reorder:active{transform:scale(.93)}
+.ohc-promo{display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:.68rem;color:var(--green);background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);border-radius:50px;padding:3px 9px}
+
+/* ORDER AGAIN BOTTOM SHEET */
+#reorder-sheet{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none;opacity:0;transition:opacity .25s}
+#reorder-sheet.open{pointer-events:all;opacity:1}
+#reorder-sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+#reorder-sheet-box{position:relative;background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:80vh;overflow-y:auto}
+#reorder-sheet.open #reorder-sheet-box{transform:translateY(0)}
+.rs-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.rs-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.rs-sub{font-size:.78rem;color:var(--muted);margin-bottom:16px}
+.rs-items{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.rs-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:10px 12px}
+.rs-item-emoji{font-size:1.6rem;width:36px;text-align:center;flex-shrink:0}
+.rs-item-info{flex:1;min-width:0}
+.rs-item-name{font-weight:600;font-size:.85rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs-item-meta{font-size:.72rem;color:var(--muted);margin-top:2px}
+.rs-item-price{font-weight:700;font-size:.88rem;color:var(--gold);flex-shrink:0}
+.rs-warn{display:flex;align-items:center;gap:8px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.2);border-radius:12px;padding:10px 12px;margin-bottom:16px;font-size:.78rem;color:var(--gold)}
+.rs-total-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);margin-bottom:16px}
+.rs-total-lbl{font-size:.82rem;color:var(--muted)}
+.rs-total-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--gold)}
+.rs-btn-row{display:flex;gap:10px}
+.rs-cancel-btn{flex:1;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:50px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.88rem;cursor:pointer}
+.rs-confirm-btn{flex:2;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.rs-confirm-btn:active{transform:scale(.97)}
 
 /* OFFERS PAGE */
 #offers-screen{padding-bottom:40px}
@@ -1081,6 +1111,26 @@ body.logged-in #chat-fab{display:flex}
   <div class="nav-item" onclick="openCart()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
   <div class="nav-item" onclick="showScreen('address-screen')"><div class="nav-icon">📍</div><div class="nav-label">Address</div></div>
   <div class="nav-item" onclick="openSidebar()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+</div>
+
+<!-- ══ ORDER AGAIN BOTTOM SHEET ══ -->
+<div id="reorder-sheet" onclick="handleReorderSheetClick(event)">
+  <div id="reorder-sheet-bg"></div>
+  <div id="reorder-sheet-box">
+    <div class="rs-handle"></div>
+    <div class="rs-title">Order Again 🔄</div>
+    <div class="rs-sub" id="rs-sub">From your last order</div>
+    <div class="rs-items" id="rs-items"></div>
+    <div class="rs-warn" id="rs-warn" style="display:none">⚠️ You have items in your cart. These will be added on top.</div>
+    <div class="rs-total-row">
+      <div class="rs-total-lbl">Order Total</div>
+      <div class="rs-total-val" id="rs-total">₹0</div>
+    </div>
+    <div class="rs-btn-row">
+      <button class="rs-cancel-btn" onclick="closeReorderSheet()">Cancel</button>
+      <button class="rs-confirm-btn" onclick="confirmReorder()">🛒 Add to Cart</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ NOTIFICATIONS ══ -->
@@ -3304,33 +3354,91 @@ function renderHistory(){
     body.innerHTML=`<div class="history-empty"><div class="history-empty-icon">📦</div><div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px">No orders yet</div><div style="font-size:.82rem">Your past orders will appear here</div></div>`;
     return;
   }
-  body.innerHTML=allOrders.map((o,i)=>`
+  body.innerHTML=allOrders.map((o,i)=>{
+    // Item emoji thumbnails (max 4 shown)
+    const thumbs=o.items.slice(0,4).map(it=>`
+      <div class="ohc-thumb">
+        <span>${it.emoji||'🍽'}</span>
+        ${it.qty>1?`<div class="ohc-thumb-qty">${it.qty}</div>`:''}
+      </div>`).join('')+(o.items.length>4?`<div class="ohc-thumb" style="font-size:.7rem;color:var(--muted);font-weight:700">+${o.items.length-4}</div>`:'');
+    // Restaurant name from first item
+    const restName=o.items[0]?.rest||'';
+    const promoHtml=o.promo?`<div class="ohc-promo">🎁 ${o.promo} applied</div>`:'';
+    return `
     <div class="order-hist-card" style="animation-delay:${i*0.05}s">
       <div class="ohc-top">
         <div class="ohc-id">#${o.id}</div>
         <div class="ohc-status ${o.status==='Delivered'?'delivered':'placed'}">${o.status||'Placed'}</div>
       </div>
-      <div class="ohc-items">${o.items.map(it=>it.emoji+' '+it.name+' ×'+it.qty).join(' · ')}</div>
+      ${restName?`<div class="ohc-rest">📍 ${restName}${o.items.length>1?' & more':''}</div>`:''}
+      <div class="ohc-item-thumbs">${thumbs}</div>
+      ${promoHtml}
       <div class="ohc-bottom">
         <div>
           <div class="ohc-total">₹${o.total}</div>
           <div class="ohc-date">${o.time||o.date||''}</div>
         </div>
-        <button class="ohc-reorder" onclick="reorder(${JSON.stringify(o.items).replace(/"/g,'&quot;')})">Reorder 🔄</button>
+        <button class="ohc-reorder" onclick="openReorderSheet(${JSON.stringify(o).replace(/"/g,'&quot;')})">🔄 Order Again</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
-function reorder(items){
-  items.forEach(it=>{
+
+// ── ORDER AGAIN BOTTOM SHEET ─────────────────────────
+let pendingReorderItems=null;
+
+function openReorderSheet(order){
+  pendingReorderItems=order.items;
+  // Populate sheet
+  document.getElementById('rs-sub').textContent=`${order.items.length} item${order.items.length!==1?'s':''} · ₹${order.total}`;
+  document.getElementById('rs-items').innerHTML=order.items.map(it=>`
+    <div class="rs-item">
+      <div class="rs-item-emoji">${it.emoji||'🍽'}</div>
+      <div class="rs-item-info">
+        <div class="rs-item-name">${it.name}</div>
+        <div class="rs-item-meta">Qty: ${it.qty}${it.rest?' · '+it.rest:''}</div>
+      </div>
+      <div class="rs-item-price">₹${it.price*it.qty}</div>
+    </div>`).join('');
+  // Cart warning
+  const hasCart=cart.length>0;
+  document.getElementById('rs-warn').style.display=hasCart?'flex':'none';
+  // Total
+  const total=order.items.reduce((s,it)=>s+it.price*it.qty,0);
+  document.getElementById('rs-total').textContent='₹'+total;
+  // Open sheet
+  document.getElementById('reorder-sheet').classList.add('open');
+}
+
+function closeReorderSheet(){
+  document.getElementById('reorder-sheet').classList.remove('open');
+  pendingReorderItems=null;
+}
+
+function handleReorderSheetClick(e){
+  if(e.target===document.getElementById('reorder-sheet-bg')) closeReorderSheet();
+}
+
+function confirmReorder(){
+  if(!pendingReorderItems) return;
+  pendingReorderItems.forEach(it=>{
     const existing=cart.find(c=>c.id===it.id);
     if(existing) existing.qty+=it.qty;
     else cart.push({...it});
   });
-  saveCart(cart);updateCartBadge();
-  showScreen('home-screen');
-  setTimeout(openCart,400);
-  showToast('🛒 Items added to cart!');
+  saveCart(cart);
+  updateCartBadge();
+  closeReorderSheet();
+  // Flash the confirm button before opening cart
+  showToast('🛒 '+ pendingReorderItems?.length+' items added to cart!');
+  setTimeout(()=>{
+    showScreen('home-screen');
+    setTimeout(openCart,350);
+  },300);
 }
+
+function reorder(items){ openReorderSheet({items, total: items.reduce((s,i)=>s+i.price*i.qty,0)}); }
+// ────────────────────────────────────────────────────
 
 // ─── OFFERS ───
 function copyCode(code){
