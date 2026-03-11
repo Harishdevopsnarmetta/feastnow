@@ -3348,10 +3348,16 @@ window.addEventListener('DOMContentLoaded',async()=>{
 
 // ─── ORDER HISTORY ───
 function renderHistory(){
-  const allOrders=getOrders().filter(o=>!currentUser||o.userId===currentUser.id);
+  const allOrders=getOrders().filter(o=>!currentUser||o.userId===currentUser.id||o.userId==='guest');
   const body=document.getElementById('history-body');
   if(!allOrders.length){
-    body.innerHTML=`<div class="history-empty"><div class="history-empty-icon">📦</div><div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px">No orders yet</div><div style="font-size:.82rem">Your past orders will appear here</div></div>`;
+    body.innerHTML=`
+      <div class="history-empty">
+        <div class="history-empty-icon">📦</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px">No orders yet</div>
+        <div style="font-size:.82rem;margin-bottom:20px">Place your first order to see it here</div>
+        <button onclick="seedDemoOrders()" style="padding:10px 22px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer">🧪 Load Demo Orders</button>
+      </div>`;
     return;
   }
   body.innerHTML=allOrders.map((o,i)=>{
@@ -3384,7 +3390,27 @@ function renderHistory(){
   }).join('');
 }
 
-// ── ORDER AGAIN BOTTOM SHEET ─────────────────────────
+function seedDemoOrders(){
+  const uid=currentUser?currentUser.id:'guest';
+  const demo=[
+    {id:'FN100001',userId:uid,userName:currentUser?.name||'You',
+     items:[{id:3,name:'Hyderabadi Biryani',emoji:'🍛',price:199,qty:2,rest:'Bawarchi'},{id:6,name:'Mango Lassi',emoji:'🥭',price:79,qty:1,rest:'Desi Drinks'}],
+     subtotal:477,discount:0,total:477,promo:'',payMethod:'upi',
+     time:new Date(Date.now()-86400000).toLocaleString(),status:'Delivered'},
+    {id:'FN100002',userId:uid,userName:currentUser?.name||'You',
+     items:[{id:1,name:'Margherita Pizza',emoji:'🍕',price:299,qty:1,rest:'Pizza Palace'},{id:27,name:'Garlic Bread',emoji:'🥖',price:99,qty:2,rest:'Pizza Palace'}],
+     subtotal:497,discount:100,total:397,promo:'FREE100',payMethod:'card',
+     time:new Date(Date.now()-172800000).toLocaleString(),status:'Delivered'},
+    {id:'FN100003',userId:uid,userName:currentUser?.name||'You',
+     items:[{id:48,name:'Butter Chicken',emoji:'🍗',price:229,qty:1,rest:'Spice Garden'},{id:49,name:'Dal Makhani',emoji:'🥘',price:159,qty:1,rest:'Spice Garden'},{id:11,name:'Paneer Tikka',emoji:'🧆',price:179,qty:1,rest:'Spice Garden'}],
+     subtotal:567,discount:0,total:567,promo:'',payMethod:'upi',
+     time:new Date(Date.now()-259200000).toLocaleString(),status:'Delivered'},
+  ];
+  const existing=getOrders();
+  saveOrders([...demo,...existing]);
+  renderHistory();
+  showToast('✅ Demo orders loaded!');
+}
 let pendingReorderItems=null;
 
 function openReorderSheet(order){
