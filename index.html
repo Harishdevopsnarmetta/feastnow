@@ -39,6 +39,33 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .guest-btn{width:100%;padding:14px;background:transparent;border:1.5px solid rgba(212,168,71,.25);border-radius:50px;color:rgba(240,236,228,.6);font-family:'DM Sans',sans-serif;font-size:.88rem;cursor:pointer}
 .auth-terms{color:rgba(240,236,228,.2);font-size:.68rem;margin-top:16px;line-height:1.7}
 
+/* OTP LOGIN */
+.otp-panel{display:none;width:100%;text-align:left}
+.otp-panel.show{display:block}
+.otp-back{background:none;border:none;color:rgba(240,236,228,.5);font-size:.82rem;cursor:pointer;padding:0 0 14px;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
+.otp-label{font-size:.78rem;color:rgba(240,236,228,.5);margin-bottom:8px;letter-spacing:.04em}
+.otp-phone-wrap{display:flex;gap:8px;margin-bottom:12px}
+.otp-cc{background:rgba(255,255,255,.08);border:1.5px solid rgba(212,168,71,.2);border-radius:14px;padding:14px 12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;width:72px;text-align:center;flex-shrink:0}
+.otp-phone-input{flex:1;background:rgba(255,255,255,.08);border:1.5px solid rgba(212,168,71,.2);border-radius:14px;padding:14px 16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;outline:none;transition:border-color .2s}
+.otp-phone-input:focus{border-color:var(--gold)}
+.otp-phone-input::placeholder{color:rgba(255,255,255,.25)}
+.otp-send-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .15s,opacity .2s;margin-bottom:8px}
+.otp-send-btn:active{transform:scale(.97)}
+.otp-send-btn:disabled{opacity:.5;cursor:not-allowed}
+.otp-hint{font-size:.7rem;color:rgba(212,168,71,.5);text-align:center;margin-bottom:0}
+/* OTP input boxes */
+.otp-boxes-wrap{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.otp-box{width:46px;height:54px;background:rgba(255,255,255,.08);border:1.5px solid rgba(212,168,71,.2);border-radius:14px;color:#fff;font-size:1.4rem;font-weight:700;text-align:center;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,background .2s;caret-color:var(--gold)}
+.otp-box:focus{border-color:var(--gold);background:rgba(212,168,71,.08)}
+.otp-box.filled{border-color:var(--gold3);background:rgba(212,168,71,.06)}
+.otp-resend{font-size:.75rem;color:rgba(240,236,228,.35);text-align:center;margin-bottom:14px}
+.otp-resend span{color:var(--gold);cursor:pointer;font-weight:600}
+.otp-verify-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .15s;margin-bottom:8px}
+.otp-verify-btn:active{transform:scale(.97)}
+.otp-timer{font-size:.72rem;color:rgba(240,236,228,.3);text-align:center}
+.otp-phone-display{font-size:.82rem;color:rgba(240,236,228,.5);margin-bottom:16px}
+.otp-phone-display b{color:rgba(240,236,228,.85)}
+
 /* LOADING */
 #loading{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(8px)}
 #loading.show{display:flex}
@@ -1015,13 +1042,53 @@ body.logged-in #chat-fab{display:flex}
     <span class="auth-icon">🍽</span>
     <div class="auth-logo">Feast<span>Now</span></div>
     <div class="auth-tagline">Fine dining · Fast delivery</div>
-    <div class="auth-divider"><span>Sign in to continue</span></div>
-    <button class="google-btn" onclick="triggerGoogleSignIn()">
-      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Continue with Google
-    </button>
-    <button class="guest-btn" onclick="signInGuest()">Browse as Guest</button>
-    <div class="auth-terms">Your real Google account is used · No password stored</div>
+
+    <!-- DEFAULT VIEW -->
+    <div id="auth-default">
+      <div class="auth-divider"><span>Sign in to continue</span></div>
+      <!-- Google -->
+      <button class="google-btn" onclick="triggerGoogleSignIn()">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <!-- Mobile OTP -->
+      <button class="google-btn" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;box-shadow:0 8px 40px rgba(0,0,0,.5);margin-bottom:12px" onclick="showOtpPhoneStep()">
+        📱 Continue with Mobile OTP
+      </button>
+      <button class="guest-btn" onclick="signInGuest()">Browse as Guest</button>
+      <div class="auth-terms">Your real Google account is used · No password stored</div>
+    </div>
+
+    <!-- PHONE STEP -->
+    <div class="otp-panel" id="otp-phone-panel">
+      <button class="otp-back" onclick="showAuthDefault()">← Back</button>
+      <div class="otp-label">Enter your mobile number</div>
+      <div class="otp-phone-wrap">
+        <input class="otp-cc" value="+91" readonly>
+        <input class="otp-phone-input" id="otp-phone-input" type="tel" maxlength="10" placeholder="98765 43210" oninput="onPhoneInput(this)">
+      </div>
+      <button class="otp-send-btn" id="otp-send-btn" onclick="sendOtp()" disabled>Send OTP</button>
+      <div class="otp-hint" id="otp-hint"></div>
+    </div>
+
+    <!-- OTP VERIFY STEP -->
+    <div class="otp-panel" id="otp-verify-panel">
+      <button class="otp-back" onclick="showOtpPhoneStep()">← Change Number</button>
+      <div class="otp-phone-display">OTP sent to <b id="otp-sent-to"></b></div>
+      <div class="otp-label">Enter 6-digit OTP</div>
+      <div class="otp-boxes-wrap" id="otp-boxes">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,0)" onkeydown="otpBoxKey(event,0)">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,1)" onkeydown="otpBoxKey(event,1)">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,2)" onkeydown="otpBoxKey(event,2)">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,3)" onkeydown="otpBoxKey(event,3)">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,4)" onkeydown="otpBoxKey(event,4)">
+        <input class="otp-box" maxlength="1" type="tel" oninput="otpBoxInput(this,5)" onkeydown="otpBoxKey(event,5)">
+      </div>
+      <div class="otp-resend" id="otp-resend-row">Didn't receive? <span onclick="resendOtp()">Resend OTP</span></div>
+      <div class="otp-timer" id="otp-timer"></div>
+      <button class="otp-verify-btn" onclick="verifyOtp()">Verify & Continue →</button>
+      <div class="otp-hint" id="otp-verify-hint">Demo OTP: <b style="color:var(--gold)">123456</b></div>
+    </div>
   </div>
 </div>
 
@@ -1949,6 +2016,122 @@ function signInGuest(){
   cart=getCart();orders=getOrders();addresses=getAddrs();
   loadHome(currentUser);document.body.classList.add('logged-in');showScreen('home-screen');showToast('👀 Browsing as Guest');
 }
+
+// ══ MOBILE OTP LOGIN ════════════════════════════════
+let otpValue='',otpPhone='',otpTimerInterval=null;
+
+function showAuthDefault(){
+  document.getElementById('auth-default').style.display='block';
+  document.getElementById('otp-phone-panel').classList.remove('show');
+  document.getElementById('otp-verify-panel').classList.remove('show');
+  clearInterval(otpTimerInterval);
+}
+
+function showOtpPhoneStep(){
+  document.getElementById('auth-default').style.display='none';
+  document.getElementById('otp-phone-panel').classList.add('show');
+  document.getElementById('otp-verify-panel').classList.remove('show');
+  document.getElementById('otp-hint').textContent='';
+  setTimeout(()=>document.getElementById('otp-phone-input').focus(),200);
+}
+
+function onPhoneInput(el){
+  el.value=el.value.replace(/\D/g,'').slice(0,10);
+  document.getElementById('otp-send-btn').disabled=el.value.length!==10;
+}
+
+function sendOtp(){
+  const phone=document.getElementById('otp-phone-input').value.trim();
+  if(phone.length!==10){showToast('Enter a valid 10-digit number');return;}
+  otpPhone=phone;
+  otpValue='123456'; // demo OTP
+  // Show verify panel
+  document.getElementById('otp-phone-panel').classList.remove('show');
+  document.getElementById('otp-verify-panel').classList.add('show');
+  document.getElementById('otp-sent-to').textContent='+91 '+phone.slice(0,5)+'·····';
+  // Clear boxes
+  document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
+  setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),200);
+  // Start countdown timer
+  startOtpTimer(30);
+  showToast('📱 OTP sent to +91 '+phone);
+}
+
+function resendOtp(){
+  document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
+  startOtpTimer(30);
+  showToast('📱 OTP resent!');
+  setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),100);
+}
+
+function startOtpTimer(seconds){
+  clearInterval(otpTimerInterval);
+  const timerEl=document.getElementById('otp-timer');
+  const resendEl=document.getElementById('otp-resend-row');
+  resendEl.style.display='none';
+  let t=seconds;
+  timerEl.textContent='Resend in '+t+'s';
+  otpTimerInterval=setInterval(()=>{
+    t--;
+    timerEl.textContent='Resend in '+t+'s';
+    if(t<=0){
+      clearInterval(otpTimerInterval);
+      timerEl.textContent='';
+      resendEl.style.display='block';
+    }
+  },1000);
+}
+
+function otpBoxInput(el,idx){
+  el.value=el.value.replace(/\D/g,'').slice(-1);
+  el.classList.toggle('filled',el.value!=='');
+  if(el.value && idx<5){
+    document.querySelectorAll('.otp-box')[idx+1].focus();
+  }
+  // Auto verify when all filled
+  const boxes=document.querySelectorAll('.otp-box');
+  const entered=[...boxes].map(b=>b.value).join('');
+  if(entered.length===6) setTimeout(verifyOtp,300);
+}
+
+function otpBoxKey(e,idx){
+  if(e.key==='Backspace'){
+    const boxes=document.querySelectorAll('.otp-box');
+    if(!boxes[idx].value && idx>0){
+      boxes[idx-1].value='';
+      boxes[idx-1].classList.remove('filled');
+      boxes[idx-1].focus();
+    }
+  }
+}
+
+function verifyOtp(){
+  const boxes=document.querySelectorAll('.otp-box');
+  const entered=[...boxes].map(b=>b.value).join('');
+  if(entered.length<6){showToast('Enter the 6-digit OTP');return;}
+  if(entered!==otpValue){
+    showToast('❌ Incorrect OTP. Try 123456');
+    boxes.forEach(b=>{b.style.borderColor='var(--red)';});
+    setTimeout(()=>boxes.forEach(b=>{b.style.borderColor='';}),1000);
+    return;
+  }
+  // OTP correct — log in
+  clearInterval(otpTimerInterval);
+  const uid='ph_'+otpPhone;
+  const u={
+    id:uid,
+    name:'User '+otpPhone.slice(-4),
+    email:'',
+    phone:'+91'+otpPhone,
+    photo:null,
+    provider:'phone',
+    loginTime:new Date().toLocaleString(),
+    loginDate:new Date().toDateString()
+  };
+  showAuthDefault();
+  loginUser(u);
+}
+// ════════════════════════════════════════════════════
 
 function doLogout(){
   closeSidebar();clearSess();cart=[];
