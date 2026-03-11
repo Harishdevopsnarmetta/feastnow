@@ -8,6 +8,38 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase SDKs — loaded dynamically -->
+<script>
+(function(){
+  const FIREBASE_CONFIG={
+    apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+    authDomain:"feastnow-10576.firebaseapp.com",
+    projectId:"feastnow-10576",
+    storageBucket:"feastnow-10576.firebasestorage.app",
+    messagingSenderId:"59738911240",
+    appId:"1:59738911240:web:727b247d12630566bf97bd"
+  };
+  window._fbConfig=FIREBASE_CONFIG;
+  window._firebaseReady=false;
+
+  function loadScript(src,cb){
+    const s=document.createElement('script');
+    s.src=src;s.onload=cb;
+    s.onerror=()=>{ console.warn('Firebase script failed to load:',src); window._firebaseFailed=true; };
+    document.head.appendChild(s);
+  }
+
+  loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',()=>{
+    loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js',()=>{
+      try{
+        firebase.initializeApp(FIREBASE_CONFIG);
+        window._firebaseReady=true;
+        console.log('✅ Firebase ready');
+      }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
+    });
+  });
+})();
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0d0d0d;--card:#161616;--card2:#1e1e1e;--gold:#d4a847;--gold2:#f0c96a;--gold3:#8a6a1a;--text:#f0ece4;--muted:#6b6560;--border:#2a2520;--green:#27ae60;--red:#e74c3c;--blue:#3498db;--r:18px}
@@ -1087,7 +1119,7 @@ body.logged-in #chat-fab{display:flex}
       <div class="otp-resend" id="otp-resend-row">Didn't receive? <span onclick="resendOtp()">Resend OTP</span></div>
       <div class="otp-timer" id="otp-timer"></div>
       <button class="otp-verify-btn" onclick="verifyOtp()">Verify & Continue →</button>
-      <div class="otp-hint" id="otp-verify-hint">Demo OTP: <b style="color:var(--gold)">123456</b></div>
+      <div class="otp-hint" id="otp-verify-hint" style="text-align:center;font-size:.7rem;color:rgba(212,168,71,.4);margin-top:8px">Real SMS OTP via Firebase</div>
     </div>
   </div>
 </div>
@@ -2017,8 +2049,8 @@ function signInGuest(){
   loadHome(currentUser);document.body.classList.add('logged-in');showScreen('home-screen');showToast('👀 Browsing as Guest');
 }
 
-// ══ MOBILE OTP LOGIN ════════════════════════════════
-let otpValue='',otpPhone='',otpTimerInterval=null;
+// ══ MOBILE OTP LOGIN — Firebase Phone Auth ═══════════
+let otpPhone='',otpTimerInterval=null,firebaseConfirmationResult=null,recaptchaVerifier=null;
 
 function showAuthDefault(){
   document.getElementById('auth-default').style.display='block';
@@ -2031,7 +2063,19 @@ function showOtpPhoneStep(){
   document.getElementById('auth-default').style.display='none';
   document.getElementById('otp-phone-panel').classList.add('show');
   document.getElementById('otp-verify-panel').classList.remove('show');
-  document.getElementById('otp-hint').textContent='';
+  const hint=document.getElementById('otp-hint');
+  if(window._firebaseFailed||!window._firebaseReady){
+    hint.innerHTML='⚠️ Preview mode — use OTP <b style="color:var(--gold)">123456</b>';
+  } else { hint.textContent=''; }
+  // Init invisible reCAPTCHA once (only if Firebase loaded)
+  if(window._firebaseReady && !recaptchaVerifier){
+    try{
+      recaptchaVerifier=new firebase.auth.RecaptchaVerifier('otp-send-btn',{
+        size:'invisible',callback:()=>{}
+      });
+      recaptchaVerifier.render();
+    }catch(e){ console.warn('reCAPTCHA init:',e); }
+  }
   setTimeout(()=>document.getElementById('otp-phone-input').focus(),200);
 }
 
@@ -2040,28 +2084,68 @@ function onPhoneInput(el){
   document.getElementById('otp-send-btn').disabled=el.value.length!==10;
 }
 
-function sendOtp(){
+async function sendOtp(){
   const phone=document.getElementById('otp-phone-input').value.trim();
   if(phone.length!==10){showToast('Enter a valid 10-digit number');return;}
   otpPhone=phone;
-  otpValue='123456'; // demo OTP
-  // Show verify panel
-  document.getElementById('otp-phone-panel').classList.remove('show');
-  document.getElementById('otp-verify-panel').classList.add('show');
-  document.getElementById('otp-sent-to').textContent='+91 '+phone.slice(0,5)+'·····';
-  // Clear boxes
-  document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
-  setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),200);
-  // Start countdown timer
-  startOtpTimer(30);
-  showToast('📱 OTP sent to +91 '+phone);
+  const btn=document.getElementById('otp-send-btn');
+  btn.disabled=true;
+  btn.textContent='Sending...';
+
+  // ── FALLBACK: Firebase not loaded (preview/local) ──
+  if(!window._firebaseReady||window._firebaseFailed){
+    window._demoOtp='123456';
+    document.getElementById('otp-phone-panel').classList.remove('show');
+    document.getElementById('otp-verify-panel').classList.add('show');
+    document.getElementById('otp-sent-to').textContent='+91 '+phone.slice(0,5)+'·····';
+    document.getElementById('otp-verify-hint').innerHTML='Preview mode — OTP: <b style="color:var(--gold)">123456</b>';
+    document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
+    setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),200);
+    startOtpTimer(30);
+    showToast('📱 Demo OTP: 123456 (Firebase loads on GitHub Pages)');
+    btn.disabled=false; btn.textContent='Send OTP';
+    return;
+  }
+
+  // ── REAL: Firebase SMS ──
+  const fullPhone='+91'+phone;
+  document.getElementById('otp-hint').textContent='';
+  try{
+    firebaseConfirmationResult=await firebase.auth().signInWithPhoneNumber(fullPhone,recaptchaVerifier);
+    document.getElementById('otp-phone-panel').classList.remove('show');
+    document.getElementById('otp-verify-panel').classList.add('show');
+    document.getElementById('otp-sent-to').textContent='+91 '+phone.slice(0,5)+'·····';
+    document.getElementById('otp-verify-hint').textContent='Real SMS OTP via Firebase';
+    document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
+    setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),200);
+    startOtpTimer(30);
+    showToast('📱 OTP sent to +91 '+phone);
+  }catch(err){
+    console.error('sendOtp error:',err);
+    btn.disabled=false; btn.textContent='Send OTP';
+    if(recaptchaVerifier){try{recaptchaVerifier.clear();}catch(e){}}
+    recaptchaVerifier=null;
+    showOtpPhoneStep();
+    let msg='Failed to send OTP. Try again.';
+    if(err.code==='auth/invalid-phone-number') msg='Invalid phone number.';
+    else if(err.code==='auth/too-many-requests') msg='Too many attempts. Try later.';
+    else if(err.code==='auth/operation-not-allowed') msg='Enable Phone auth in Firebase console.';
+    showToast('❌ '+msg);
+    document.getElementById('otp-hint').textContent=msg;
+  }
 }
 
-function resendOtp(){
+async function resendOtp(){
+  document.getElementById('otp-resend-row').style.display='none';
+  // Reset recaptcha and re-send
+  if(recaptchaVerifier){try{recaptchaVerifier.clear();}catch(e){}}
+  recaptchaVerifier=null;
   document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.classList.remove('filled');});
-  startOtpTimer(30);
-  showToast('📱 OTP resent!');
-  setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),100);
+  // Go back to phone step briefly to re-init recaptcha then auto-send
+  document.getElementById('otp-phone-panel').classList.add('show');
+  document.getElementById('otp-verify-panel').classList.remove('show');
+  showOtpPhoneStep();
+  setTimeout(()=>sendOtp(),600);
 }
 
 function startOtpTimer(seconds){
@@ -2085,10 +2169,7 @@ function startOtpTimer(seconds){
 function otpBoxInput(el,idx){
   el.value=el.value.replace(/\D/g,'').slice(-1);
   el.classList.toggle('filled',el.value!=='');
-  if(el.value && idx<5){
-    document.querySelectorAll('.otp-box')[idx+1].focus();
-  }
-  // Auto verify when all filled
+  if(el.value&&idx<5) document.querySelectorAll('.otp-box')[idx+1].focus();
   const boxes=document.querySelectorAll('.otp-box');
   const entered=[...boxes].map(b=>b.value).join('');
   if(entered.length===6) setTimeout(verifyOtp,300);
@@ -2097,7 +2178,7 @@ function otpBoxInput(el,idx){
 function otpBoxKey(e,idx){
   if(e.key==='Backspace'){
     const boxes=document.querySelectorAll('.otp-box');
-    if(!boxes[idx].value && idx>0){
+    if(!boxes[idx].value&&idx>0){
       boxes[idx-1].value='';
       boxes[idx-1].classList.remove('filled');
       boxes[idx-1].focus();
@@ -2105,31 +2186,55 @@ function otpBoxKey(e,idx){
   }
 }
 
-function verifyOtp(){
+async function verifyOtp(){
   const boxes=document.querySelectorAll('.otp-box');
   const entered=[...boxes].map(b=>b.value).join('');
   if(entered.length<6){showToast('Enter the 6-digit OTP');return;}
-  if(entered!==otpValue){
-    showToast('❌ Incorrect OTP. Try 123456');
-    boxes.forEach(b=>{b.style.borderColor='var(--red)';});
-    setTimeout(()=>boxes.forEach(b=>{b.style.borderColor='';}),1000);
+  const verifyBtn=document.querySelector('.otp-verify-btn');
+  verifyBtn.textContent='Verifying...';
+  verifyBtn.disabled=true;
+
+  // ── FALLBACK: demo mode ──
+  if(!window._firebaseReady||window._firebaseFailed||!firebaseConfirmationResult){
+    if(entered===window._demoOtp||entered==='123456'){
+      clearInterval(otpTimerInterval);
+      const u={
+        id:'ph_'+otpPhone,name:'User '+otpPhone.slice(-4),email:'',
+        phone:'+91'+otpPhone,photo:null,provider:'phone',
+        loginTime:new Date().toLocaleString(),loginDate:new Date().toDateString()
+      };
+      showAuthDefault();
+      loginUser(u);
+    } else {
+      verifyBtn.textContent='Verify & Continue →'; verifyBtn.disabled=false;
+      boxes.forEach(b=>{b.style.borderColor='var(--red)';});
+      setTimeout(()=>boxes.forEach(b=>{b.style.borderColor='';}),1000);
+      showToast('❌ Wrong OTP. Use 123456 in preview mode.');
+    }
     return;
   }
-  // OTP correct — log in
-  clearInterval(otpTimerInterval);
-  const uid='ph_'+otpPhone;
-  const u={
-    id:uid,
-    name:'User '+otpPhone.slice(-4),
-    email:'',
-    phone:'+91'+otpPhone,
-    photo:null,
-    provider:'phone',
-    loginTime:new Date().toLocaleString(),
-    loginDate:new Date().toDateString()
-  };
-  showAuthDefault();
-  loginUser(u);
+
+  // ── REAL: Firebase verify ──
+  try{
+    const result=await firebaseConfirmationResult.confirm(entered);
+    const fbUser=result.user;
+    clearInterval(otpTimerInterval);
+    const u={
+      id:'ph_'+otpPhone,name:'User '+otpPhone.slice(-4),email:'',
+      phone:fbUser.phoneNumber||'+91'+otpPhone,photo:null,provider:'phone',
+      loginTime:new Date().toLocaleString(),loginDate:new Date().toDateString()
+    };
+    showAuthDefault();
+    loginUser(u);
+  }catch(err){
+    console.error('verifyOtp error:',err);
+    verifyBtn.textContent='Verify & Continue →'; verifyBtn.disabled=false;
+    boxes.forEach(b=>{b.style.borderColor='var(--red)';});
+    setTimeout(()=>boxes.forEach(b=>{b.style.borderColor='';}),1000);
+    let msg='Incorrect OTP. Try again.';
+    if(err.code==='auth/code-expired') msg='OTP expired. Request a new one.';
+    showToast('❌ '+msg);
+  }
 }
 // ════════════════════════════════════════════════════
 
@@ -3543,6 +3648,7 @@ function renderHistory(){
       </div>`;
     return;
   }
+  window._reorderOrders=allOrders;
   body.innerHTML=allOrders.map((o,i)=>{
     // Item emoji thumbnails (max 4 shown)
     const thumbs=o.items.slice(0,4).map(it=>`
@@ -3567,7 +3673,7 @@ function renderHistory(){
           <div class="ohc-total">₹${o.total}</div>
           <div class="ohc-date">${o.time||o.date||''}</div>
         </div>
-        <button class="ohc-reorder" onclick="openReorderSheet(${JSON.stringify(o).replace(/"/g,'&quot;')})">🔄 Order Again</button>
+        <button        <button class="ohc-reorder" onclick="openReorderSheet(window._reorderOrders[${i}])">🔄 Order Again</button>
       </div>
     </div>`;
   }).join('');
