@@ -201,12 +201,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
           window._rtdb = firebase.database();
           window._firebaseReady = true;
           console.log('✅ Rider Firebase ready');
+          // Start listening for real orders once rider logs in
           window._firebaseInitTime = Date.now();
-          // If rider is already online waiting, start listener immediately
-          if(typeof isOnline !== 'undefined' && isOnline && !_orderListener){
-            console.log('🔥 Firebase ready while rider online — auto-starting order listener');
-            startListeningForOrders();
-          }
         }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
       });
     });
@@ -288,11 +284,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <!-- Order incoming / active delivery / waiting -->
     <div id="order-area"></div>
     <!-- DEBUG PANEL -->
-    <div id="debug-panel" style="margin:16px;background:#0a1a0a;border:1px solid #00e676;border-radius:12px;padding:14px;display:block">
+    <div id="debug-panel" style="margin:16px;background:#0a1a0a;border:1px solid #00e676;border-radius:12px;padding:14px;display:none">
       <div style="font-family:Syne,sans-serif;font-size:.8rem;color:#00e676;margin-bottom:8px">🔍 Debug Info</div>
       <div id="debug-log" style="font-size:.72rem;color:#aaa;line-height:1.8;font-family:monospace"></div>
       <button onclick="runDebug()" style="margin-top:10px;background:#00e676;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">🔄 Re-check Firebase</button>
-      <button onclick="testFirebaseRead()" style="margin-top:10px;margin-left:8px;background:#ff9800;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">📖 Test Read Orders</button>
       <button onclick="showDemoOrder()" style="margin-top:10px;margin-left:8px;background:#f5c842;border:none;border-radius:20px;padding:8px 16px;font-weight:700;font-size:.8rem;cursor:pointer;color:#000">📦 Load Demo Order</button>
     </div>
     <div style="text-align:center;margin:8px 0">
@@ -656,20 +651,19 @@ let _orderListener = null;
 
 function startListeningForOrders(){
   if(!window._firebaseReady || !window._db) {
-    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
+    console.warn('startListeningForOrders: Firebase not ready');
     return;
   }
   if(_orderListener) _orderListener(); // unsub previous
 
   console.log('👂 Listening for real orders from Firestore...');
+  showToast('🔥 Waiting for real orders...');
 
   // Simple query — no orderBy to avoid index requirement
   _orderListener = window._db.collection('orders')
     .where('status','==','pending_rider')
     .onSnapshot(snap=>{
-      if(!isOnline) return;
-      // Only block if actively mid-delivery (not just order assigned)
-      if(currentOrder && currentOrder.phase > 0) return;
+      if(!isOnline || currentOrder) return;
       console.log('📦 Firestore snapshot:', snap.docs.length, 'pending orders');
       
       // Show the most recent pending order
@@ -686,14 +680,12 @@ function startListeningForOrders(){
       }
     }, err=>{ 
       console.warn('Order listener error:', err);
-      // Fallback to demo
-      setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 3000);
+      showToast('⚠️ Listener error: ' + err.code);
     });
 }
 
 function showRealOrder(data){
-  if(!isOnline) return;
-  if(currentOrder && currentOrder.phase > 0) return;
+  if(!isOnline || currentOrder) return;
   console.log('🎯 Showing real order:', data.id);
   const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
   let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
@@ -740,19 +732,19 @@ function showDemoOrder(){
 }
 
 async function showIncomingOrder(){
-  // Wait up to 10s for Firebase to be ready before falling back to demo
-  console.log('🔄 showIncomingOrder: waiting for Firebase...');
+  // Wait up to 8s for Firebase — NEVER show demo if Firebase connects
   let waited = 0;
-  while(!window._firebaseReady && !window._firebaseFailed && waited < 10000){
-    await new Promise(r=>setTimeout(r,300));
-    waited += 300;
+  while(!window._firebaseReady && !window._firebaseFailed && waited < 8000){
+    await new Promise(r=>setTimeout(r,400));
+    waited += 400;
   }
   if(window._firebaseReady && window._db){
-    console.log('✅ Firebase ready after', waited, 'ms — starting real order listener');
+    // Firebase connected — only listen for REAL orders, no demo
     startListeningForOrders();
   } else {
-    console.warn('⚠️ Firebase not ready after 10s — falling back to demo');
-    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 1000);
+    // Firebase truly unavailable — demo fallback only
+    console.warn('Firebase unavailable, demo mode');
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 2000);
   }
 }
 
@@ -828,8 +820,12 @@ function rejectOrder(){
   currentOrder=null; deliveryPhase=0;
   showToast('❌ Order rejected');
   renderOrderArea();
-  // New order after 6 seconds
-  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+  // If Firebase connected, just keep listening — no demo loop
+  if(isOnline && window._firebaseReady && window._db){
+    if(!_orderListener) startListeningForOrders();
+  } else if(isOnline){
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+  }
 }
 
 function autoRejectOrder(){
@@ -837,7 +833,12 @@ function autoRejectOrder(){
   currentOrder=null; deliveryPhase=0;
   showToast('⏰ Order expired');
   renderOrderArea();
-  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+  // If Firebase connected, just keep listening — no demo loop
+  if(isOnline && window._firebaseReady && window._db){
+    if(!_orderListener) startListeningForOrders();
+  } else if(isOnline){
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 6000);
+  }
 }
 
 function acceptOrder(){
@@ -845,7 +846,6 @@ function acceptOrder(){
   SFX.stopIncoming();
   SFX.accept();
   deliveryPhase=1;
-  if(currentOrder) currentOrder.phase = 1; // mark as active delivery
   showToast('✅ Order accepted! Head to restaurant');
 
   // Update Firestore — claim this order
@@ -1106,30 +1106,6 @@ async function runDebug(){
     }
   }catch(e){
     debugLog('❌ Error: '+e.message);
-  }
-}
-async function testFirebaseRead(){
-  debugLog('--- Manual Read Test ---');
-  if(!window._db){ debugLog('❌ No Firestore!'); showToast('❌ Firestore not ready'); return; }
-  try{
-    debugLog('📖 Reading orders collection...');
-    const snap = await window._db.collection('orders').get();
-    debugLog('✅ Total docs: ' + snap.docs.length);
-    snap.docs.forEach(d=>{
-      const data = d.data();
-      debugLog('  → '+d.id+' | status='+data.status+' | user='+data.userName);
-    });
-    const pending = snap.docs.filter(d=>d.data().status==='pending_rider');
-    debugLog('🟡 Pending for rider: ' + pending.length);
-    if(pending.length===0) debugLog('⚠️ No pending orders — place an order from customer app first!');
-    showToast(snap.docs.length + ' orders found, ' + pending.length + ' pending');
-  }catch(e){
-    debugLog('❌ READ FAILED: ' + e.code + ' - ' + e.message);
-    showToast('❌ Read failed: ' + e.code);
-    if(e.code === 'permission-denied'){
-      debugLog('🔒 FIX: Go to Firebase Console → Firestore → Rules');
-      debugLog('   Set: allow read, write: if true;');
-    }
   }
 }
 </script>
