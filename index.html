@@ -2811,30 +2811,8 @@ function doCheckout(){
   cart=[];appliedPromo=null;discount=0;saveCart(cart);updateCartBadge();closeCart();
   addNotif('order','📦','Order Placed!','Your order #'+orderId+' is confirmed. Estimated delivery: 30 min.',true);
   showToast('🎉 Order #'+orderId+' placed!');
-  // 🔥 Direct Firestore write — no dependency on external function
-  (async ()=>{
-    try{
-      if(!window._db){ showToast('⚠️ Firebase not ready'); return; }
-      const orderData = {
-        id: order.id,
-        userId: currentUser?.id || 'guest',
-        userName: currentUser?.name || 'Customer',
-        userPhone: currentUser?.phone || '',
-        items: (order.items||[]).map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,rest:i.rest||''})),
-        subtotal: order.subtotal||0,
-        total: order.total||0,
-        status: 'pending_rider',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      await window._db.collection('orders').doc(order.id).set(orderData);
-      showToast('🔥 Order sent to rider!');
-      console.log('✅ Order written to Firestore:', order.id);
-    } catch(e){
-      console.error('❌ Firestore write failed:', e.code, e.message);
-      showToast('❌ '+e.code+': '+e.message);
-      alert('❌ ORDER FAILED\nCode: '+(e.code||'unknown')+'\n'+e.message);
-    }
-  })();
+  // 🔥 Save order + user to Firestore dynamically
+  if(typeof window.saveOrderToFirestore==='function') window.saveOrderToFirestore(order);
   if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
   setTimeout(()=>openTracking(order),600);
 }
@@ -3444,30 +3422,8 @@ function processPayment(){
       status:'Placed',address:selAddr?.text||'Default address'
     };
     orders=[order,...getOrders()];saveOrders(orders);
-    // 🔥 Direct Firestore write
-    (async ()=>{
-      try{
-        if(!window._db){ showToast('⚠️ Firebase not ready'); return; }
-        const orderData = {
-          id: order.id,
-          userId: currentUser?.id || 'guest',
-          userName: currentUser?.name || 'Customer',
-          userPhone: currentUser?.phone || '',
-          items: (order.items||[]).map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,rest:i.rest||''})),
-          subtotal: order.subtotal||0,
-          total: order.total||0,
-          status: 'pending_rider',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        await window._db.collection('orders').doc(order.id).set(orderData);
-        showToast('🔥 Order sent to rider!');
-        console.log('✅ Order written to Firestore:', order.id);
-      } catch(e){
-        console.error('❌ Firestore write failed:', e.code, e.message);
-        showToast('❌ '+e.code+': '+e.message);
-        alert('❌ ORDER FAILED\nCode: '+(e.code||'unknown')+'\n'+e.message);
-      }
-    })();
+    // 🔥 Save to Firestore so rider app picks it up
+    if(typeof window.saveOrderToFirestore==='function') window.saveOrderToFirestore(order);
     if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
     cart=[];appliedPromo=null;discount=0;tipAmount=0;useFeastCoins=false;
     saveCart(cart);updateCartBadge();
@@ -4176,7 +4132,8 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
     };
     await window._db.collection('orders').doc(order.id).set(orderData);
     console.log('✅✅✅ ORDER SAVED TO FIRESTORE:', order.id);
-    showToast('🔥 Order synced to Firebase!');
+    showToast('🔥 Order sent to rider!');
+    setTimeout(()=>alert('✅ ORDER SAVED!\nID: '+order.id+'\nCheck rider app!'),300);
     
     if(window._rtdb){
       await window._rtdb.ref('tracking/' + order.id).set({
@@ -4187,7 +4144,8 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
     }
   } catch(e){ 
     console.error('❌❌❌ saveOrderToFirestore FAILED:', e.code, e.message);
-    showToast('❌ Firebase error: ' + e.message);
+    showToast('❌ '+( e.code||e.message));
+    setTimeout(()=>alert('❌ WRITE FAILED\nCode: '+(e.code||'?')+'\n'+e.message),300);
   }
 }
 
@@ -4311,6 +4269,81 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW:', e); });
   });
+}
+</script>
+
+<!-- FIREBASE DEBUG BUTTON -->
+<div id="fb-debug-btn" onclick="toggleFbDebug()" style="position:fixed;bottom:90px;right:16px;z-index:99999;background:#d4a847;color:#000;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 4px 20px rgba(0,0,0,.6);cursor:pointer">🔥</div>
+<div id="fb-debug-panel" style="display:none;position:fixed;bottom:160px;right:12px;left:12px;z-index:99998;background:#0d1f0d;border:2px solid #d4a847;border-radius:16px;padding:16px;max-height:55vh;overflow-y:auto;font-family:monospace">
+  <div style="color:#d4a847;font-weight:700;font-size:.85rem;margin-bottom:8px">🔥 Firebase Debug</div>
+  <div id="fb-debug-log" style="font-size:.68rem;color:#ccc;line-height:2;white-space:pre-wrap"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+    <button onclick="fbStatus()" style="flex:1;min-width:80px;background:#1a3a1a;color:#00e676;border:1px solid #00e676;border-radius:20px;padding:8px 4px;font-size:.72rem;cursor:pointer">📊 Status</button>
+    <button onclick="fbTestWrite()" style="flex:1;min-width:80px;background:#3a2000;color:#ff9800;border:1px solid #ff9800;border-radius:20px;padding:8px 4px;font-size:.72rem;cursor:pointer">✍️ Test Write</button>
+    <button onclick="fbReadOrders()" style="flex:1;min-width:80px;background:#001a3a;color:#64b5f6;border:1px solid #64b5f6;border-radius:20px;padding:8px 4px;font-size:.72rem;cursor:pointer">📖 Read Orders</button>
+    <button onclick="document.getElementById('fb-debug-log').textContent=''" style="flex:1;min-width:80px;background:#2a0000;color:#ef5350;border:1px solid #ef5350;border-radius:20px;padding:8px 4px;font-size:.72rem;cursor:pointer">🗑 Clear</button>
+  </div>
+</div>
+<script>
+function toggleFbDebug(){
+  var p=document.getElementById('fb-debug-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block') fbStatus();
+}
+function fbLog(msg){
+  var el=document.getElementById('fb-debug-log');
+  if(el){el.textContent+=msg+'\n';el.scrollTop=el.scrollHeight;}
+}
+function fbStatus(){
+  document.getElementById('fb-debug-log').textContent='';
+  fbLog('⏰ '+new Date().toLocaleTimeString());
+  fbLog('🔥 Firebase ready: '+(window._firebaseReady||false));
+  fbLog('🗄️ Firestore: '+(!!window._db));
+  fbLog('📡 RTDB: '+(!!window._rtdb));
+  fbLog('❌ Failed: '+(window._firebaseFailed||false));
+  fbLog('👤 User: '+(typeof currentUser!=='undefined'&&currentUser?currentUser.name+' ('+currentUser.id+')':'not logged in'));
+}
+async function fbTestWrite(){
+  fbLog('\n--- Test Write ---');
+  if(!window._db){fbLog('❌ No Firestore!');return;}
+  var testId='TEST_'+Date.now();
+  fbLog('📝 Writing: '+testId);
+  try{
+    await window._db.collection('orders').doc(testId).set({
+      id:testId,userName:'DebugTest',status:'pending_rider',
+      items:[{name:'Test',price:99}],total:99,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    fbLog('✅ SUCCESS! Doc: '+testId);
+    fbLog('👆 Check rider app now!');
+    alert('✅ Firebase write SUCCESS!\nCheck rider app for test order.');
+  }catch(e){
+    fbLog('❌ FAILED: '+e.code);
+    fbLog('   '+e.message);
+    if(e.code==='permission-denied'){
+      fbLog('');
+      fbLog('🔒 FIX: Firebase Console');
+      fbLog('   Firestore → Rules → set:');
+      fbLog('   allow read, write: if true;');
+    }
+    alert('❌ WRITE FAILED\nCode: '+e.code+'\n'+e.message);
+  }
+}
+async function fbReadOrders(){
+  fbLog('\n--- Read Orders ---');
+  if(!window._db){fbLog('❌ No Firestore!');return;}
+  try{
+    var snap=await window._db.collection('orders').get();
+    fbLog('✅ Total docs: '+snap.docs.length);
+    snap.docs.forEach(function(d){
+      var data=d.data();
+      fbLog('  →'+d.id+' | '+data.status);
+    });
+    if(snap.docs.length===0) fbLog('⚠️ Collection EMPTY!');
+  }catch(e){
+    fbLog('❌ READ FAILED: '+e.code);
+    fbLog('   '+e.message);
+  }
 }
 </script>
 </body>
