@@ -2878,14 +2878,19 @@ function openTracking(order){
     initDeliveryMap(order, steps, ()=>{
       // This callback fires when rider ARRIVES
       steps[2].done=true; steps[2].active=false;
-      steps[3].done=true; steps[3].active=false;
+      steps[3].active=true;
       renderTrackSteps(steps);
+      // Small delay then mark delivered
+      setTimeout(()=>{
+        steps[3].done=true; steps[3].active=false;
+        renderTrackSteps(steps);
       document.getElementById('track-eta').textContent='Delivered! 🎉';
       document.getElementById('map-eta-chip').textContent='✅ Here!';
       document.getElementById('map-status-txt').textContent='🎉 Order Delivered!';
       document.getElementById('map-status-sub').textContent='Enjoy your meal!';
-      SFX.delivered();
-      addNotif('order','🏠','Order Delivered!','Enjoy your meal! 😋',true);
+        SFX.delivered();
+        addNotif('order','🏠','Order Delivered!','Enjoy your meal! 😋',true);
+      }, 1000);
     });
   }, 10000);
 
@@ -2917,14 +2922,14 @@ function initDeliveryMap(order, steps, onArrived, waitMode=false){
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
 
     const riderIcon=L.divIcon({html:`<span class="rider-marker">🛵</span>`,iconSize:[36,36],iconAnchor:[18,18],className:''});
-    const destIcon =L.divIcon({html:`<span class="dest-marker">🏠</span>`,iconSize:[36,36],iconAnchor:[18,36],className:''});
+    const destIcon =L.divIcon({html:`<div style="position:relative"><div style="position:absolute;width:50px;height:50px;border-radius:50%;background:rgba(212,168,71,0.25);animation:pulse 1.5s infinite;top:-25px;left:-25px"></div><span style="font-size:36px;filter:drop-shadow(0 0 8px #d4a847)">🏠</span></div>`,iconSize:[40,40],iconAnchor:[20,36],className:''});
     const restIcon =L.divIcon({html:`<span style="font-size:28px">🍽</span>`,iconSize:[36,36],iconAnchor:[18,36],className:''});
 
     // Rider stays at restaurant during prep
     riderMarker=L.marker([_mapRiderStart.lat,_mapRiderStart.lng],{icon:riderIcon}).addTo(leafletMap)
       .bindPopup('<b>🛵 Your Rider</b><br><small>Waiting at restaurant</small>',{closeButton:false});
     destMarker=L.marker([_mapDest.lat,_mapDest.lng],{icon:destIcon}).addTo(leafletMap)
-      .bindPopup(`<b>🏠 Your Location</b><br><small>${order.address||_mapDest.name}</small>`,{closeButton:false}).openPopup();
+      .bindPopup('<b>🏠 Your Home</b>',{closeButton:false}).openPopup();
     L.marker([_mapRiderStart.lat,_mapRiderStart.lng],{icon:restIcon}).addTo(leafletMap)
       .bindPopup(`<b>🍽 Restaurant</b><br><small>${order.items?.[0]?.rest||'Restaurant'}</small>`,{closeButton:false});
 
