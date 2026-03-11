@@ -1971,8 +1971,18 @@ function loadHome(u){
   showBannerSkeleton();
   showChefSkeleton();
   showFoodSkeleton('food-grid',6);
-  // Render real content after simulated load
-  setTimeout(()=>{renderChefSpecial();},400);
+  // Restore banners after skeleton
+  setTimeout(()=>{
+    const bs=document.getElementById('banner-scroll');
+    if(bs) bs.innerHTML=`
+      <div class="banner bg1"><div class="banner-shine"></div><div class="b-emoji">🍕</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">🔥 LIMITED</div><div class="banner-title">50% Off<br>All Pizzas</div><div class="banner-sub">Use code FEAST50</div></div></div>
+      <div class="banner bg2"><div class="banner-shine"></div><div class="b-emoji">🍔</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">✨ NEW</div><div class="banner-title">Gourmet<br>Burgers</div><div class="banner-sub">Free delivery over ₹299</div></div></div>
+      <div class="banner bg3"><div class="banner-shine"></div><div class="b-emoji">🍛</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">👨‍🍳 CHEF'S PICK</div><div class="banner-title">Hyderabadi<br>Special</div><div class="banner-sub">Authentic dum biryani</div></div></div>
+      <div class="banner bg4"><div class="banner-shine"></div><div class="b-emoji">🍜</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">⚡ FLASH DEAL</div><div class="banner-title">Noodles &amp;<br>Ramen Bowls</div><div class="banner-sub">Buy 1 Get 1 Free today</div></div></div>
+      <div class="banner bg5"><div class="banner-shine"></div><div class="b-emoji">🍰</div><div class="banner-overlay"></div><div class="banner-text"><div class="banner-tag">🎂 SWEET TREAT</div><div class="banner-title">Desserts<br>From ₹49</div><div class="banner-sub">Use code SWEET20</div></div></div>`;
+    initBannerSlider();
+    renderChefSpecial();
+  },400);
   setTimeout(()=>{renderFoods(FOOD_DATA);updateCartBadge();updateNotifDot();updateLoyaltyUI();},800);
 }
 
