@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0d0d0d;--card:#161616;--card2:#1e1e1e;--gold:#d4a847;--gold2:#f0c96a;--gold3:#8a6a1a;--text:#f0ece4;--muted:#6b6560;--border:#2a2520;--green:#27ae60;--red:#e74c3c;--blue:#3498db;--r:18px}
@@ -388,6 +389,41 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .upi-app:active{transform:scale(.92);border-color:var(--gold3)}
 .upi-app-icon{width:36px;height:36px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .upi-app-name{font-size:.65rem;color:var(--muted);font-weight:500}
+
+/* UPI TABS */
+.upi-tab-row{display:flex;gap:0;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:3px;margin-bottom:14px}
+.upi-tab{flex:1;padding:8px 4px;text-align:center;font-size:.73rem;font-weight:600;color:var(--muted);cursor:pointer;border-radius:9px;transition:all .2s;white-space:nowrap}
+.upi-tab.active{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#000}
+/* QR PANEL */
+.upi-qr-wrap{position:relative;width:200px;height:200px;margin:0 auto 10px;border-radius:18px;padding:12px;background:#fff;box-shadow:0 8px 32px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+.upi-qr-glow{position:absolute;inset:-2px;border-radius:20px;background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold3));z-index:-1;animation:qrGlow 2s ease-in-out infinite}
+@keyframes qrGlow{0%,100%{opacity:.6}50%{opacity:1}}
+#upi-qr-canvas{border-radius:8px;display:block;position:relative;z-index:1}
+#upi-scan-line{position:absolute;left:12px;right:12px;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);border-radius:2px;animation:scanLine 2s ease-in-out infinite;top:12px;z-index:2}
+@keyframes scanLine{0%{top:12px;opacity:1}50%{top:188px;opacity:.8}100%{top:12px;opacity:1}}
+.upi-qr-logo{position:absolute;bottom:-12px;right:-12px;width:36px;height:36px;background:linear-gradient(135deg,var(--gold3),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,0,0,.3);border:2px solid var(--bg);z-index:3}
+.upi-qr-amount{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.8rem;color:var(--gold);text-align:center;margin-bottom:4px}
+.upi-qr-label{font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:6px}
+.upi-qr-vpa{font-size:.72rem;color:var(--text);text-align:center;margin-bottom:12px}
+.upi-qr-apps-row{display:flex;justify-content:center;gap:12px;margin-bottom:4px}
+.upi-qr-app-icon{width:32px;height:32px;border-radius:8px;object-fit:contain;border:1px solid var(--border);background:var(--card2)}
+/* UPI DEEP LINK */
+.upi-deeplink-grid{display:flex;flex-direction:column;gap:8px}
+.upi-dl-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--card2);border:1px solid var(--border);border-radius:14px;text-decoration:none;color:var(--text);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upi-dl-btn:active{transform:scale(.97);border-color:var(--gold3);background:rgba(212,168,71,.06)}
+.upi-dl-btn span{font-weight:600;font-size:.88rem;flex:1}
+.upi-dl-arrow{font-size:.9rem;color:var(--gold);font-weight:700}
+.upi-dl-note{text-align:center;font-size:.7rem;color:var(--muted);margin-top:10px;padding:8px;background:rgba(212,168,71,.05);border-radius:8px;border:1px solid rgba(212,168,71,.1)}
+/* UPI ID verify */
+.upi-id-verify{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:.75rem;color:var(--gold)}
+.upi-verify-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;animation:pulse 1.5s ease infinite}
+/* PAID CONFIRM */
+.upi-paid-confirm{text-align:center;padding:16px 0 4px;border-top:1px solid var(--border);margin-top:16px}
+.upi-paid-icon{font-size:2.2rem;margin-bottom:8px}
+.upi-paid-txt{font-weight:600;font-size:.92rem;color:var(--text);margin-bottom:4px}
+.upi-paid-sub{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.upi-paid-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;margin-bottom:8px}
+.upi-paid-cancel{width:100%;padding:10px;background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer}
 .pm-upi{background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.05))}
 .pm-card{background:linear-gradient(135deg,rgba(52,152,219,.15),rgba(52,152,219,.05))}
 .pm-cod{background:linear-gradient(135deg,rgba(212,168,71,.15),rgba(212,168,71,.05))}
@@ -1117,63 +1153,86 @@ body.logged-in #chat-fab{display:flex}
       <div class="pay-method-check">✓</div>
     </div>
     <div class="upi-input-wrap show" id="upi-wrap">
-      <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">Enter UPI ID</div>
-      <input class="upi-input" id="upi-id" placeholder="yourname@upi">
-      <div class="upi-apps">
-        <div class="upi-app" onclick="fillUPI('gpay')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#fff"/>
-            <path d="M24 10C16.268 10 10 16.268 10 24s6.268 14 14 14 14-6.268 14-14S31.732 10 24 10z" fill="#4285F4"/>
-            <path d="M24 17.5v6.5H30.5C29.7 27.7 27.1 29.5 24 29.5c-3.6 0-6.5-2.9-6.5-6.5s2.9-6.5 6.5-6.5c1.7 0 3.2.6 4.4 1.7l4.6-4.6C30.6 11.9 27.5 10.5 24 10.5 16.5 10.5 10.5 16.5 10.5 24S16.5 37.5 24 37.5 37.5 31.5 37.5 24H24v-6.5z" fill="white"/>
-            <path d="M24 24h6.5c-.8 3.2-3.4 5.5-6.5 5.5-3.6 0-6.5-2.9-6.5-6.5S20.4 17 24 17c1.7 0 3.2.6 4.4 1.7L32 14.1C30 12.3 27.1 11 24 11c-7.2 0-13 5.8-13 13s5.8 13 13 13 13-5.8 13-13H24z" fill="#34A853"/>
-          </svg>
-          <div class="upi-app-name">GPay</div>
+      <!-- Tab switcher: QR / UPI ID / Apps -->
+      <div class="upi-tab-row">
+        <div class="upi-tab active" id="utab-qr"   onclick="switchUpiTab('qr')">📷 QR Code</div>
+        <div class="upi-tab"        id="utab-id"   onclick="switchUpiTab('id')">⌨️ UPI ID</div>
+        <div class="upi-tab"        id="utab-apps" onclick="switchUpiTab('apps')">📱 Apps</div>
+      </div>
+
+      <!-- QR TAB -->
+      <div id="upi-tab-qr" class="upi-tab-panel">
+        <div class="upi-qr-wrap">
+          <div class="upi-qr-glow"></div>
+          <canvas id="upi-qr-canvas" width="200" height="200"></canvas>
+          <div class="upi-qr-logo">🍽</div>
         </div>
-        <div class="upi-app" onclick="fillUPI('phonepe')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#5F259F"/>
-            <path d="M32 14h-6l-10 10 4 4 3-3v9h4V21l3 3 4-4-2-6z" fill="white"/>
-            <circle cx="24" cy="24" r="10" fill="none" stroke="white" stroke-width="1.5" opacity="0.3"/>
-          </svg>
-          <div class="upi-app-name">PhonePe</div>
+        <div class="upi-qr-amount" id="upi-qr-amount">₹0</div>
+        <div class="upi-qr-label">Scan with any UPI app to pay</div>
+        <div class="upi-qr-vpa">Pay to: <b id="upi-qr-vpa-txt">feastnow@upi</b></div>
+        <div class="upi-qr-apps-row">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/512px-Google_Pay_Logo.svg.png" class="upi-qr-app-icon" title="GPay" onerror="this.style.display='none'">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/PhonePe_Logo.svg/512px-PhonePe_Logo.svg.png" class="upi-qr-app-icon" title="PhonePe" onerror="this.style.display='none'">
+          <span class="upi-qr-app-icon" style="font-size:1.6rem;display:flex;align-items:center;justify-content:center">🏦</span>
+          <span class="upi-qr-app-icon" style="font-size:1.6rem;display:flex;align-items:center;justify-content:center">💳</span>
         </div>
-        <div class="upi-app" onclick="fillUPI('paytm')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#00BAF2"/>
-            <rect x="10" y="10" width="28" height="28" rx="6" fill="white"/>
-            <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8z" fill="#00BAF2"/>
-            <path d="M20 24c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" fill="white"/>
-            <text x="24" y="38" text-anchor="middle" fill="#00BAF2" font-size="6" font-weight="bold" font-family="sans-serif">PAYTM</text>
-          </svg>
-          <div class="upi-app-name">Paytm</div>
+      </div>
+
+      <!-- UPI ID TAB -->
+      <div id="upi-tab-id" class="upi-tab-panel" style="display:none">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">Enter your UPI ID</div>
+        <input class="upi-input" id="upi-id" placeholder="yourname@upi" oninput="updateUpiDeepLink()">
+        <div class="upi-id-verify" id="upi-id-verify" style="display:none">
+          <span class="upi-verify-dot"></span>
+          <span id="upi-verify-txt">Tap Pay to proceed</span>
         </div>
-        <div class="upi-app" onclick="fillUPI('bhim')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#00A651"/>
-            <rect x="0" y="32" width="48" height="16" rx="0" fill="#FF6600"/>
-            <rect x="0" y="32" width="48" height="4" fill="white"/>
-            <text x="24" y="26" text-anchor="middle" fill="white" font-size="10" font-weight="900" font-family="sans-serif">BHIM</text>
-            <text x="24" y="44" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">UPI</text>
-          </svg>
-          <div class="upi-app-name">BHIM</div>
+      </div>
+
+      <!-- APPS TAB -->
+      <div id="upi-tab-apps" class="upi-tab-panel" style="display:none">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:12px">Tap to open directly in your app</div>
+        <div class="upi-deeplink-grid">
+          <a class="upi-dl-btn" id="dl-gpay" href="#" onclick="openUpiApp('gpay');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#fff"/><path d="M24 10C16.268 10 10 16.268 10 24s6.268 14 14 14 14-6.268 14-14S31.732 10 24 10z" fill="#4285F4"/><path d="M24 24h6.5c-.8 3.2-3.4 5.5-6.5 5.5-3.6 0-6.5-2.9-6.5-6.5S20.4 17 24 17c1.7 0 3.2.6 4.4 1.7L32 14.1C30 12.3 27.1 11 24 11c-7.2 0-13 5.8-13 13s5.8 13 13 13 13-5.8 13-13H24z" fill="#34A853"/></svg>
+            <span>GPay</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
+          <a class="upi-dl-btn" id="dl-phonepe" href="#" onclick="openUpiApp('phonepe');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#5F259F"/><path d="M32 14h-6l-10 10 4 4 3-3v9h4V21l3 3 4-4-2-6z" fill="white"/></svg>
+            <span>PhonePe</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
+          <a class="upi-dl-btn" id="dl-paytm" href="#" onclick="openUpiApp('paytm');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#00BAF2"/><rect x="10" y="10" width="28" height="28" rx="6" fill="white"/><path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8z" fill="#00BAF2"/><path d="M20 24c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" fill="white"/></svg>
+            <span>Paytm</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
+          <a class="upi-dl-btn" id="dl-bhim" href="#" onclick="openUpiApp('bhim');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#00A651"/><rect x="0" y="32" width="48" height="16" fill="#FF6600"/><rect x="0" y="32" width="48" height="4" fill="white"/><text x="24" y="26" text-anchor="middle" fill="white" font-size="10" font-weight="900" font-family="sans-serif">BHIM</text></svg>
+            <span>BHIM</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
+          <a class="upi-dl-btn" id="dl-amazonpay" href="#" onclick="openUpiApp('amazonpay');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#FF9900"/><text x="24" y="22" text-anchor="middle" fill="white" font-size="8" font-weight="900" font-family="sans-serif">amazon</text><text x="24" y="32" text-anchor="middle" fill="white" font-size="7" font-weight="700" font-family="sans-serif">pay</text></svg>
+            <span>Amazon Pay</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
+          <a class="upi-dl-btn" id="dl-cred" href="#" onclick="openUpiApp('cred');return false;">
+            <svg viewBox="0 0 48 48" width="28" height="28"><rect width="48" height="48" rx="10" fill="#1A1A2E"/><polygon points="24,10 38,18 38,30 24,38 10,30 10,18" fill="none" stroke="#D4A847" stroke-width="2"/><text x="24" y="28" text-anchor="middle" fill="#D4A847" font-size="9" font-weight="900" font-family="sans-serif">CRED</text></svg>
+            <span>CRED</span>
+            <div class="upi-dl-arrow">→</div>
+          </a>
         </div>
-        <div class="upi-app" onclick="fillUPI('amazonpay')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#FF9900"/>
-            <text x="24" y="22" text-anchor="middle" fill="white" font-size="8" font-weight="900" font-family="sans-serif">amazon</text>
-            <text x="24" y="32" text-anchor="middle" fill="white" font-size="7" font-weight="700" font-family="sans-serif">pay</text>
-            <path d="M14 36 Q24 40 34 36" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-          </svg>
-          <div class="upi-app-name">Amazon</div>
-        </div>
-        <div class="upi-app" onclick="fillUPI('cred')">
-          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <rect width="48" height="48" rx="12" fill="#1A1A2E"/>
-            <polygon points="24,10 38,18 38,30 24,38 10,30 10,18" fill="none" stroke="#D4A847" stroke-width="2"/>
-            <text x="24" y="28" text-anchor="middle" fill="#D4A847" font-size="9" font-weight="900" font-family="sans-serif">CRED</text>
-          </svg>
-          <div class="upi-app-name">CRED</div>
-        </div>
+        <div class="upi-dl-note">⚡ App will open with amount pre-filled</div>
+      </div>
+
+      <!-- After app opens — "I've Paid" confirmation -->
+      <div class="upi-paid-confirm" id="upi-paid-confirm" style="display:none">
+        <div class="upi-paid-icon">⏳</div>
+        <div class="upi-paid-txt">Waiting for payment confirmation</div>
+        <div class="upi-paid-sub">Complete payment in your UPI app, then tap below</div>
+        <button class="upi-paid-btn" onclick="confirmUpiPaid()">✅ I've Completed Payment</button>
+        <button class="upi-paid-cancel" onclick="cancelUpiWait()">✕ Cancel</button>
       </div>
     </div>
 
@@ -2186,6 +2245,16 @@ function goToPayment(){
   pendingOrder={cart:[...cart],subtotal:sub,discount,total,promo:appliedPromo?document.getElementById('promo-input').value:''};
   closeCart();
   showScreen('payment-screen');
+  // Reset UPI panel to QR tab and generate fresh QR
+  upiCurrentTab = 'qr';
+  ['qr','id','apps'].forEach(t => {
+    const tab = document.getElementById('utab-' + t);
+    const panel = document.getElementById('upi-tab-' + t);
+    if (tab) tab.classList.toggle('active', t === 'qr');
+    if (panel) panel.style.display = t === 'qr' ? '' : 'none';
+  });
+  document.getElementById('upi-paid-confirm').style.display = 'none';
+  setTimeout(generateUpiQR, 300);
 }
 
 function renderPaySummary(sub,baseTotal,tip,coins){
@@ -2200,6 +2269,8 @@ function renderPaySummary(sub,baseTotal,tip,coins){
   document.getElementById('pay-summary-rows').innerHTML=rows;
   document.getElementById('pay-btn').textContent=`Pay ₹${finalTotal} →`;
   if(pendingOrder)pendingOrder.finalTotal=finalTotal;
+  // Refresh QR if on QR tab
+  if(upiCurrentTab==='qr') setTimeout(generateUpiQR, 100);
   return finalTotal;
 }
 
@@ -2232,12 +2303,162 @@ function selectPayMethod(method,el){
   document.getElementById('card-wrap').classList.toggle('show',method==='card');
 }
 
-function fillUPI(app){
-  const hints={gpay:'yourname@okicici',phonepe:'yourname@ybl',paytm:'yourname@paytm',bhim:'yourname@upi',amazonpay:'yourname@apl',cred:'yourname@axisb'};
-  const inp=document.getElementById('upi-id');
-  inp.placeholder=hints[app]||'yourname@upi';inp.focus();
-  showToast('💳 Enter your '+app.charAt(0).toUpperCase()+app.slice(1)+' UPI ID');
+// ── UPI DEEP LINK + QR ─────────────────────────────────
+const FEAST_UPI_VPA = 'feastnow@upi';       // ← replace with your real VPA
+const FEAST_PAYEE   = 'FeastNow';
+
+let upiCurrentTab = 'qr';
+let upiWaitingConfirm = false;
+
+function buildUpiUrl(amount, orderId) {
+  const note = encodeURIComponent('Order ' + orderId);
+  const payee = encodeURIComponent(FEAST_PAYEE);
+  return `upi://pay?pa=${FEAST_UPI_VPA}&pn=${payee}&am=${amount}&cu=INR&tn=${note}`;
 }
+
+function switchUpiTab(tab) {
+  upiCurrentTab = tab;
+  ['qr','id','apps'].forEach(t => {
+    document.getElementById('utab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('upi-tab-' + t).style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'qr') generateUpiQR();
+  if (tab === 'apps') updateUpiDeepLinks();
+}
+
+function generateUpiQR() {
+  const canvas = document.getElementById('upi-qr-canvas');
+  if (!canvas) return;
+  const amount = pendingOrder ? (pendingOrder.finalTotal || pendingOrder.total) : 0;
+  const orderId = 'FN' + Date.now().toString().slice(-6);
+  const upiUrl = buildUpiUrl(amount, orderId);
+
+  document.getElementById('upi-qr-amount').textContent = '₹' + amount;
+  document.getElementById('upi-qr-vpa-txt').textContent = FEAST_UPI_VPA;
+
+  // Add scan line if not already there
+  const wrap = canvas.parentElement;
+  if (!document.getElementById('upi-scan-line')) {
+    const line = document.createElement('div');
+    line.id = 'upi-scan-line';
+    wrap.appendChild(line);
+  }
+
+  // Draw QR on canvas manually using a tiny QR lib fallback
+  drawQROnCanvas(canvas, upiUrl);
+}
+
+// Pure-JS minimal QR encoder using the qrcodejs lib via a hidden div
+function drawQROnCanvas(canvas, text) {
+  try {
+    // Use qrcodejs to render into a temp div, then copy to our canvas
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
+    document.body.appendChild(tmp);
+    new QRCode(tmp, {
+      text: text,
+      width: 176,
+      height: 176,
+      colorDark: '#1a0a00',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    setTimeout(() => {
+      const img = tmp.querySelector('img') || tmp.querySelector('canvas');
+      if (!img) { document.body.removeChild(tmp); return; }
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 200, 200);
+      // White bg
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, 200, 200);
+      if (img.tagName === 'CANVAS') {
+        ctx.drawImage(img, 12, 12, 176, 176);
+      } else {
+        const i = new Image();
+        i.onload = () => ctx.drawImage(i, 12, 12, 176, 176);
+        i.src = img.src;
+      }
+      document.body.removeChild(tmp);
+    }, 80);
+  } catch(e) {
+    // Fallback: draw a placeholder with text
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, 200, 200);
+    ctx.fillStyle = '#1a0a00';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('UPI QR', 100, 95);
+    ctx.font = '9px sans-serif';
+    ctx.fillStyle = '#888';
+    ctx.fillText(FEAST_UPI_VPA, 100, 112);
+  }
+}
+
+function updateUpiDeepLinks() {
+  const amount = pendingOrder ? (pendingOrder.finalTotal || pendingOrder.total) : 0;
+  const orderId = 'FN' + Date.now().toString().slice(-6);
+  const base = buildUpiUrl(amount, orderId);
+
+  // App-specific deep links
+  const appLinks = {
+    gpay:      `tez://upi/pay?pa=${FEAST_UPI_VPA}&pn=${encodeURIComponent(FEAST_PAYEE)}&am=${amount}&cu=INR&tn=Order${orderId}`,
+    phonepe:   `phonepe://pay?pa=${FEAST_UPI_VPA}&pn=${encodeURIComponent(FEAST_PAYEE)}&am=${amount}&cu=INR&tn=Order${orderId}`,
+    paytm:     `paytmmp://pay?pa=${FEAST_UPI_VPA}&pn=${encodeURIComponent(FEAST_PAYEE)}&am=${amount}&cu=INR`,
+    bhim:      base,
+    amazonpay: `amazonpay://pay?pa=${FEAST_UPI_VPA}&pn=${encodeURIComponent(FEAST_PAYEE)}&am=${amount}&cu=INR`,
+    cred:      base,
+  };
+  Object.keys(appLinks).forEach(app => {
+    const el = document.getElementById('dl-' + app);
+    if (el) el.dataset.link = appLinks[app];
+  });
+}
+
+function updateUpiDeepLink() {
+  const inp = document.getElementById('upi-id');
+  const verify = document.getElementById('upi-id-verify');
+  const txt = document.getElementById('upi-verify-txt');
+  if (inp && inp.value.includes('@')) {
+    verify.style.display = 'flex';
+    txt.textContent = 'Ready — tap Pay to proceed';
+  } else if (verify) {
+    verify.style.display = 'none';
+  }
+}
+
+function openUpiApp(app) {
+  updateUpiDeepLinks();
+  const el = document.getElementById('dl-' + app);
+  const link = el ? el.dataset.link : buildUpiUrl(pendingOrder?.finalTotal || 0, 'FN000');
+  // Try to open the app
+  window.location.href = link;
+  // Show "I've paid" confirmation after a short delay (user has gone to app)
+  setTimeout(() => showUpiPaidConfirm(), 1500);
+}
+
+function fillUPI(app) { openUpiApp(app); } // legacy alias
+
+function showUpiPaidConfirm() {
+  const confirm = document.getElementById('upi-paid-confirm');
+  if (confirm) {
+    confirm.style.display = 'block';
+    upiWaitingConfirm = true;
+  }
+}
+
+function cancelUpiWait() {
+  const confirm = document.getElementById('upi-paid-confirm');
+  if (confirm) confirm.style.display = 'none';
+  upiWaitingConfirm = false;
+}
+
+function confirmUpiPaid() {
+  // User says they completed payment — treat as successful
+  cancelUpiWait();
+  processPayment();
+}
+// ─────────────────────────────────────────────────────
 
 function formatCard(input){
   let v=input.value.replace(/\D/g,'').substring(0,16);
