@@ -2070,7 +2070,20 @@ function showOtpPhoneStep(){
   // Init invisible reCAPTCHA once (only if Firebase loaded)
   if(window._firebaseReady && !recaptchaVerifier){
     try{
-      recaptchaVerifier=new firebase.auth.RecaptchaVerifier('otp-send-btn',{
+      // Clear any existing recaptcha widgets first
+      if(window.grecaptcha && window.grecaptcha.reset){
+        try{ window.grecaptcha.reset(); }catch(e){}
+      }
+      // Use a dedicated invisible div instead of the button
+      let rcDiv=document.getElementById('recaptcha-container');
+      if(!rcDiv){
+        rcDiv=document.createElement('div');
+        rcDiv.id='recaptcha-container';
+        rcDiv.style.cssText='position:fixed;bottom:0;right:0;z-index:0;visibility:hidden;';
+        document.body.appendChild(rcDiv);
+      }
+      rcDiv.innerHTML=''; // clear previous render
+      recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{
         size:'invisible',callback:()=>{}
       });
       recaptchaVerifier.render();
@@ -2125,6 +2138,8 @@ async function sendOtp(){
     btn.disabled=false; btn.textContent='Send OTP';
     if(recaptchaVerifier){try{recaptchaVerifier.clear();}catch(e){}}
     recaptchaVerifier=null;
+    const rcDiv=document.getElementById('recaptcha-container');
+    if(rcDiv) rcDiv.innerHTML='';
     showOtpPhoneStep();
     let msg='Failed to send OTP. Try again.';
     if(err.code==='auth/invalid-phone-number') msg='Invalid phone number.';
