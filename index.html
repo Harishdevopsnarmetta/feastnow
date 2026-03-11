@@ -2944,43 +2944,70 @@ function buildMap(order){
 function startRiderMoving(order, onArrived){
   if(!_mapDest||!_mapRest||!riderMarker) return;
   if(riderAnimTimer){clearInterval(riderAnimTimer);riderAnimTimer=null;}
-
   riderMarker.getPopup()?.setContent('<b>🛵 Rider</b><br><small>On the way! 🚀</small>');
 
-  let step=0;
-  const totalSteps=80; // 80 seconds delivery time
+  // ── Try REAL rider from Firebase RTDB ──
+  if(window._rtdb && window._firebaseReady){
+    const ref = window._rtdb.ref('tracking/'+order.id);
+    let _lastDelivered=false;
+    ref.on('value', snap=>{
+      const data=snap.val();
+      if(!data||!riderMarker) return;
+      // Real rider position
+      if(data.riderLat && data.riderLng){
+        const newPos=[data.riderLat, data.riderLng];
+        riderMarker.setLatLng(newPos);
+        if(_mapRouteLine) _mapRouteLine.setLatLngs([newPos,[_mapDest.lat,_mapDest.lng]]);
+        if(leafletMap) leafletMap.panTo(newPos,{animate:true,duration:.9});
+        // ETA based on distance
+        const dist=Math.sqrt(Math.pow(data.riderLat-_mapDest.lat,2)+Math.pow(data.riderLng-_mapDest.lng,2));
+        const etaTxt=dist<0.002?'Arriving!':Math.ceil(dist/0.003)+' min away';
+        document.getElementById('track-eta').textContent=etaTxt;
+        document.getElementById('map-eta-chip').textContent=etaTxt;
+      }
+      // Status updates
+      if((data.status==='delivered'||data.status==='completed') && !_lastDelivered){
+        _lastDelivered=true;
+        ref.off('value');
+        if(_mapRouteLine) _mapRouteLine.remove();
+        riderMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
+        riderMarker.getPopup()?.setContent('<b>✅ Delivered!</b><br><small>Enjoy your meal! 😋</small>');
+        riderMarker.openPopup();
+        leafletMap.panTo([_mapDest.lat,_mapDest.lng],{animate:true,duration:1});
+        if(typeof onArrived==='function') onArrived();
+      }
+      if(data.riderName){
+        riderMarker.getPopup()?.setContent('<b>🛵 '+data.riderName+'</b><br><small>On the way! 🚀</small>');
+      }
+    });
+    return; // Using real RTDB — no simulation needed
+  }
 
+  // ── Fallback: simulate if Firebase not available ──
+  let step=0; const totalSteps=80;
   riderAnimTimer=setInterval(()=>{
     step++;
-
     if(step>=totalSteps){
-      // ✅ Arrived — STOP completely
-      clearInterval(riderAnimTimer);
-      riderAnimTimer=null;
+      clearInterval(riderAnimTimer); riderAnimTimer=null;
       riderMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
-      if(_mapRouteLine) _mapRouteLine.remove(); // remove dotted line on arrival
+      if(_mapRouteLine) _mapRouteLine.remove();
       riderMarker.getPopup()?.setContent('<b>✅ Delivered!</b><br><small>Enjoy your meal! 😋</small>');
       riderMarker.openPopup();
       leafletMap.panTo([_mapDest.lat,_mapDest.lng],{animate:true,duration:1});
-      if(typeof onArrived==='function') onArrived(); // ← triggers Delivered step
+      if(typeof onArrived==='function') onArrived();
       return;
     }
-
-    // Move rider smoothly
     const t=step/totalSteps;
-    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // ease in-out
+    const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
     const lat=_mapRest.lat+(_mapDest.lat-_mapRest.lat)*e;
     const lng=_mapRest.lng+(_mapDest.lng-_mapRest.lng)*e;
     riderMarker.setLatLng([lat,lng]);
     if(_mapRouteLine) _mapRouteLine.setLatLngs([[lat,lng],[_mapDest.lat,_mapDest.lng]]);
     if(step%8===0) leafletMap.panTo([lat,lng],{animate:true,duration:.9});
-
-    // Live countdown ETA
     const minsLeft=Math.ceil((totalSteps-step)/60);
     const secsLeft=(totalSteps-step)%60;
-    const etaTxt = minsLeft>0 ? minsLeft+' min away' : secsLeft+'s away';
-    document.getElementById('track-eta').textContent=etaTxt;
-    document.getElementById('map-eta-chip').textContent=etaTxt;
+    document.getElementById('track-eta').textContent=minsLeft>0?minsLeft+' min away':secsLeft+'s away';
+    document.getElementById('map-eta-chip').textContent=minsLeft>0?minsLeft+' min':secsLeft+'s';
   },1000);
 }
 
@@ -4066,11 +4093,14 @@ async function saveOrderToFirestore(order){
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       userId: currentUser?.id || 'guest',
       userName: currentUser?.name || 'Guest',
-      status: 'placed'
+      userPhone: currentUser?.phone || '',
+      status: 'pending_rider',  // Rider app picks up this status
+      riderId: null,
+      riderName: null,
     });
-    // Also create real-time rider location entry
+    // Create RTDB tracking node
     await window._rtdb.ref('tracking/' + order.id).set({
-      status: 'placed',
+      status: 'pending_rider',
       riderLat: null,
       riderLng: null,
       destLat: null,

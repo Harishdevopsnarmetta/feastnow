@@ -173,6 +173,41 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .no-order-title{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px}
 .pb-nav{padding-bottom:80px}
 </style>
+
+<script>
+(function(){
+  const FIREBASE_CONFIG={
+    apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+    authDomain:"harishdevopsnarmetta.github.io",
+    projectId:"feastnow-10576",
+    storageBucket:"feastnow-10576.firebasestorage.app",
+    messagingSenderId:"59738911240",
+    appId:"1:59738911240:web:727b247d12630566bf97bd"
+  };
+  window._firebaseReady=false;
+  function loadScript(src,cb){
+    const s=document.createElement('script');
+    s.src=src; s.onload=cb;
+    s.onerror=()=>{ console.warn('Firebase failed:', src); window._firebaseFailed=true; };
+    document.head.appendChild(s);
+  }
+  loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',()=>{
+    loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',()=>{
+      loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',()=>{
+        try{
+          if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+          window._db = firebase.firestore();
+          window._rtdb = firebase.database();
+          window._firebaseReady = true;
+          console.log('✅ Rider Firebase ready');
+          // Start listening for real orders once rider logs in
+          window._firebaseInitTime = Date.now();
+        }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
+      });
+    });
+  });
+})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -521,14 +556,16 @@ function toggleOnline(){
   lbl.style.color=isOnline?'var(--green)':'var(--muted)';
   if(isOnline){
     onlineStart=Date.now();
+    window._onlineTime=Date.now();
     showToast('✅ You are now Online! Looking for orders...');
     renderOrderArea();
-    // Simulate incoming order after 4 seconds
-    setTimeout(()=>{ if(isOnline && !currentOrder) showIncomingOrder(); }, 4000);
+    showIncomingOrder(); // Start real listener or demo
   } else {
     showToast('🔴 You are Offline');
     if(incomingTimer){ clearTimeout(incomingTimer); incomingTimer=null; }
     if(incomingInterval){ clearInterval(incomingInterval); incomingInterval=null; }
+    if(_orderListener){ _orderListener(); _orderListener=null; }
+    stopWritingLocation();
     renderOrderArea();
   }
 }
@@ -597,20 +634,70 @@ function renderOrderArea(){
 }
 
 // ═══════════════════════════════════════
-// INCOMING ORDER
+// REAL ORDER LISTENER FROM FIREBASE
 // ═══════════════════════════════════════
-function showIncomingOrder(){
-  if(!isOnline || currentOrder) return;
+let _orderListener = null;
 
+function startListeningForOrders(){
+  if(!window._firebaseReady || !window._db) {
+    // Fallback to demo orders if Firebase not ready
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
+    return;
+  }
+  if(_orderListener) _orderListener(); // unsub previous
+
+  console.log('👂 Listening for real orders...');
+  _orderListener = window._db.collection('orders')
+    .where('status','==','pending_rider')
+    .orderBy('createdAt','desc')
+    .limit(5)
+    .onSnapshot(snap=>{
+      if(!isOnline || currentOrder) return;
+      snap.docChanges().forEach(change=>{
+        if(change.type==='added'){
+          const data = change.doc.data();
+          // Don't show orders from before we went online
+          const orderTime = data.createdAt?.toMillis?.() || 0;
+          if(orderTime < (window._onlineTime||0)-5000) return;
+          showRealOrder(data);
+        }
+      });
+    }, err=>{ console.warn('Order listener error:', err); });
+}
+
+function showRealOrder(data){
+  if(!isOnline || currentOrder) return;
   const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
   let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
   while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
+  const dist = (1.5+Math.random()*3).toFixed(1);
+  const earn = 40 + Math.floor(Math.random()*40) + (data.items?.length||1)*5;
+  currentOrder = {
+    id: data.id,
+    rest: data.items?.[0]?.rest || 'Restaurant',
+    restPos: HYD_SPOTS[restIdx],
+    destPos: HYD_SPOTS[destIdx],
+    items: data.items?.length || 1,
+    itemsList: data.items || [],
+    earn, dist,
+    customer: data.userName || 'Customer',
+    area: HYD_SPOTS[destIdx].name,
+    time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    isReal: true,
+  };
+  showIncomingOrderCard();
+}
 
+// ── Demo order fallback ──
+function showDemoOrder(){
+  if(!isOnline || currentOrder) return;
+  const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+  let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+  while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
   const restName = RESTAURANTS[Math.floor(Math.random()*RESTAURANTS.length)];
   const items = Math.floor(Math.random()*3)+1;
   const earn = 40 + Math.floor(Math.random()*60);
   const dist = (1.5+Math.random()*4).toFixed(1);
-
   currentOrder = {
     id:'FN'+Date.now().toString().slice(-6),
     rest: restName,
@@ -620,7 +707,21 @@ function showIncomingOrder(){
     customer: 'Customer '+Math.floor(Math.random()*999+1),
     area: HYD_SPOTS[destIdx].name,
     time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-  };
+    isReal: false,
+  };  showIncomingOrderCard();
+}
+
+function showIncomingOrder(){
+  // Use real Firebase orders if available, else demo
+  if(window._firebaseReady && window._db){
+    startListeningForOrders();
+  } else {
+    setTimeout(()=>{ if(isOnline&&!currentOrder) showDemoOrder(); }, 4000);
+  }
+}
+
+function showIncomingOrderCard(){
+  if(!currentOrder) return;
 
   let timeLeft = 25;
   const area = document.getElementById('order-area');
@@ -707,15 +808,55 @@ function acceptOrder(){
   clearInterval(incomingInterval);
   SFX.stopIncoming();
   SFX.accept();
-  deliveryPhase=1; // Going to restaurant
+  deliveryPhase=1;
   showToast('✅ Order accepted! Head to restaurant');
+
+  // Update Firestore — claim this order
+  if(window._firebaseReady && window._db && currentOrder.isReal){
+    window._db.collection('orders').doc(currentOrder.id).update({
+      status: 'accepted',
+      riderId: rider.id,
+      riderName: rider.name,
+      riderPhone: rider.phone,
+      riderVehicle: rider.vehicle,
+      acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).catch(e=>console.warn('Accept update error:',e));
+    // Update RTDB tracking
+    window._rtdb.ref('tracking/'+currentOrder.id).update({
+      status: 'accepted',
+      riderName: rider.name,
+      riderLat: riderMarker?.getLatLng().lat || currentOrder.restPos.lat,
+      riderLng: riderMarker?.getLatLng().lng || currentOrder.restPos.lng,
+    });
+    // Start writing rider location to RTDB every 2 seconds
+    startWritingLocation();
+  }
+
   renderActiveDelivery();
-  // Animate rider to restaurant
   animateRiderTo(currentOrder.restPos, ()=>{
-    // arrived at restaurant - update route line to customer
     if(routeLine) routeLine.remove();
     routeLine = L.polyline([[currentOrder.restPos.lat,currentOrder.restPos.lng],[currentOrder.destPos.lat,currentOrder.destPos.lng]],{color:'#00e676',weight:3,dashArray:'8 5'}).addTo(riderMap);
   });
+}
+
+// Write real rider location to RTDB continuously
+let _locationTimer = null;
+function startWritingLocation(){
+  if(_locationTimer){ clearInterval(_locationTimer); _locationTimer=null; }
+  if(!window._rtdb || !currentOrder) return;
+  _locationTimer = setInterval(()=>{
+    if(!currentOrder || !riderMarker) { clearInterval(_locationTimer); return; }
+    const pos = riderMarker.getLatLng();
+    window._rtdb.ref('tracking/'+currentOrder.id).update({
+      riderLat: pos.lat,
+      riderLng: pos.lng,
+      riderName: rider.name,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP,
+    });
+  }, 2000);
+}
+function stopWritingLocation(){
+  if(_locationTimer){ clearInterval(_locationTimer); _locationTimer=null; }
 }
 
 // ═══════════════════════════════════════
@@ -741,24 +882,30 @@ function renderActiveDelivery(){
           ${!phase1Done?'<div class="del-step-status">⏳ Head here now...</div>':'<div class="del-step-status">✓ Picked up!</div>'}
         </div>
       </div>
-      <div class="del-step ${phase2Done?'done':phase1Done?'active':''}">
-        <div class="del-icon">${phase2Done?'✅':phase1Done?'🟢':'🏠'}</div>
+      <div class="del-step ${phase1Done?'active':''}">
+        <div class="del-icon">${phase1Done?'🟢':'🏠'}</div>
         <div class="del-step-info">
           <div class="del-step-lbl">Deliver to Customer</div>
           <div class="del-step-sub">${currentOrder.customer} · ${currentOrder.area}</div>
-          ${phase1Done&&!phase2Done?'<div class="del-step-status">⏳ On the way...</div>':phase2Done?'<div class="del-step-status">✓ Delivered!</div>':''}
+          ${phase1Done?'<div class="del-step-status">⏳ On the way... tap Complete on arrival</div>':''}
         </div>
       </div>
     </div>
     ${!phase1Done?`<button class="btn-action" onclick="confirmPickup()">📦 Confirm Pickup from Restaurant</button>`:''}
-    ${phase1Done&&!phase2Done?`<button class="btn-action" style="background:linear-gradient(135deg,#00c853,#00e676)" onclick="confirmDelivery()">🏠 Confirm Delivery to Customer</button>`:''}
-    ${phase2Done?`<button class="btn-action" style="background:linear-gradient(135deg,#f5c842,#ffb300);color:#000" onclick="completeOrder()">🎉 Complete & Get Next Order</button>`:''}
+    ${phase1Done&&!phase2Done?`<button class="btn-action" style="background:linear-gradient(135deg,#f5c842,#ffb300);color:#000" onclick="completeOrder()">🎉 Complete & Get Next Order</button>`:''}
   `;
 }
 
 function confirmPickup(){
   SFX.pickup();
   deliveryPhase=2;
+  if(window._firebaseReady && currentOrder?.isReal){
+    window._db.collection('orders').doc(currentOrder.id).update({
+      status: 'out_for_delivery',
+      pickedUpAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).catch(e=>console.warn('Pickup update error:',e));
+    window._rtdb.ref('tracking/'+currentOrder.id).update({ status: 'out_for_delivery' });
+  }
   showToast('📦 Picked up! Now deliver to customer');
   renderActiveDelivery();
   // Animate to customer
@@ -767,14 +914,22 @@ function confirmPickup(){
   });
 }
 
-function confirmDelivery(){
-  deliveryPhase=3;
+function completeOrder(){
   SFX.delivered();
   showToast('🎉 Delivered! Great job!');
-  renderActiveDelivery();
-}
-
-function completeOrder(){
+  stopWritingLocation();
+  // Update Firestore + RTDB as delivered
+  if(window._firebaseReady && currentOrder?.isReal){
+    window._db.collection('orders').doc(currentOrder.id).update({
+      status: 'delivered',
+      deliveredAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).catch(e=>console.warn('Deliver update error:',e));
+    window._rtdb.ref('tracking/'+currentOrder.id).update({
+      status: 'delivered',
+      riderLat: currentOrder.destPos.lat,
+      riderLng: currentOrder.destPos.lng,
+    });
+  }
   // Save earnings
   const delivery = {
     id: currentOrder.id,
