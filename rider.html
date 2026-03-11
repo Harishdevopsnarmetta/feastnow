@@ -429,7 +429,7 @@ function doLogout(){
 // ═══════════════════════════════════════
 function goHome(){
   const hour = new Date().getHours();
-  const greet = hour<12?'Good morning':'hour<17?Good afternoon':'Good evening';
+  const greet = hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
   document.getElementById('rider-greeting').textContent = (hour<12?'Good morning! 👋':hour<17?'Good afternoon! ☀️':'Good evening! 🌙');
   document.getElementById('rider-name-small').textContent = rider?.name || 'Partner';
   document.getElementById('bottom-nav').style.display='flex';
