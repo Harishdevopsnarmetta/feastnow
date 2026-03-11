@@ -360,7 +360,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .admin-empty{text-align:center;padding:40px;color:var(--muted)}
 
 /* PAYMENT SCREEN */
-#payment-screen{padding-bottom:40px}
+#payment-screen{padding-bottom:100px;overflow-y:auto}
 .pay-body{padding:20px}
 .pay-summary{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px}
 .pay-summary-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px}
@@ -469,7 +469,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .pay-divider{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
 .pay-divider::before,.pay-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .pay-divider span{font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.pay-processing-overlay{display:none;position:absolute;inset:0;background:rgba(13,13,13,.95);z-index:50;flex-direction:column;align-items:center;justify-content:center;gap:20px;border-radius:inherit}
+.pay-processing-overlay{display:none;position:fixed;inset:0;background:rgba(13,13,13,.95);z-index:5000;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 .pay-processing-overlay.show{display:flex}
 .pay-proc-ring{width:64px;height:64px;border:3px solid rgba(212,168,71,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 .pay-proc-steps{display:flex;flex-direction:column;gap:8px;min-width:200px}
@@ -1058,7 +1058,7 @@ body.logged-in #chat-fab{display:flex}
 </div>
 
 <!-- ══ PAYMENT SCREEN ══ -->
-<div class="screen" id="payment-screen" style="position:relative">
+<div class="screen" id="payment-screen">
   <div class="screen-topbar">
     <button class="back-btn" onclick="showScreen('home-screen')">←</button>
     <div class="screen-title">Secure <span class="screen-gold">Payment 💳</span></div>
