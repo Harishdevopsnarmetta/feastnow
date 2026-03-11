@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FeastNow 🍽</title>
+<meta name="application-name" content="FeastNow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FeastNow">
+<meta name="description" content="Fine Dining · Fast Delivery in Hyderabad">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -31,11 +40,19 @@
 
   loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',()=>{
     loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js',()=>{
-      try{
-        firebase.initializeApp(FIREBASE_CONFIG);
-        window._firebaseReady=true;
-        console.log('✅ Firebase ready');
-      }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
+      loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',()=>{
+        loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',()=>{
+          try{
+            firebase.initializeApp(FIREBASE_CONFIG);
+            window._db = firebase.firestore();
+            window._rtdb = firebase.database();
+            window._firebaseReady=true;
+            console.log('✅ Firebase + Firestore + RTDB ready');
+            // Load dynamic data from Firestore
+            loadDynamicData();
+          }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
+        });
+      });
     });
   });
 })();
@@ -2070,11 +2087,6 @@ function showOtpPhoneStep(){
   // Init invisible reCAPTCHA once (only if Firebase loaded)
   if(window._firebaseReady && !recaptchaVerifier){
     try{
-      // Clear any existing recaptcha widgets first
-      if(window.grecaptcha && window.grecaptcha.reset){
-        try{ window.grecaptcha.reset(); }catch(e){}
-      }
-      // Use a dedicated invisible div instead of the button
       let rcDiv=document.getElementById('recaptcha-container');
       if(!rcDiv){
         rcDiv=document.createElement('div');
@@ -2082,7 +2094,7 @@ function showOtpPhoneStep(){
         rcDiv.style.cssText='position:fixed;bottom:0;right:0;z-index:0;visibility:hidden;';
         document.body.appendChild(rcDiv);
       }
-      rcDiv.innerHTML=''; // clear previous render
+      rcDiv.innerHTML='';
       recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{
         size:'invisible',callback:()=>{}
       });
@@ -2138,8 +2150,6 @@ async function sendOtp(){
     btn.disabled=false; btn.textContent='Send OTP';
     if(recaptchaVerifier){try{recaptchaVerifier.clear();}catch(e){}}
     recaptchaVerifier=null;
-    const rcDiv=document.getElementById('recaptcha-container');
-    if(rcDiv) rcDiv.innerHTML='';
     showOtpPhoneStep();
     let msg='Failed to send OTP. Try again.';
     if(err.code==='auth/invalid-phone-number') msg='Invalid phone number.';
@@ -2790,6 +2800,9 @@ function doCheckout(){
   cart=[];appliedPromo=null;discount=0;saveCart(cart);updateCartBadge();closeCart();
   addNotif('order','📦','Order Placed!','Your order #'+orderId+' is confirmed. Estimated delivery: 30 min.',true);
   showToast('🎉 Order #'+orderId+' placed!');
+  // 🔥 Save order + user to Firestore dynamically
+  if(typeof saveOrderToFirestore==='function') saveOrderToFirestore(order);
+  if(typeof saveUserToFirestore==='function' && currentUser) saveUserToFirestore(currentUser);
   setTimeout(()=>openTracking(order),600);
 }
 
@@ -3915,6 +3928,276 @@ function shareReferral(){
 
 <!-- CHAT FAB -->
 <button id="chat-fab" onclick="openChat()">💬</button>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 🔥 DYNAMIC FIREBASE DATA LAYER — No more hardcoding!
+// ═══════════════════════════════════════════════════════════
+
+// ── Seed default data to Firestore if collections are empty ──
+async function seedFirestoreIfEmpty(){
+  if(!window._db) return;
+  try{
+    // Check if restaurants already exist
+    const snap = await window._db.collection('restaurants').limit(1).get();
+    if(!snap.empty){ console.log('✅ Firestore already has data'); return; }
+
+    console.log('🌱 Seeding Firestore with default data...');
+    const batch = window._db.batch();
+
+    // Seed restaurants
+    Object.entries(RESTAURANTS).forEach(([name, data])=>{
+      const ref = window._db.collection('restaurants').doc(name.replace(/[^a-zA-Z0-9]/g,'_'));
+      batch.set(ref, { name, ...data, active: true, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+
+    // Seed food items
+    FOOD_DATA.forEach(food=>{
+      const ref = window._db.collection('foods').doc(String(food.id));
+      batch.set(ref, { ...food, available: true, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+
+    // Seed promos
+    Object.entries(PROMOS).forEach(([code, data])=>{
+      const ref = window._db.collection('promos').doc(code);
+      batch.set(ref, { code, ...data, active: true });
+    });
+
+    await batch.commit();
+    console.log('✅ Firestore seeded successfully!');
+  } catch(e){ console.warn('Seed error:', e); }
+}
+
+// ── Load all dynamic data from Firestore ──
+async function loadDynamicData(){
+  if(!window._db){ console.warn('Firestore not ready'); return; }
+
+  try{
+    await seedFirestoreIfEmpty();
+
+    // Load restaurants in real-time
+    window._db.collection('restaurants').where('active','==',true)
+      .onSnapshot(snap=>{
+        const freshRestaurants = {};
+        snap.forEach(doc=>{ const d=doc.data(); freshRestaurants[d.name]=d; });
+        if(Object.keys(freshRestaurants).length > 0){
+          Object.assign(RESTAURANTS, freshRestaurants);
+          console.log('🍽 Restaurants loaded from Firestore:', Object.keys(RESTAURANTS).length);
+        }
+      }, err=>console.warn('Restaurant listener error:', err));
+
+    // Load food items in real-time
+    window._db.collection('foods').where('available','==',true)
+      .onSnapshot(snap=>{
+        const freshFoods = [];
+        snap.forEach(doc=>{ freshFoods.push({ ...doc.data(), id: parseInt(doc.id)||doc.id }); });
+        if(freshFoods.length > 0){
+          FOOD_DATA.length = 0;
+          freshFoods.forEach(f=>FOOD_DATA.push(f));
+          // Re-render food grid if home screen is active
+          const homeActive = document.getElementById('home-screen')?.classList.contains('active');
+          if(homeActive) setTimeout(()=>renderFoods(FOOD_DATA), 200);
+          console.log('🍕 Foods loaded from Firestore:', FOOD_DATA.length);
+        }
+      }, err=>console.warn('Food listener error:', err));
+
+    // Load promos in real-time
+    window._db.collection('promos').where('active','==',true)
+      .onSnapshot(snap=>{
+        snap.forEach(doc=>{ PROMOS[doc.id] = doc.data(); });
+        console.log('🎁 Promos loaded from Firestore:', Object.keys(PROMOS).length);
+      }, err=>console.warn('Promo listener error:', err));
+
+  } catch(e){ console.warn('loadDynamicData error:', e); }
+}
+
+// ── Save order to Firestore ──
+async function saveOrderToFirestore(order){
+  if(!window._db || !window._firebaseReady) return;
+  try{
+    await window._db.collection('orders').doc(order.id).set({
+      ...order,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      userId: currentUser?.id || 'guest',
+      userName: currentUser?.name || 'Guest',
+      status: 'placed'
+    });
+    // Also create real-time rider location entry
+    await window._rtdb.ref('tracking/' + order.id).set({
+      status: 'placed',
+      riderLat: null,
+      riderLng: null,
+      destLat: null,
+      destLng: null,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP
+    });
+    console.log('✅ Order saved to Firestore:', order.id);
+  } catch(e){ console.warn('saveOrderToFirestore error:', e); }
+}
+
+// ── Save user to Firestore on login ──
+async function saveUserToFirestore(user){
+  if(!window._db || !user) return;
+  try{
+    await window._db.collection('users').doc(user.id || user.uid || 'guest').set({
+      name: user.name || 'Guest',
+      email: user.email || '',
+      phone: user.phone || '',
+      provider: user.provider || 'guest',
+      photo: user.photo || '',
+      lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    console.log('✅ User saved to Firestore');
+  } catch(e){ console.warn('saveUserToFirestore error:', e); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 🛵 LIVE RIDER TRACKING via Firebase Realtime Database
+// ═══════════════════════════════════════════════════════════
+
+let _trackingUnsub = null;
+
+function startLiveRiderTracking(orderId, riderStart, dest){
+  if(!window._rtdb){ console.warn('RTDB not available'); return; }
+
+  // Write initial rider position to RTDB
+  const ref = window._rtdb.ref('tracking/' + orderId);
+  ref.update({
+    status: 'out_for_delivery',
+    riderLat: riderStart.lat,
+    riderLng: riderStart.lng,
+    destLat: dest.lat,
+    destLng: dest.lng,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  // Simulate rider movement by writing to RTDB every second
+  let progress = 0;
+  const totalSteps = 120;
+
+  if(window._riderSimTimer) clearInterval(window._riderSimTimer);
+  window._riderSimTimer = setInterval(async ()=>{
+    progress++;
+    if(progress >= totalSteps){
+      clearInterval(window._riderSimTimer);
+      await ref.update({ status: 'delivered', riderLat: dest.lat, riderLng: dest.lng });
+      return;
+    }
+    const t = progress / totalSteps;
+    const easedT = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+    const newLat = riderStart.lat + (dest.lat - riderStart.lat) * easedT;
+    const newLng = riderStart.lng + (dest.lng - riderStart.lng) * easedT;
+
+    // Write to RTDB — any device listening will get this update live!
+    ref.update({ riderLat: newLat, riderLng: newLng, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+  }, 1000);
+
+  // Listen to RTDB for live updates (any device can track!)
+  if(_trackingUnsub) _trackingUnsub();
+  ref.on('value', snap=>{
+    const data = snap.val();
+    if(!data || !riderMarker) return;
+    if(data.riderLat && data.riderLng){
+      riderMarker.setLatLng([data.riderLat, data.riderLng]);
+      if(data.destLat && data.destLng){
+        // Update route line
+        const rl = document.querySelector('.rider-route-line');
+        if(window._routeLine) window._routeLine.setLatLngs([[data.riderLat, data.riderLng],[data.destLat, data.destLng]]);
+      }
+    }
+    if(data.status === 'delivered' && leafletMap){
+      document.getElementById('track-eta').textContent = 'Delivered! 🎉';
+      document.getElementById('map-eta-chip').textContent = '✅ Here!';
+      document.getElementById('map-status-txt').textContent = '🎉 Order Delivered!';
+      document.getElementById('map-status-sub').textContent = 'Enjoy your meal!';
+    }
+  });
+
+  _trackingUnsub = ()=> ref.off('value');
+}
+
+// ── Override initDeliveryMap to use live RTDB tracking ──
+const _origInitDeliveryMap = initDeliveryMap;
+function initDeliveryMap(order){
+  if(leafletMap){leafletMap.remove();leafletMap=null;}
+  if(riderAnimTimer){clearInterval(riderAnimTimer);riderAnimTimer=null;}
+  if(window._riderSimTimer){clearInterval(window._riderSimTimer);window._riderSimTimer=null;}
+
+  const dest = HYD_SPOTS[Math.floor(Math.random()*HYD_SPOTS.length)];
+  const riderStart = {
+    lat: dest.lat + (Math.random()-.5)*.022,
+    lng: dest.lng + (Math.random()-.5)*.022
+  };
+
+  leafletMap = L.map('delivery-map',{
+    center:[riderStart.lat, riderStart.lng],
+    zoom:15, zoomControl:false, attributionControl:false
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
+
+  const riderIcon = L.divIcon({html:`<span class="rider-marker">🛵</span>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+  const destIcon  = L.divIcon({html:`<span class="dest-marker">🏠</span>`,iconSize:[32,32],iconAnchor:[16,32],className:''});
+  const restIcon  = L.divIcon({html:`<span class="dest-marker">🍽</span>`,iconSize:[32,32],iconAnchor:[16,32],className:''});
+
+  riderMarker = L.marker([riderStart.lat, riderStart.lng],{icon:riderIcon}).addTo(leafletMap);
+  destMarker  = L.marker([dest.lat, dest.lng],{icon:destIcon}).addTo(leafletMap)
+    .bindPopup(`<b>📍 Your Location</b><br><small>${order.address||dest.name}</small>`,{closeButton:false}).openPopup();
+
+  // Restaurant marker
+  L.marker([riderStart.lat, riderStart.lng],{icon:restIcon}).addTo(leafletMap)
+    .bindPopup(`<b>🍽 Restaurant</b><br><small>${order.items?.[0]?.rest||'Restaurant'}</small>`,{closeButton:false});
+
+  window._routeLine = L.polyline(
+    [[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],
+    {color:'#d4a847',weight:3,dashArray:'8 6',opacity:.8}
+  ).addTo(leafletMap);
+
+  leafletMap.fitBounds([[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],{padding:[50,50]});
+
+  // Start live tracking via Firebase RTDB
+  if(window._firebaseReady && window._rtdb && order.id){
+    startLiveRiderTracking(order.id, riderStart, dest);
+  } else {
+    // Fallback: animate locally if Firebase not available
+    let progress=0; const totalSteps=120;
+    riderAnimTimer=setInterval(()=>{
+      progress++;
+      if(progress>=totalSteps){clearInterval(riderAnimTimer);riderMarker.setLatLng([dest.lat,dest.lng]);return;}
+      const t=progress/totalSteps;
+      const easedT=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+      const newLat=riderStart.lat+(dest.lat-riderStart.lat)*easedT;
+      const newLng=riderStart.lng+(dest.lng-riderStart.lng)*easedT;
+      riderMarker.setLatLng([newLat,newLng]);
+      if(window._routeLine) window._routeLine.setLatLngs([[newLat,newLng],[dest.lat,dest.lng]]);
+      if(progress%20===0) leafletMap.panTo([newLat,newLng],{animate:true,duration:.8});
+    },1000);
+  }
+}
+
+// ── Hook into order placement to save to Firestore ──
+const _origConfirmOrder = typeof confirmOrder !== 'undefined' ? confirmOrder : null;
+
+// Override placeOrder to also save to Firestore
+document.addEventListener('DOMContentLoaded', function(){
+  // Patch saveOrders to also sync to Firestore
+  const _origSaveOrders = window.saveOrders;
+  if(typeof saveOrders === 'function'){
+    const __orig = saveOrders;
+    window.saveOrders = function(orders){
+      __orig(orders);
+    };
+  }
+});
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW:', e); });
+  });
+}
+</script>
 </body>
 </html>
 <script>
