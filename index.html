@@ -3412,6 +3412,9 @@ function processPayment(){
       status:'Placed',address:selAddr?.text||'Default address'
     };
     orders=[order,...getOrders()];saveOrders(orders);
+    // 🔥 Save to Firestore so rider app picks it up
+    if(typeof saveOrderToFirestore==='function') saveOrderToFirestore(order);
+    if(typeof saveUserToFirestore==='function' && currentUser) saveUserToFirestore(currentUser);
     cart=[];appliedPromo=null;discount=0;tipAmount=0;useFeastCoins=false;
     saveCart(cart);updateCartBadge();
     if(coinsOff>0){loyPts=Math.max(0,loyPts-coinsOff);saveLoyalty();updateLoyaltyUI();}
@@ -4087,29 +4090,47 @@ async function loadDynamicData(){
 
 // ── Save order to Firestore ──
 async function saveOrderToFirestore(order){
-  if(!window._db || !window._firebaseReady) return;
+  // Retry up to 5 times waiting for Firebase to be ready
+  let attempts = 0;
+  while((!window._db || !window._firebaseReady) && attempts < 10){
+    await new Promise(r=>setTimeout(r,500));
+    attempts++;
+  }
+  if(!window._db || !window._firebaseReady){
+    console.warn('❌ Firebase not ready after retries - order not saved to Firestore');
+    return;
+  }
   try{
-    await window._db.collection('orders').doc(order.id).set({
-      ...order,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    const orderData = {
+      id: order.id,
       userId: currentUser?.id || 'guest',
       userName: currentUser?.name || 'Guest',
       userPhone: currentUser?.phone || '',
-      status: 'pending_rider',  // Rider app picks up this status
+      items: order.items || [],
+      subtotal: order.subtotal || 0,
+      total: order.total || 0,
+      discount: order.discount || 0,
+      address: order.address || '',
+      time: order.time || new Date().toLocaleString(),
+      status: 'pending_rider',
       riderId: null,
       riderName: null,
-    });
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+    await window._db.collection('orders').doc(order.id).set(orderData);
+    console.log('✅ Order saved to Firestore:', order.id, orderData);
+
     // Create RTDB tracking node
-    await window._rtdb.ref('tracking/' + order.id).set({
-      status: 'pending_rider',
-      riderLat: null,
-      riderLng: null,
-      destLat: null,
-      destLng: null,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP
-    });
-    console.log('✅ Order saved to Firestore:', order.id);
-  } catch(e){ console.warn('saveOrderToFirestore error:', e); }
+    if(window._rtdb){
+      await window._rtdb.ref('tracking/' + order.id).set({
+        status: 'pending_rider',
+        riderLat: null,
+        riderLng: null,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+    console.log('✅ RTDB tracking created for:', order.id);
+  } catch(e){ console.error('❌ saveOrderToFirestore error:', e.message, e); }
 }
 
 // ── Save user to Firestore on login ──
