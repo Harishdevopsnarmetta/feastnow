@@ -738,10 +738,10 @@ body:not(.logged-in) .bottom-nav{display:none!important}
 .reward-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed}
 
 /* SCRATCH CARD */
-#scratch-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#scratch-modal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
 #scratch-modal.open{opacity:1;pointer-events:all}
-.scratch-box{background:var(--card);border-radius:24px;padding:30px 22px;width:calc(100% - 48px);max-width:340px;text-align:center}
-#scratchCanvas{border-radius:14px;cursor:crosshair;touch-action:none;display:block;margin:0 auto 20px}
+.scratch-box{background:var(--card);border-radius:24px;padding:30px 22px;width:calc(100% - 48px);max-width:340px;text-align:center;position:relative;z-index:9001}
+#scratchCanvas{border-radius:14px;cursor:crosshair;touch-action:none;display:block;margin:0 auto 20px;position:relative;z-index:9002}
 .scratch-claim-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:800;font-size:.93rem;cursor:pointer;display:none}
 .scratch-skip{width:100%;padding:10px;background:none;border:none;color:var(--muted);font-size:.85rem;cursor:pointer;margin-top:8px}
 
@@ -2938,14 +2938,16 @@ function initCanvas(prize){
   ctx.fillStyle=g;ctx.fillRect(0,0,240,115);
   ctx.font='bold 14px sans-serif';ctx.fillStyle='rgba(0,0,0,.35)';ctx.textAlign='center';ctx.fillText('✦ SCRATCH HERE ✦',120,62);
   var drawn=false,count=0;
-  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,20,0,Math.PI*2);ctx.fill();count++;if(count>28&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();}}}
+  function go(x,y){ctx.globalCompositeOperation='destination-out';ctx.beginPath();ctx.arc(x,y,22,0,Math.PI*2);ctx.fill();count++;if(count>22&&!drawn){drawn=true;var cb=document.getElementById('scratch-claim');if(cb)cb.style.display='block';if(prize.v.indexOf('Coins')!==-1){loyPts+=50;saveLoyalty();updateLoyaltyUI();}}}
+  function getPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;return{x:(e.clientX-r.left)*scaleX,y:(e.clientY-r.top)*scaleY};}
+  function getTouchPos(e){var r=canvas.getBoundingClientRect();var scaleX=canvas.width/r.width;var scaleY=canvas.height/r.height;var t=e.touches[0];return{x:(t.clientX-r.left)*scaleX,y:(t.clientY-r.top)*scaleY};}
   var dn=false;
-  canvas.onmousedown=function(e){dn=true;go(e.offsetX,e.offsetY);};
-  canvas.onmousemove=function(e){if(dn)go(e.offsetX,e.offsetY);};
-  canvas.onmouseup=function(){dn=false;};
-  canvas.ontouchstart=function(e){e.preventDefault();dn=true;var r=canvas.getBoundingClientRect();go(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
-  canvas.ontouchmove=function(e){e.preventDefault();var r=canvas.getBoundingClientRect();go(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);};
-  canvas.ontouchend=function(){dn=false;};
+  canvas.addEventListener('mousedown',function(e){dn=true;var p=getPos(e);go(p.x,p.y);});
+  canvas.addEventListener('mousemove',function(e){if(dn){var p=getPos(e);go(p.x,p.y);}});
+  canvas.addEventListener('mouseup',function(){dn=false;});
+  canvas.addEventListener('touchstart',function(e){e.preventDefault();e.stopPropagation();dn=true;var p=getTouchPos(e);go(p.x,p.y);},{passive:false,capture:true});
+  canvas.addEventListener('touchmove',function(e){e.preventDefault();e.stopPropagation();if(dn){var p=getTouchPos(e);go(p.x,p.y);}},{passive:false,capture:true});
+  canvas.addEventListener('touchend',function(e){e.preventDefault();dn=false;},{passive:false});
 }
 function closeScratch(){document.getElementById('scratch-modal').classList.remove('open');}
 
