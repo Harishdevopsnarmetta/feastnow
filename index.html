@@ -1,14 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0d0d0d" id="theme-color-meta">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FeastNow">
-<meta name="description" content="Fine dining · Fast delivery · FeastNow">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d0d0d'/><text y='.9em' font-size='75' x='12'>🍽</text></svg>">
 <title>FeastNow 🍽</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -255,20 +250,12 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 /* ORDER TRACKING SCREEN */
 #tracking-screen{padding-bottom:40px}
 .track-body{padding:20px}
-.order-id-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,.06)}
-.order-id-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
-.order-id-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.3rem;color:var(--gold)}
+.order-id-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.order-id-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.order-id-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--gold);margin-top:4px}
 .order-eta{text-align:right}
-.eta-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.eta-label{font-size:.72rem;color:var(--muted)}
 .eta-val{font-size:1.1rem;font-weight:700;color:var(--green);margin-top:4px}
-.rider-info-card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:14px}
-.rider-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
-.rider-details{flex:1}
-.rider-name{font-weight:600;font-size:.9rem;color:var(--text)}
-.rider-vehicle{font-size:.72rem;color:var(--muted);margin-top:2px}
-.rider-actions{display:flex;gap:8px}
-.rider-action-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;transition:all .2s}
-.rider-action-btn:active{background:var(--gold);border-color:var(--gold)}
 
 /* TRACK STEPS */
 .track-steps{margin-bottom:24px}
@@ -400,7 +387,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .upi-apps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .upi-app{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:10px 8px;background:var(--card);border:1px solid var(--border);border-radius:14px;transition:all .2s}
 .upi-app:active{transform:scale(.92);border-color:var(--gold3)}
-.upi-app-icon{width:40px;height:40px;border-radius:10px;overflow:hidden;object-fit:contain;display:block;background:#fff;padding:2px}
+.upi-app-icon{width:36px;height:36px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .upi-app-name{font-size:.65rem;color:var(--muted);font-weight:500}
 .pm-upi{background:linear-gradient(135deg,rgba(39,174,96,.15),rgba(39,174,96,.05))}
 .pm-card{background:linear-gradient(135deg,rgba(52,152,219,.15),rgba(52,152,219,.05))}
@@ -545,34 +532,27 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 /* PROFILE SCREEN */
 #profile-screen{padding-bottom:40px}
-.profile-hero{padding:52px 24px 32px;background:linear-gradient(180deg,rgba(212,168,71,.08) 0%,transparent 100%);border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;overflow:hidden}
-.profile-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:240px;height:240px;background:radial-gradient(circle,rgba(212,168,71,.08),transparent 70%);pointer-events:none}
+.profile-hero{padding:52px 24px 28px;background:linear-gradient(180deg,rgba(212,168,71,.06),transparent);border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;text-align:center}
 .profile-av-wrap{position:relative;margin-bottom:16px}
-.profile-av-ring{position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(var(--gold) 0%, var(--gold3) 40%, var(--border) 60%);animation:ringRotate 4s linear infinite}
-@keyframes ringRotate{to{transform:rotate(360deg)}}
-.profile-av-inner{position:relative;z-index:1;width:92px;height:92px;border-radius:50%;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;border:3px solid var(--bg)}
-.profile-av-img{width:100%;height:100%;object-fit:cover}
-.profile-av-txt{width:100%;height:100%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;color:#000}
-.profile-cam{position:absolute;bottom:2px;right:2px;z-index:2;width:28px;height:28px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.profile-name-display{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.6rem;color:var(--text);margin-top:4px}
+.profile-av-img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:2.5px solid var(--gold)}
+.profile-av-txt{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--gold3),var(--gold));display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;color:#000;border:2.5px solid var(--gold)}
+.profile-cam{position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer}
+.profile-name-display{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--text)}
 .profile-email-display{font-size:.78rem;color:var(--muted);margin-top:4px}
-.profile-provider-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.2);padding:5px 14px;border-radius:50px;font-size:.68rem;color:var(--gold)}
+.profile-provider-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:rgba(212,168,71,.08);border:1px solid rgba(212,168,71,.2);padding:4px 14px;border-radius:50px;font-size:.68rem;color:var(--gold)}
 .profile-body{padding:24px 20px}
-.profile-section-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.profile-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.profile-section-title{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:16px}
 .profile-field{margin-bottom:16px}
 .profile-field label{display:block;font-size:.7rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
-.profile-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s}
-.profile-input:focus{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(212,168,71,.1)}
+.profile-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.profile-input:focus{border-color:var(--gold3)}
 .profile-input:disabled{opacity:.45;cursor:not-allowed}
 .profile-input::placeholder{color:var(--muted)}
-.profile-save-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px;box-shadow:0 6px 24px rgba(212,168,71,.25);transition:transform .15s}
-.profile-save-btn:active{transform:scale(.97)}
-.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
-.pstat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 10px;text-align:center;transition:transform .2s}
-.pstat:active{transform:scale(.95)}
-.pstat-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.5rem;color:var(--gold)}
-.pstat-lbl{font-size:.62rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.profile-save-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.pstat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.pstat-val{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.4rem;color:var(--gold)}
+.pstat-lbl{font-size:.65rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em}
 
 /* TOAST */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);padding:11px 22px;border-radius:50px;font-size:.82rem;color:var(--text);white-space:nowrap;opacity:0;transition:all .3s;z-index:9999;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
@@ -829,17 +809,6 @@ body:not(.logged-in) .bottom-nav{display:none!important}
       <div><div class="order-id-label">Order ID</div><div class="order-id-val" id="track-order-id">#FN000000</div></div>
       <div class="order-eta"><div class="eta-label">Est. Arrival</div><div class="eta-val" id="track-eta">30 min</div></div>
     </div>
-    <div class="rider-info-card" id="rider-info-card">
-      <div class="rider-avatar">🧑‍🦱</div>
-      <div class="rider-details">
-        <div class="rider-name" id="rider-name">Ravi Kumar</div>
-        <div class="rider-vehicle" id="rider-vehicle">🛵 TS 09 EF 4521 · Activa</div>
-      </div>
-      <div class="rider-actions">
-        <div class="rider-action-btn" onclick="showToast('📞 Calling rider...')">📞</div>
-        <div class="rider-action-btn" onclick="showToast('💬 Chat coming soon!')">💬</div>
-      </div>
-    </div>
     <div class="map-status-bar">
       <div class="map-status-left">
         <div class="rider-dot"></div>
@@ -950,27 +919,57 @@ body:not(.logged-in) .bottom-nav{display:none!important}
       <input class="upi-input" id="upi-id" placeholder="yourname@upi">
       <div class="upi-apps">
         <div class="upi-app" onclick="fillUPI('gpay')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png" alt="GPay" onerror="this.src='https://www.gstatic.com/instantbuy/svg/dark_gpay.svg'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#fff"/>
+            <path d="M24 10C16.268 10 10 16.268 10 24s6.268 14 14 14 14-6.268 14-14S31.732 10 24 10z" fill="#4285F4"/>
+            <path d="M24 17.5v6.5H30.5C29.7 27.7 27.1 29.5 24 29.5c-3.6 0-6.5-2.9-6.5-6.5s2.9-6.5 6.5-6.5c1.7 0 3.2.6 4.4 1.7l4.6-4.6C30.6 11.9 27.5 10.5 24 10.5 16.5 10.5 10.5 16.5 10.5 24S16.5 37.5 24 37.5 37.5 31.5 37.5 24H24v-6.5z" fill="white"/>
+            <path d="M24 24h6.5c-.8 3.2-3.4 5.5-6.5 5.5-3.6 0-6.5-2.9-6.5-6.5S20.4 17 24 17c1.7 0 3.2.6 4.4 1.7L32 14.1C30 12.3 27.1 11 24 11c-7.2 0-13 5.8-13 13s5.8 13 13 13 13-5.8 13-13H24z" fill="#34A853"/>
+          </svg>
           <div class="upi-app-name">GPay</div>
         </div>
         <div class="upi-app" onclick="fillUPI('phonepe')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/PhonePe_Logo.png/120px-PhonePe_Logo.png" alt="PhonePe" onerror="this.style.background='#5f259f';this.alt='Pe'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#5F259F"/>
+            <path d="M32 14h-6l-10 10 4 4 3-3v9h4V21l3 3 4-4-2-6z" fill="white"/>
+            <circle cx="24" cy="24" r="10" fill="none" stroke="white" stroke-width="1.5" opacity="0.3"/>
+          </svg>
           <div class="upi-app-name">PhonePe</div>
         </div>
         <div class="upi-app" onclick="fillUPI('paytm')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Paytm_Logo_%28standalone%29.svg/120px-Paytm_Logo_%28standalone%29.svg.png" alt="Paytm" onerror="this.src='https://staticassets.paytm.com/page-assets/paytm-logo.png'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#00BAF2"/>
+            <rect x="10" y="10" width="28" height="28" rx="6" fill="white"/>
+            <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8-8-3.6-8-8z" fill="#00BAF2"/>
+            <path d="M20 24c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" fill="white"/>
+            <text x="24" y="38" text-anchor="middle" fill="#00BAF2" font-size="6" font-weight="bold" font-family="sans-serif">PAYTM</text>
+          </svg>
           <div class="upi-app-name">Paytm</div>
         </div>
         <div class="upi-app" onclick="fillUPI('bhim')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/en/thumb/6/6e/BHIM_Logo.svg/120px-BHIM_Logo.svg.png" alt="BHIM" onerror="this.style.background='#00a651';this.alt='BHIM'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#00A651"/>
+            <rect x="0" y="32" width="48" height="16" rx="0" fill="#FF6600"/>
+            <rect x="0" y="32" width="48" height="4" fill="white"/>
+            <text x="24" y="26" text-anchor="middle" fill="white" font-size="10" font-weight="900" font-family="sans-serif">BHIM</text>
+            <text x="24" y="44" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">UPI</text>
+          </svg>
           <div class="upi-app-name">BHIM</div>
         </div>
         <div class="upi-app" onclick="fillUPI('amazonpay')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Amazon_Pay_logo.svg/120px-Amazon_Pay_logo.svg.png" alt="Amazon Pay" onerror="this.style.background='#ff9900'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#FF9900"/>
+            <text x="24" y="22" text-anchor="middle" fill="white" font-size="8" font-weight="900" font-family="sans-serif">amazon</text>
+            <text x="24" y="32" text-anchor="middle" fill="white" font-size="7" font-weight="700" font-family="sans-serif">pay</text>
+            <path d="M14 36 Q24 40 34 36" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
           <div class="upi-app-name">Amazon</div>
         </div>
         <div class="upi-app" onclick="fillUPI('cred')">
-          <img class="upi-app-icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/CRED_logo.svg/120px-CRED_logo.svg.png" alt="CRED" onerror="this.style.background='#1a1a2e';this.alt='CRED'">
+          <svg class="upi-app-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+            <rect width="48" height="48" rx="12" fill="#1A1A2E"/>
+            <polygon points="24,10 38,18 38,30 24,38 10,30 10,18" fill="none" stroke="#D4A847" stroke-width="2"/>
+            <text x="24" y="28" text-anchor="middle" fill="#D4A847" font-size="9" font-weight="900" font-family="sans-serif">CRED</text>
+          </svg>
           <div class="upi-app-name">CRED</div>
         </div>
       </div>
@@ -1043,8 +1042,7 @@ body:not(.logged-in) .bottom-nav{display:none!important}
   </div>
   <div class="profile-hero">
     <div class="profile-av-wrap">
-      <div class="profile-av-ring"></div>
-      <div class="profile-av-inner" id="profile-av-display"></div>
+      <div id="profile-av-display"></div>
       <div class="profile-cam" onclick="showToast('📷 Photo upload coming soon!')">📷</div>
     </div>
     <div class="profile-name-display" id="profile-name-display">—</div>
@@ -1282,12 +1280,6 @@ const RESTAURANTS={
   'Paradise':{emoji:'🍚',rating:4.3,time:'30-40 min',area:'Secunderabad',tags:['Biryani','Veg','Hyderabadi'],bg:'#1a2d0a'},
   'Café Mocha':{emoji:'☕',rating:4.5,time:'15-20 min',area:'Gachibowli',tags:['Café','Coffee','Snacks'],bg:'#1a1000'},
   'Spice Garden':{emoji:'🌶️',rating:4.6,time:'25-30 min',area:'Hitech City',tags:['Indian','Veg','Tandoor'],bg:'#2d1500'},
-  'Taco Fiesta':{emoji:'🌮',rating:4.4,time:'20-25 min',area:'Jubilee Hills',tags:['Mexican','Tacos','Wraps'],bg:'#2d1a00'},
-  'Sushi Hub':{emoji:'🍣',rating:4.7,time:'25-35 min',area:'Banjara Hills',tags:['Japanese','Sushi','Asian'],bg:'#0a1a2d'},
-  'Kebab King':{emoji:'🍢',rating:4.5,time:'20-30 min',area:'Secunderabad',tags:['Mughlai','Kebabs','Non-Veg'],bg:'#2d0a00'},
-  'The Sandwich Co.':{emoji:'🥪',rating:4.3,time:'15-20 min',area:'Madhapur',tags:['Sandwiches','Wraps','Healthy'],bg:'#0a2d1a'},
-  'Ice Cream Factory':{emoji:'🍦',rating:4.8,time:'10-15 min',area:'Kondapur',tags:['Ice Cream','Desserts','Shakes'],bg:'#1a0a2d'},
-  'South Spice':{emoji:'🍲',rating:4.6,time:'25-30 min',area:'Ameerpet',tags:['South Indian','Dosa','Idli'],bg:'#1a2d00'},
 };
 
 const PROMOS={
@@ -1298,38 +1290,18 @@ const PROMOS={
 };
 
 const FOOD_DATA=[
-  {id:1, name:'Margherita Pizza',rest:'Pizza Palace',cat:'pizza',price:299,rating:4.5,emoji:'🍕',ec:'fe-pizza',badge:'Bestseller',veg:true},
-  {id:2, name:'Smoky BBQ Burger',rest:'BurgerCo',cat:'burger',price:249,rating:4.3,emoji:'🍔',ec:'fe-burger',badge:'Hot 🔥',veg:false},
-  {id:3, name:'Hyderabadi Biryani',rest:'Bawarchi',cat:'biryani',price:199,rating:4.8,emoji:'🍛',ec:'fe-biryani',badge:'#1 Rated',veg:false},
-  {id:4, name:'Hakka Noodles',rest:'Wok Express',cat:'noodles',price:149,rating:4.2,emoji:'🍜',ec:'fe-noodles',badge:'Veg',veg:true},
-  {id:5, name:'Chocolate Lava Cake',rest:'Sweet Spot',cat:'dessert',price:129,rating:4.7,emoji:'🍰',ec:'fe-dessert',badge:'Must Try',veg:true},
-  {id:6, name:'Mango Lassi',rest:'Desi Drinks',cat:'drinks',price:79,rating:4.6,emoji:'🥭',ec:'fe-drinks',badge:'Fresh',veg:true},
-  {id:7, name:'Pepperoni Pizza',rest:'Pizza Palace',cat:'pizza',price:349,rating:4.4,emoji:'🍕',ec:'fe-pizza',badge:'Spicy 🌶',veg:false},
-  {id:8, name:'Crispy Chicken Burger',rest:'BurgerCo',cat:'burger',price:279,rating:4.5,emoji:'🍗',ec:'fe-burger',badge:'New',veg:false},
-  {id:9, name:'Veg Biryani',rest:'Paradise',cat:'biryani',price:169,rating:4.3,emoji:'🍚',ec:'fe-biryani',badge:'Veg',veg:true},
+  {id:1,name:'Margherita Pizza',rest:'Pizza Palace',cat:'pizza',price:299,rating:4.5,emoji:'🍕',ec:'fe-pizza',badge:'Bestseller',veg:true},
+  {id:2,name:'Smoky BBQ Burger',rest:'BurgerCo',cat:'burger',price:249,rating:4.3,emoji:'🍔',ec:'fe-burger',badge:'Hot 🔥',veg:false},
+  {id:3,name:'Hyderabadi Biryani',rest:'Bawarchi',cat:'biryani',price:199,rating:4.8,emoji:'🍛',ec:'fe-biryani',badge:'#1 Rated',veg:false},
+  {id:4,name:'Hakka Noodles',rest:'Wok Express',cat:'noodles',price:149,rating:4.2,emoji:'🍜',ec:'fe-noodles',badge:'Veg',veg:true},
+  {id:5,name:'Chocolate Lava Cake',rest:'Sweet Spot',cat:'dessert',price:129,rating:4.7,emoji:'🍰',ec:'fe-dessert',badge:'Must Try',veg:true},
+  {id:6,name:'Mango Lassi',rest:'Desi Drinks',cat:'drinks',price:79,rating:4.6,emoji:'🥭',ec:'fe-drinks',badge:'Fresh',veg:true},
+  {id:7,name:'Pepperoni Pizza',rest:'Pizza Palace',cat:'pizza',price:349,rating:4.4,emoji:'🍕',ec:'fe-pizza',badge:'Spicy 🌶',veg:false},
+  {id:8,name:'Crispy Chicken Burger',rest:'BurgerCo',cat:'burger',price:279,rating:4.5,emoji:'🍗',ec:'fe-burger',badge:'New',veg:false},
+  {id:9,name:'Veg Biryani',rest:'Paradise',cat:'biryani',price:169,rating:4.3,emoji:'🍚',ec:'fe-biryani',badge:'Veg',veg:true},
   {id:10,name:'Cold Coffee',rest:'Café Mocha',cat:'drinks',price:99,rating:4.5,emoji:'☕',ec:'fe-drinks',badge:'Chilled ❄️',veg:true},
   {id:11,name:'Paneer Tikka',rest:'Spice Garden',cat:'biryani',price:179,rating:4.6,emoji:'🧆',ec:'fe-biryani',badge:'Veg',veg:true},
   {id:12,name:'Gulab Jamun',rest:'Sweet Spot',cat:'dessert',price:89,rating:4.8,emoji:'🍮',ec:'fe-dessert',badge:'Classic',veg:true},
-  {id:13,name:'Chicken Tacos',rest:'Taco Fiesta',cat:'burger',price:189,rating:4.4,emoji:'🌮',ec:'fe-burger',badge:'Fiesta 🎉',veg:false},
-  {id:14,name:'Veg Tacos',rest:'Taco Fiesta',cat:'burger',price:159,rating:4.3,emoji:'🌮',ec:'fe-burger',badge:'Veg',veg:true},
-  {id:15,name:'Salmon Nigiri',rest:'Sushi Hub',cat:'noodles',price:349,rating:4.7,emoji:'🍣',ec:'fe-noodles',badge:'Premium',veg:false},
-  {id:16,name:'Veg Dragon Roll',rest:'Sushi Hub',cat:'noodles',price:289,rating:4.6,emoji:'🍱',ec:'fe-noodles',badge:'Veg',veg:true},
-  {id:17,name:'Seekh Kebab',rest:'Kebab King',cat:'biryani',price:229,rating:4.5,emoji:'🍢',ec:'fe-biryani',badge:'Smoky 🔥',veg:false},
-  {id:18,name:'Paneer Kebab',rest:'Kebab King',cat:'biryani',price:199,rating:4.4,emoji:'🧀',ec:'fe-biryani',badge:'Veg',veg:true},
-  {id:19,name:'Classic Club Sandwich',rest:'The Sandwich Co.',cat:'burger',price:149,rating:4.3,emoji:'🥪',ec:'fe-burger',badge:'Fresh',veg:false},
-  {id:20,name:'Grilled Veggie Sub',rest:'The Sandwich Co.',cat:'burger',price:129,rating:4.2,emoji:'🥙',ec:'fe-burger',badge:'Healthy',veg:true},
-  {id:21,name:'Belgian Waffle',rest:'Sweet Spot',cat:'dessert',price:149,rating:4.6,emoji:'🧇',ec:'fe-dessert',badge:'New ✨',veg:true},
-  {id:22,name:'Strawberry Sundae',rest:'Ice Cream Factory',cat:'dessert',price:119,rating:4.8,emoji:'🍨',ec:'fe-dessert',badge:'Fan Fav',veg:true},
-  {id:23,name:'Butterscotch Shake',rest:'Ice Cream Factory',cat:'drinks',price:99,rating:4.7,emoji:'🥤',ec:'fe-drinks',badge:'Thick',veg:true},
-  {id:24,name:'Masala Dosa',rest:'South Spice',cat:'biryani',price:89,rating:4.6,emoji:'🫓',ec:'fe-biryani',badge:'Classic',veg:true},
-  {id:25,name:'Idli Sambar',rest:'South Spice',cat:'biryani',price:69,rating:4.5,emoji:'🍲',ec:'fe-biryani',badge:'Veg',veg:true},
-  {id:26,name:'BBQ Chicken Pizza',rest:'Pizza Palace',cat:'pizza',price:389,rating:4.6,emoji:'🍕',ec:'fe-pizza',badge:"Chef's Pick",veg:false},
-  {id:27,name:'Garlic Bread',rest:'Pizza Palace',cat:'pizza',price:99,rating:4.4,emoji:'🥖',ec:'fe-pizza',badge:'Crispy',veg:true},
-  {id:28,name:'Schezwan Noodles',rest:'Wok Express',cat:'noodles',price:169,rating:4.3,emoji:'🍜',ec:'fe-noodles',badge:'Spicy 🌶',veg:true},
-  {id:29,name:'Kung Pao Chicken',rest:'Wok Express',cat:'noodles',price:219,rating:4.4,emoji:'🍗',ec:'fe-noodles',badge:'Tangy',veg:false},
-  {id:30,name:'Rose Milk',rest:'Desi Drinks',cat:'drinks',price:59,rating:4.5,emoji:'🌹',ec:'fe-drinks',badge:'Sweet',veg:true},
-  {id:31,name:'Filter Coffee',rest:'Café Mocha',cat:'drinks',price:59,rating:4.7,emoji:'☕',ec:'fe-drinks',badge:'Strong',veg:true},
-  {id:32,name:'Cheesecake Slice',rest:'Café Mocha',cat:'dessert',price:139,rating:4.6,emoji:'🍰',ec:'fe-dessert',badge:'Creamy',veg:true},
 ];
 
 let cart=[],currentUser=null,currentCat='all',currentDiet='all',currentSort='default',appliedPromo=null,discount=0;
@@ -1728,19 +1700,6 @@ function initDeliveryMap(order){
   if(leafletMap){leafletMap.remove();leafletMap=null;}
   if(riderAnimTimer){clearInterval(riderAnimTimer);riderAnimTimer=null;}
 
-  // Random rider details
-  const riders=[
-    {name:'Ravi Kumar',vehicle:'TS 09 EF 4521 · Activa'},
-    {name:'Suresh Babu',vehicle:'TS 11 GH 7832 · Splendor'},
-    {name:'Arjun Reddy',vehicle:'TS 07 KL 2234 · Pulsar'},
-    {name:'Manoj Singh',vehicle:'TS 13 MN 9901 · Activa'},
-  ];
-  const rider=riders[Math.floor(Math.random()*riders.length)];
-  const rn=document.getElementById('rider-name');
-  const rv=document.getElementById('rider-vehicle');
-  if(rn) rn.textContent=rider.name;
-  if(rv) rv.textContent='🛵 '+rider.vehicle;
-
   const dest=HYD_SPOTS[Math.floor(Math.random()*HYD_SPOTS.length)];
   const riderStart={
     lat:dest.lat+(Math.random()-.5)*.022,
@@ -1749,30 +1708,21 @@ function initDeliveryMap(order){
 
   leafletMap=L.map('delivery-map',{
     center:[riderStart.lat,riderStart.lng],
-    zoom:14,zoomControl:false,attributionControl:false
+    zoom:15,zoomControl:false,attributionControl:false
   });
 
-  // Use a cleaner dark tile
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    maxZoom:19, subdomains:'abcd'
-  }).addTo(leafletMap);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
 
-  const riderIcon=L.divIcon({html:`<span class="rider-marker">🛵</span>`,iconSize:[34,34],iconAnchor:[17,17],className:''});
-  const destIcon=L.divIcon({html:`<span class="dest-marker">🏠</span>`,iconSize:[34,34],iconAnchor:[17,34],className:''});
+  const riderIcon=L.divIcon({html:`<span class="rider-marker">🛵</span>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+  const destIcon=L.divIcon({html:`<span class="dest-marker">🏠</span>`,iconSize:[32,32],iconAnchor:[16,32],className:''});
 
   riderMarker=L.marker([riderStart.lat,riderStart.lng],{icon:riderIcon}).addTo(leafletMap);
   destMarker=L.marker([dest.lat,dest.lng],{icon:destIcon}).addTo(leafletMap)
-    .bindPopup(`<b>📍 Deliver Here</b><br><small>${order.address||dest.name}</small>`,{closeButton:false}).openPopup();
+    .bindPopup(`<b>📍 Delivery Here</b><br><small>${order.address||dest.name}</small>`,{closeButton:false});
 
-  // Animated dashed route line
   const routeLine=L.polyline(
     [[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],
-    {color:'#d4a847',weight:4,dashArray:'10 8',opacity:.9}
-  ).addTo(leafletMap);
-
-  // Completed (solid) route segment
-  const doneRoute=L.polyline([[riderStart.lat,riderStart.lng],[riderStart.lat,riderStart.lng]],
-    {color:'#27ae60',weight:4,opacity:.8}
+    {color:'#d4a847',weight:3,dashArray:'8 6',opacity:.8}
   ).addTo(leafletMap);
 
   leafletMap.fitBounds([[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]],{padding:[50,50]});
@@ -1782,21 +1732,14 @@ function initDeliveryMap(order){
   const totalSteps=120;
   riderAnimTimer=setInterval(()=>{
     progress++;
-    if(progress>=totalSteps){
-      clearInterval(riderAnimTimer);
-      riderMarker.setLatLng([dest.lat,dest.lng]);
-      doneRoute.setLatLngs([[riderStart.lat,riderStart.lng],[dest.lat,dest.lng]]);
-      routeLine.setLatLngs([[dest.lat,dest.lng],[dest.lat,dest.lng]]);
-      return;
-    }
+    if(progress>=totalSteps){clearInterval(riderAnimTimer);riderMarker.setLatLng([dest.lat,dest.lng]);return;}
     const t=progress/totalSteps;
-    const easedT=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    const easedT=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; // ease in-out
     const newLat=riderStart.lat+(dest.lat-riderStart.lat)*easedT;
     const newLng=riderStart.lng+(dest.lng-riderStart.lng)*easedT;
     riderMarker.setLatLng([newLat,newLng]);
     routeLine.setLatLngs([[newLat,newLng],[dest.lat,dest.lng]]);
-    doneRoute.setLatLngs([[riderStart.lat,riderStart.lng],[newLat,newLng]]);
-    if(progress%15===0) leafletMap.panTo([newLat,newLng],{animate:true,duration:.8});
+    if(progress%20===0)leafletMap.panTo([newLat,newLng],{animate:true,duration:.8});
   },1000);
 }
 
@@ -2156,144 +2099,41 @@ function initBannerSlider(){
   startTimer();
 }
 
-// ─── PWA MANIFEST + INSTALL ───
-function injectPWAManifest(){
-  const manifest={
-    name:'FeastNow',short_name:'FeastNow',
-    description:'Fine dining · Fast delivery',
-    start_url:'.',display:'standalone',
-    background_color:'#0d0d0d',theme_color:'#0d0d0d',
-    orientation:'portrait',
-    icons:[
-      {src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d0d0d'/><text y='145' x='20' font-size='140'>🍽</text></svg>",sizes:'192x192',type:'image/svg+xml'},
-      {src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230d0d0d'/><text y='390' x='50' font-size='380'>🍽</text></svg>",sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
-    ]
-  };
-  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement('link');
-  link.rel='manifest';link.href=url;
-  document.head.appendChild(link);
+// ─── REAL PUSH NOTIFICATIONS ───
+async function requestPushPermission(){
+  if(!('Notification' in window)) return false;
+  if(Notification.permission==='granted') return true;
+  if(Notification.permission==='denied') return false;
+  const perm=await Notification.requestPermission();
+  return perm==='granted';
 }
 
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredInstallPrompt=e;
-  // Show install banner after 3s
-  setTimeout(showInstallBanner,3000);
-});
-
-function showInstallBanner(){
-  if(!deferredInstallPrompt) return;
-  const banner=document.createElement('div');
-  banner.id='pwa-banner';
-  banner.style.cssText='position:fixed;bottom:80px;left:16px;right:16px;background:var(--card);border:1px solid var(--gold3);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;z-index:9000;box-shadow:0 8px 32px rgba(0,0,0,.3);animation:slideUp .3s ease';
-  banner.innerHTML=`
-    <span style="font-size:1.8rem">📲</span>
-    <div style="flex:1">
-      <div style="font-weight:600;font-size:.88rem;color:var(--text)">Install FeastNow</div>
-      <div style="font-size:.72rem;color:var(--muted);margin-top:2px">Add to home screen for the best experience</div>
-    </div>
-    <button onclick="installPWA()" style="padding:8px 14px;background:linear-gradient(135deg,var(--gold3),var(--gold));border:none;border-radius:50px;color:#000;font-weight:700;font-size:.78rem;cursor:pointer;white-space:nowrap">Install</button>
-    <button onclick="document.getElementById('pwa-banner').remove()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px">✕</button>
-  `;
-  document.body.appendChild(banner);
-  setTimeout(()=>{const b=document.getElementById('pwa-banner');if(b)b.remove();},8000);
+function sendPushNotif(title, body, icon='🍽'){
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  const n=new Notification(title,{
+    body,
+    icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">'+icon+'</text></svg>',
+    badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍽</text></svg>',
+    vibrate:[200,100,200],
+    tag:'feastnow-order'
+  });
+  n.onclick=()=>{window.focus();n.close();};
+  setTimeout(()=>n.close(), 6000);
 }
 
-async function installPWA(){
-  if(!deferredInstallPrompt)return;
-  deferredInstallPrompt.prompt();
-  const {outcome}=await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt=null;
-  const b=document.getElementById('pwa-banner');if(b)b.remove();
-  if(outcome==='accepted') showToast('🎉 FeastNow installed successfully!');
-}
-
-// update theme-color meta when theme changes
-function updateThemeColorMeta(isLight){
-  const m=document.getElementById('theme-color-meta');
-  if(m) m.content=isLight?'#f5f0eb':'#0d0d0d';
-}
-
-// ─── REAL PUSH NOTIFICATIONS via Service Worker ───
-const SW_CODE = `
-self.addEventListener('message', e => {
-  if (e.data && e.data.type === 'PUSH') {
-    const { title, body, icon, tag, delay } = e.data;
-    setTimeout(() => {
-      self.registration.showNotification(title, {
-        body,
-        icon: 'https://em-content.zobj.net/thumbs/120/apple/354/' + icon,
-        badge: 'https://em-content.zobj.net/thumbs/120/apple/354/fork-and-knife-with-plate_1f37d-fe0f.png',
-        tag: tag || 'feastnow',
-        vibrate: [200, 100, 200],
-        requireInteraction: false
-      });
-    }, delay || 0);
-  }
-});
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(cs => {
-    if (cs.length) return cs[0].focus();
-    return clients.openWindow('/');
-  }));
-});
-`;
-
-let swReg = null;
-
-async function initServiceWorker() {
-  if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
-  try {
-    const blob = new Blob([SW_CODE], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    swReg = await navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(async () => {
-      // blob SW may fail on some browsers — fallback to direct Notification API
-      swReg = null;
-    });
-  } catch(e) { swReg = null; }
-}
-
-async function requestPushPermission() {
-  if (!('Notification' in window)) return false;
-  if (Notification.permission === 'granted') return true;
-  if (Notification.permission === 'denied') return false;
-  const p = await Notification.requestPermission();
-  return p === 'granted';
-}
-
-function sendPushNotif(title, body, icon = 'fork-and-knife_1f374.png', tag = 'feastnow', delay = 0) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  if (swReg && swReg.active) {
-    swReg.active.postMessage({ type: 'PUSH', title, body, icon, tag, delay });
-  } else {
-    // fallback: direct Notification (only works when tab is open)
-    setTimeout(() => {
-      try {
-        new Notification(title, {
-          body,
-          icon: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🍽</text></svg>`,
-          tag
-        });
-      } catch(e) {}
-    }, delay);
-  }
-}
-
-function fireOrderNotifications(order) {
-  const steps = [
-    { delay: 0,      title: '✅ Order Confirmed!',    body: `Order #${order.id} placed. ₹${order.total} paid via ${order.payMethod?.toUpperCase()}.`, icon: 'check-mark-button_2705.png' },
-    { delay: 20000,  title: '👨‍🍳 Being Prepared',      body: `Your food is being freshly prepared. Estimated 15–20 mins.`, icon: 'cook_1f9d1-200d-1f373.png' },
-    { delay: 50000,  title: '🛵 Rider Picked Up!',    body: `Your delivery partner has picked up Order #${order.id}.`, icon: 'motor-scooter_1f6f5.png' },
-    { delay: 85000,  title: '📍 Out for Delivery',    body: `Almost there! Your order is just a few minutes away.`, icon: 'round-pushpin_1f4cd.png' },
-    { delay: 120000, title: '🎉 Delivered!',          body: `Enjoy your meal! Tap to rate your experience.`, icon: 'party-popper_1f389.png' },
+function fireOrderNotifications(order){
+  const steps=[
+    {delay:0,    title:'✅ Order Confirmed!',     body:`Order #${order.id} placed successfully. ₹${order.total} paid.`, icon:'✅'},
+    {delay:25000, title:'👨‍🍳 Being Prepared',       body:`Your food is being freshly prepared at the restaurant.`, icon:'👨‍🍳'},
+    {delay:55000, title:'🛵 Partner Picked Up!',  body:`Your delivery partner has picked up Order #${order.id}.`, icon:'🛵'},
+    {delay:90000, title:'📍 Out for Delivery',    body:`Your order is nearby! Track live in the app.`, icon:'📍'},
+    {delay:130000,title:'🎉 Order Delivered!',    body:`Enjoy your meal! Don't forget to rate your experience.`, icon:'🎉'},
   ];
-  steps.forEach(s => {
-    sendPushNotif(s.title, s.body, s.icon, 'fn-order-' + order.id, s.delay);
-    // also mirror into in-app notifications
-    setTimeout(() => addNotif('order', s.title.split(' ')[0], s.title, s.body, true), s.delay);
+  steps.forEach(s=>{
+    setTimeout(()=>{
+      sendPushNotif(s.title, s.body, s.icon);
+      addNotif('order', s.icon, s.title, s.body, true);
+    }, s.delay);
   });
 }
 
@@ -2303,7 +2143,6 @@ function toggleTheme(){
   localStorage.setItem('fn_theme', isLight?'light':'dark');
   document.getElementById('theme-label').textContent=isLight?'☀️ Light Mode':'🌙 Dark Mode';
   document.getElementById('toggle-track').classList.toggle('on', isLight);
-  updateThemeColorMeta(isLight);
   const thumb=document.getElementById('toggle-thumb');
   if(thumb){
     thumb.style.transform='scale(0)';
@@ -2334,8 +2173,6 @@ function initTheme(){
 // ── BOOT ──
 window.addEventListener('DOMContentLoaded',async()=>{
   await showSplash();
-  injectPWAManifest();
-  initServiceWorker();
   initParticles();
   initBannerSlider();
   const handled=await handleRedirect();if(handled)return;
