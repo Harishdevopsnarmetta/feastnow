@@ -362,13 +362,18 @@ const SFX = (()=>{
       });
     }catch(e){}
   }
+  let _alertLoop = null;
   function incomingOrder(){
-    play([[80,0,0.25,50],[80,0.35,0.25,50],[80,0.7,0.25,50]],'sine',0.55);
-    play([[440,0,0.12,600],[600,0.18,0.12,800],[800,0.36,0.18,1000]],'triangle',0.25);
-    setTimeout(()=>{
-      play([[80,0,0.25,50],[80,0.35,0.25,50]],'sine',0.55);
-      play([[500,0,0.12,700],[700,0.18,0.2,950]],'triangle',0.22);
-    },1100);
+    stopIncoming(); // clear any previous loop
+    function pulse(){
+      play([[80,0,0.25,50],[80,0.35,0.25,50],[80,0.7,0.25,50]],'sine',0.55);
+      play([[440,0,0.12,600],[600,0.18,0.12,800],[800,0.36,0.18,1000]],'triangle',0.25);
+    }
+    pulse(); // play immediately
+    _alertLoop = setInterval(pulse, 1400); // repeat every 1.4s
+  }
+  function stopIncoming(){
+    if(_alertLoop){ clearInterval(_alertLoop); _alertLoop=null; }
   }
   function accept(){
     play([[120,0,0.25]],'sine',0.4);
@@ -390,7 +395,7 @@ const SFX = (()=>{
   function kaching(){
     play([[1200,0,0.06],[1500,0.09,0.06],[1800,0.18,0.08],[2100,0.28,0.14]],'sine',0.18);
   }
-  return { incomingOrder, accept, reject, pickup, delivered, kaching };
+  return { incomingOrder, stopIncoming, accept, reject, pickup, delivered, kaching };
 })();
 
 // ═══════════════════════════════════════
@@ -681,6 +686,7 @@ function showIncomingOrder(){
 
 function rejectOrder(){
   clearInterval(incomingInterval);
+  SFX.stopIncoming();
   SFX.reject();
   currentOrder=null; deliveryPhase=0;
   showToast('❌ Order rejected');
@@ -690,6 +696,7 @@ function rejectOrder(){
 }
 
 function autoRejectOrder(){
+  SFX.stopIncoming();
   currentOrder=null; deliveryPhase=0;
   showToast('⏰ Order expired');
   renderOrderArea();
@@ -698,6 +705,7 @@ function autoRejectOrder(){
 
 function acceptOrder(){
   clearInterval(incomingInterval);
+  SFX.stopIncoming();
   SFX.accept();
   deliveryPhase=1; // Going to restaurant
   showToast('✅ Order accepted! Head to restaurant');
