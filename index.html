@@ -2811,38 +2811,28 @@ function doCheckout(){
   cart=[];appliedPromo=null;discount=0;saveCart(cart);updateCartBadge();closeCart();
   addNotif('order','📦','Order Placed!','Your order #'+orderId+' is confirmed. Estimated delivery: 30 min.',true);
   showToast('🎉 Order #'+orderId+' placed!');
-  // 🔥 Inline Firebase write — no dependency on script load order
-  (async function writeOrderNow(){
+  // 🔥 Direct Firestore write — no dependency on external function
+  (async ()=>{
     try{
-      let waited = 0;
-      while((!window._db || !window._firebaseReady) && waited < 10000){
-        await new Promise(r=>setTimeout(r,300));
-        waited += 300;
-      }
-      if(!window._db || !window._firebaseReady){
-        alert('Firebase not ready — order NOT sent to rider!');
-        return;
-      }
-      const firebaseUid = firebase.auth().currentUser ? firebase.auth().currentUser.uid : null;
-      await window._db.collection('orders').doc(order.id).set({
+      if(!window._db){ showToast('⚠️ Firebase not ready'); return; }
+      const orderData = {
         id: order.id,
-        userId: firebaseUid || (currentUser ? currentUser.id : 'guest'),
-        userName: currentUser ? currentUser.name : 'Guest',
-        userPhone: currentUser ? (currentUser.phone || '') : '',
-        items: (order.items||[]).map(function(i){return {id:i.id,name:i.name,price:i.price,qty:i.qty,rest:i.rest,emoji:i.emoji||''}}),
-        subtotal: order.subtotal || 0,
-        total: order.total || 0,
+        userId: currentUser?.id || 'guest',
+        userName: currentUser?.name || 'Customer',
+        userPhone: currentUser?.phone || '',
+        items: (order.items||[]).map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,rest:i.rest||''})),
+        subtotal: order.subtotal||0,
+        total: order.total||0,
         status: 'pending_rider',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      console.log('ORDER WRITTEN TO FIRESTORE: ' + order.id);
-      showToast('Order sent to rider!');
-      if(window._rtdb){
-        window._rtdb.ref('tracking/'+order.id).set({status:'pending_rider',updatedAt:firebase.database.ServerValue.TIMESTAMP});
-      }
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      await window._db.collection('orders').doc(order.id).set(orderData);
+      showToast('🔥 Order sent to rider!');
+      console.log('✅ Order written to Firestore:', order.id);
     } catch(e){
-      console.error('Firestore write failed:', e.code, e.message);
-      alert('ORDER NOT SENT TO RIDER! Error: '+(e.code||e.message));
+      console.error('❌ Firestore write failed:', e.code, e.message);
+      showToast('❌ '+e.code+': '+e.message);
+      alert('❌ ORDER FAILED\nCode: '+(e.code||'unknown')+'\n'+e.message);
     }
   })();
   if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
@@ -3454,8 +3444,30 @@ function processPayment(){
       status:'Placed',address:selAddr?.text||'Default address'
     };
     orders=[order,...getOrders()];saveOrders(orders);
-    // 🔥 Save to Firestore so rider app picks it up
-    if(typeof window.saveOrderToFirestore==='function') window.saveOrderToFirestore(order);
+    // 🔥 Direct Firestore write
+    (async ()=>{
+      try{
+        if(!window._db){ showToast('⚠️ Firebase not ready'); return; }
+        const orderData = {
+          id: order.id,
+          userId: currentUser?.id || 'guest',
+          userName: currentUser?.name || 'Customer',
+          userPhone: currentUser?.phone || '',
+          items: (order.items||[]).map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,rest:i.rest||''})),
+          subtotal: order.subtotal||0,
+          total: order.total||0,
+          status: 'pending_rider',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+        await window._db.collection('orders').doc(order.id).set(orderData);
+        showToast('🔥 Order sent to rider!');
+        console.log('✅ Order written to Firestore:', order.id);
+      } catch(e){
+        console.error('❌ Firestore write failed:', e.code, e.message);
+        showToast('❌ '+e.code+': '+e.message);
+        alert('❌ ORDER FAILED\nCode: '+(e.code||'unknown')+'\n'+e.message);
+      }
+    })();
     if(typeof window.saveUserToFirestore==='function' && currentUser) window.saveUserToFirestore(currentUser);
     cart=[];appliedPromo=null;discount=0;tipAmount=0;useFeastCoins=false;
     saveCart(cart);updateCartBadge();
