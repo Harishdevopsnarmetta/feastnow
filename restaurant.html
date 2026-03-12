@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FeastNow · Restaurant Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
   const FIREBASE_CONFIG={
@@ -692,6 +694,10 @@ td:first-child{color:var(--text);font-weight:600}
     <div class="nav-item" onclick="showScreen('menu')" id="nav-menu">
       <span class="nav-icon">🍽</span> Menu
     </div>
+    <div class="nav-item" onclick="showScreen('riders')" id="nav-riders">
+      <span class="nav-icon">🛵</span> Rider Tracker
+      <span class="nav-badge gold" id="riders-badge" style="display:none">0</span>
+    </div>
     <div class="nav-section-label">Insights</div>
     <div class="nav-item" onclick="showScreen('analytics')" id="nav-analytics">
       <span class="nav-icon">📈</span> Analytics
@@ -831,6 +837,7 @@ td:first-child{color:var(--text);font-weight:600}
               <th>Items</th>
               <th>Total</th>
               <th>Status</th>
+              <th>⏱ Wait</th>
               <th>Time</th>
               <th>Action</th>
             </tr>
@@ -980,7 +987,141 @@ td:first-child{color:var(--text);font-weight:600}
       </div>
     </div>
 
+    <!-- ══ RIDER TRACKER SCREEN ══ -->
+    <div class="screen" id="screen-riders">
+
+      <!-- Summary bar -->
+      <div class="stats-grid" style="margin-bottom:20px" id="rider-stats-bar">
+        <div class="stat-card green">
+          <div class="stat-icon">🟢</div>
+          <div class="stat-val" id="rs-active">0</div>
+          <div class="stat-label">Active Riders</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon">🛵</div>
+          <div class="stat-val" id="rs-delivering">0</div>
+          <div class="stat-label">Delivering Now</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon">✅</div>
+          <div class="stat-val" id="rs-done">0</div>
+          <div class="stat-label">Delivered Today</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-val" id="rs-unassigned">0</div>
+          <div class="stat-label">Unassigned Orders</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:16px">
+
+        <!-- Live map -->
+        <div class="dash-card" style="overflow:hidden">
+          <div class="dash-card-header">
+            <div class="dash-card-title">🗺️ Live Rider Map</div>
+            <div style="font-size:.75rem;color:var(--muted)" id="rider-map-updated">—</div>
+          </div>
+          <div id="rider-map" style="height:480px;background:var(--card2);border-radius:0 0 14px 14px;position:relative">
+            <!-- Leaflet map goes here -->
+            <div id="rider-map-placeholder" style="
+              position:absolute;inset:0;display:flex;flex-direction:column;
+              align-items:center;justify-content:center;gap:10px;color:var(--muted)">
+              <div style="font-size:2.5rem">🗺️</div>
+              <div style="font-size:.9rem;font-weight:600;color:var(--text2)">Waiting for active riders...</div>
+              <div style="font-size:.78rem">Map will appear when riders are out for delivery</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rider cards list -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">👥 Riders On Duty</div>
+              <div class="rest-status-dot" style="background:var(--green)"></div>
+            </div>
+            <div id="rider-cards-list" style="padding:8px 0">
+              <div style="text-align:center;padding:32px;color:var(--muted);font-size:.85rem">
+                No active riders yet
+              </div>
+            </div>
+          </div>
+
+          <!-- Unassigned orders -->
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">⏳ Awaiting Rider</div>
+            </div>
+            <div id="unassigned-orders-list" style="padding:8px 0">
+              <div style="text-align:center;padding:24px;color:var(--muted);font-size:.82rem">No pending orders</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div><!-- /content -->
+
+<style>
+/* ── TIMER URGENCY COLORS ── */
+.timer-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;
+  font-size:.72rem;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  white-space:nowrap;
+}
+.timer-chip.ok{background:rgba(34,197,94,.1);color:var(--green)}
+.timer-chip.warn{background:rgba(249,115,22,.12);color:var(--orange)}
+.timer-chip.urgent{
+  background:rgba(239,68,68,.15);color:var(--red);
+  animation:urgentPulse 1s ease infinite;
+}
+@keyframes urgentPulse{0%,100%{background:rgba(239,68,68,.15)}50%{background:rgba(239,68,68,.28)}}
+
+/* ── RIDER CARD ── */
+.rider-card{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.rider-card:last-child{border-bottom:none}
+.rider-card:hover{background:rgba(201,168,76,.03)}
+.rider-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rider-av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1e3a2f,var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;font-weight:700;color:#fff;
+}
+.rider-name{font-weight:600;font-size:.88rem;color:var(--text)}
+.rider-status-row{display:flex;align-items:center;gap:6px;margin-top:2px}
+.rider-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rider-status-lbl{font-size:.72rem;color:var(--text2)}
+.rider-order-info{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;
+  font-size:.78rem;color:var(--text2);
+}
+.rider-order-info b{color:var(--text)}
+.rider-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:.7rem;color:var(--muted)}
+
+/* ── LIVE MAP MARKER ── */
+.rmap-marker{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green2),var(--green));
+  border:2px solid #fff;display:flex;align-items:center;
+  justify-content:center;font-size:1rem;
+  box-shadow:0 0 12px rgba(34,197,94,.6);
+  animation:markerPulse 2s ease infinite;
+  cursor:pointer;
+}
+@keyframes markerPulse{
+  0%,100%{box-shadow:0 0 8px rgba(34,197,94,.5)}
+  50%{box-shadow:0 0 20px rgba(34,197,94,.9)}
+}
+</style>
 </div><!-- /main -->
 </div><!-- /app -->
 
@@ -1157,7 +1298,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 const PAGE_TITLES = {
   dashboard:'Dashboard', orders:'Orders',
   menu:'Menu Management', analytics:'Analytics',
-  reviews:'Reviews & Ratings', settings:'Settings'
+  reviews:'Reviews & Ratings', settings:'Settings',
+  riders:'Rider Tracker'
 };
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1170,6 +1312,7 @@ function showScreen(name){
   if(name==='analytics') renderAnalytics();
   if(name==='reviews') renderReviews();
   if(name==='settings') loadSettings();
+  if(name==='riders'){ initRiderTracker(); }
 }
 
 // ════════════════════════════════════════════
@@ -1287,7 +1430,10 @@ function renderLiveOrders(){
         <div style="font-size:.82rem;color:var(--text);font-weight:500;margin-top:2px">${o.userName||'Customer'}</div>
         <div style="font-size:.72rem;color:var(--muted);margin-top:2px">${(o.items||[]).length} item${(o.items||[]).length!==1?'s':''} · ₹${o.total}</div>
       </div>
-      <div>${statusBadge(o.status)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        ${statusBadge(o.status)}
+        <span class="timer-chip ${getTimerClass(o)}" data-ordertime="${getOrderTimestamp(o)}">${formatWaitTime(getOrderTimestamp(o))}</span>
+      </div>
     </div>`).join('');
 }
 
@@ -1411,12 +1557,14 @@ function renderOrdersTable(){
       </td>
       <td style="color:var(--gold);font-weight:700">₹${o.total||0}</td>
       <td>${statusBadge(o.status)}</td>
+      <td>${['pending_rider','accepted','out_for_delivery'].includes(o.status)?`<span class="timer-chip ${getTimerClass(o)}" data-ordertime="${getOrderTimestamp(o)}">${formatWaitTime(getOrderTimestamp(o))}</span>`:'<span style="color:var(--muted);font-size:.75rem">—</span>'}</td>
       <td style="font-size:.75rem;color:var(--muted)">${formatTime(o.time||o.createdAt)}</td>
       <td>
         ${o.status==='pending_rider'?`<button onclick="event.stopPropagation();updateOrderStatus('${o._docId||o.id}','accepted')" style="padding:5px 12px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:8px;color:var(--blue);font-size:.72rem;font-weight:600;cursor:pointer">Accept</button>`:''}
         ${o.status==='accepted'?`<button onclick="event.stopPropagation();updateOrderStatus('${o._docId||o.id}','out_for_delivery')" style="padding:5px 12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);border-radius:8px;color:var(--gold);font-size:.72rem;font-weight:600;cursor:pointer">Dispatch</button>`:''}
         ${o.status==='delivered'?`<span style="font-size:.72rem;color:var(--green)">✓ Done</span>`:''}
         <button onclick="event.stopPropagation();printKOT('${o._docId||o.id}')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.72rem;cursor:pointer;margin-left:4px">🖨️</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -2126,6 +2274,322 @@ function printKOT(docId){
   showToast('🖨️ KOT sent to printer');
   addActivity('order', `KOT printed for order <b>#${o.id}</b>`, 'just now');
 }
+// ════════════════════════════════════════════
+// ⏱ LIVE ORDER TIMER SYSTEM
+// ════════════════════════════════════════════
+
+// Returns millisecond timestamp when order was placed
+function getOrderTimestamp(order){
+  if(order._createdMs) return order._createdMs;
+  try{
+    if(order.createdAt && order.createdAt.toDate) return order.createdAt.toDate().getTime();
+    if(order.time) return new Date(order.time).getTime();
+  }catch(e){}
+  return Date.now();
+}
+
+// Format ms into "Xm Ys"
+function formatWaitTime(ts){
+  if(!ts || isNaN(ts)) return '—';
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if(diff < 0) return '0s';
+  if(diff < 60) return diff + 's';
+  const m = Math.floor(diff/60), s = diff%60;
+  if(m < 60) return m + 'm ' + s + 's';
+  const h = Math.floor(m/60);
+  return h + 'h ' + (m%60) + 'm';
+}
+
+// Green <10min, Orange 10-20min, Red >20min (urgent pulsing)
+function getTimerClass(order){
+  const ts = getOrderTimestamp(order);
+  if(!ts || isNaN(ts)) return 'ok';
+  const mins = (Date.now() - ts) / 60000;
+  if(mins < 10) return 'ok';
+  if(mins < 20) return 'warn';
+  return 'urgent';
+}
+
+// Tick all visible timer chips every second
+let _timerInterval = null;
+function startTimerTick(){
+  if(_timerInterval) return;
+  _timerInterval = setInterval(()=>{
+    document.querySelectorAll('.timer-chip[data-ordertime]').forEach(el=>{
+      const ts = parseInt(el.dataset.ordertime);
+      if(!ts) return;
+      const mins = (Date.now()-ts)/60000;
+      el.textContent = formatWaitTime(ts);
+      el.className = 'timer-chip ' + (mins<10?'ok':mins<20?'warn':'urgent');
+    });
+  }, 1000);
+}
+document.addEventListener('DOMContentLoaded', startTimerTick);
+
+// ════════════════════════════════════════════
+// 🛵 RIDER TRACKER
+// ════════════════════════════════════════════
+let riderMap = null;
+let riderMarkers = {}; // riderId → leaflet marker
+let riderData = {};    // riderId → { name, lat, lng, orderId, status, updatedAt }
+let _rtdbRidersRef = null;
+let _riderTrackerActive = false;
+
+function initRiderTracker(){
+  if(_riderTrackerActive) return;
+  _riderTrackerActive = true;
+  renderRiderStats();
+  renderRiderCards();
+  renderUnassignedOrders();
+  initRiderMap();
+  if(window._rtdb) startRiderRTDBListener();
+}
+
+function initRiderMap(){
+  if(riderMap) return;
+  // Initialise Leaflet map centred on Hyderabad
+  riderMap = L.map('rider-map', {
+    center:[17.4126, 78.4483], zoom:12,
+    zoomControl:true, attributionControl:false
+  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(riderMap);
+  // Dark tile override for matching dashboard theme
+  riderMap.getContainer().style.background='#0f0f18';
+}
+
+// Listen to all tracking nodes in RTDB for active orders
+function startRiderRTDBListener(){
+  if(!window._rtdb) return;
+  // Listen to the entire tracking collection
+  const ref = window._rtdb.ref('tracking');
+  ref.on('value', snap=>{
+    const allTracking = snap.val() || {};
+    riderData = {};
+
+    Object.entries(allTracking).forEach(([orderId, data])=>{
+      if(!data || !data.riderLat || !data.riderLng) return;
+      if(data.status === 'delivered' || data.status === 'completed') return;
+
+      // Match to order for more info
+      const order = allOrders.find(o=>o.id===orderId||o._docId===orderId);
+      const riderId = data.riderName || orderId; // use riderName as ID key
+
+      riderData[riderId] = {
+        name: data.riderName || 'Rider',
+        lat: data.riderLat,
+        lng: data.riderLng,
+        orderId,
+        orderRef: order,
+        status: data.status || 'accepted',
+        updatedAt: data.updatedAt || Date.now(),
+        destLat: data.destLat,
+        destLng: data.destLng,
+        restLat: data.restLat,
+        restLng: data.restLng,
+      };
+    });
+
+    updateRiderMapMarkers();
+    renderRiderCards();
+    renderRiderStats();
+    renderUnassignedOrders();
+
+    const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const el = document.getElementById('rider-map-updated');
+    if(el) el.textContent = 'Updated ' + t;
+  });
+}
+
+function updateRiderMapMarkers(){
+  if(!riderMap) return;
+
+  const activeIds = new Set(Object.keys(riderData));
+
+  // Remove stale markers
+  Object.keys(riderMarkers).forEach(id=>{
+    if(!activeIds.has(id)){
+      riderMarkers[id].marker && riderMap.removeLayer(riderMarkers[id].marker);
+      riderMarkers[id].destMarker && riderMap.removeLayer(riderMarkers[id].destMarker);
+      riderMarkers[id].routeLine && riderMap.removeLayer(riderMarkers[id].routeLine);
+      delete riderMarkers[id];
+    }
+  });
+
+  if(!activeIds.size){
+    document.getElementById('rider-map-placeholder').style.display='flex';
+    return;
+  }
+  document.getElementById('rider-map-placeholder').style.display='none';
+
+  const bounds = [];
+
+  Object.entries(riderData).forEach(([id, d])=>{
+    const pos = [d.lat, d.lng];
+    bounds.push(pos);
+
+    // Initial for this delivery letter
+    const initials = (d.name||'R').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+    if(!riderMarkers[id]){
+      // Create rider marker
+      const icon = L.divIcon({
+        html:`<div class="rmap-marker" title="${d.name}">${initials}</div>`,
+        iconSize:[34,34], iconAnchor:[17,17], className:''
+      });
+      const marker = L.marker(pos, {icon, zIndexOffset:1000}).addTo(riderMap);
+      marker.bindPopup(`<b>🛵 ${d.name}</b><br><small>Order #${d.orderId}</small>`, {closeButton:false});
+
+      // Destination marker
+      let destMarker = null;
+      if(d.destLat && d.destLng){
+        const destIcon = L.divIcon({
+          html:`<div style="font-size:22px;filter:drop-shadow(0 2px 6px rgba(212,168,71,.8))">🏠</div>`,
+          iconSize:[28,28], iconAnchor:[14,28], className:''
+        });
+        destMarker = L.marker([d.destLat, d.destLng], {icon:destIcon}).addTo(riderMap);
+        destMarker.bindPopup(`<b>🏠 Delivery Point</b><br><small>Order #${d.orderId}</small>`, {closeButton:false});
+        bounds.push([d.destLat, d.destLng]);
+      }
+
+      // Route line
+      let routeLine = null;
+      if(d.destLat && d.destLng){
+        routeLine = L.polyline([pos, [d.destLat, d.destLng]],
+          {color:'#22c55e', weight:2, dashArray:'6 4', opacity:.7}).addTo(riderMap);
+      }
+
+      riderMarkers[id] = {marker, destMarker, routeLine};
+    } else {
+      // Update existing marker position smoothly
+      riderMarkers[id].marker.setLatLng(pos);
+      riderMarkers[id].marker.getPopup()?.setContent(`<b>🛵 ${d.name}</b><br><small>Order #${d.orderId} · ${d.status?.replace(/_/g,' ')}</small>`);
+      // Update route line
+      if(riderMarkers[id].routeLine && d.destLat && d.destLng){
+        riderMarkers[id].routeLine.setLatLngs([pos, [d.destLat, d.destLng]]);
+      }
+    }
+  });
+
+  // Fit map to show all riders + destinations
+  if(bounds.length > 0){
+    try{ riderMap.fitBounds(bounds, {padding:[40,40], maxZoom:14}); }catch(e){}
+  }
+
+  // Fix Leaflet size if container was hidden when initialised
+  setTimeout(()=>riderMap.invalidateSize(), 100);
+}
+
+function renderRiderCards(){
+  const el = document.getElementById('rider-cards-list');
+  if(!el) return;
+  const riders = Object.entries(riderData);
+
+  if(!riders.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);font-size:.82rem">No active riders right now</div>';
+    return;
+  }
+
+  el.innerHTML = riders.map(([id, d])=>{
+    const order = d.orderRef;
+    const statusColors = {
+      accepted:'var(--blue)', out_for_delivery:'var(--green)',
+      pending_rider:'var(--orange)'
+    };
+    const statusLabels = {
+      accepted:'Heading to restaurant',
+      out_for_delivery:'Out for delivery',
+      pending_rider:'Waiting for pickup'
+    };
+    const color = statusColors[d.status] || 'var(--muted)';
+    const lbl = statusLabels[d.status] || d.status?.replace(/_/g,' ') || 'Active';
+    const initials = (d.name||'R').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const updatedSecs = Math.floor((Date.now()-(d.updatedAt||Date.now()))/1000);
+    const freshness = updatedSecs < 10 ? '🟢 Live' : updatedSecs < 60 ? `${updatedSecs}s ago` : `${Math.floor(updatedSecs/60)}m ago`;
+
+    return `<div class="rider-card" onclick="focusRiderOnMap('${id}')">
+      <div class="rider-card-top">
+        <div class="rider-av">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <div class="rider-name">${d.name}</div>
+          <div class="rider-status-row">
+            <div class="rider-dot" style="background:${color}"></div>
+            <div class="rider-status-lbl">${lbl}</div>
+          </div>
+        </div>
+        <div style="font-size:.65rem;color:var(--muted)">${freshness}</div>
+      </div>
+      ${order ? `
+      <div class="rider-order-info">
+        <div><b>#${order.id}</b> · ${order.userName||'Customer'} · <b style="color:var(--gold)">₹${order.total}</b></div>
+        <div style="margin-top:3px;font-size:.72rem">${(order.items||[]).map(i=>i.emoji||'').join(' ')} ${(order.items||[]).map(i=>i.name).join(', ')}</div>
+      </div>
+      <div class="rider-meta">
+        <span>📍 ${d.lat?.toFixed(4)}, ${d.lng?.toFixed(4)}</span>
+        <span>${getTimerClass(order)==='urgent'?'⚠️ ':''}<span class="timer-chip ${getTimerClass(order)}" data-ordertime="${getOrderTimestamp(order)}">${formatWaitTime(getOrderTimestamp(order))}</span></span>
+      </div>` : `<div class="rider-order-info" style="font-size:.75rem;color:var(--muted)">Order #${d.orderId}</div>`}
+    </div>`;
+  }).join('');
+}
+
+function renderUnassignedOrders(){
+  const el = document.getElementById('unassigned-orders-list');
+  if(!el) return;
+  const unassigned = allOrders.filter(o=>o.status==='pending_rider');
+
+  if(!unassigned.length){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.78rem">No unassigned orders 🎉</div>';
+    return;
+  }
+
+  el.innerHTML = unassigned.map(o=>`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openOrderDetail('${o._docId||o.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--gold)">#${o.id}</span>
+        <span class="timer-chip ${getTimerClass(o)}" data-ordertime="${getOrderTimestamp(o)}">${formatWaitTime(getOrderTimestamp(o))}</span>
+      </div>
+      <div style="font-size:.8rem;color:var(--text);margin-top:3px">${o.userName||'Customer'} · ₹${o.total}</div>
+      <button onclick="event.stopPropagation();updateOrderStatus('${o._docId||o.id}','accepted')" style="margin-top:8px;width:100%;padding:7px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:8px;color:var(--blue);font-size:.75rem;font-weight:600;cursor:pointer">✅ Accept & Assign</button>
+    </div>`).join('');
+}
+
+function renderRiderStats(){
+  const active = Object.keys(riderData).length;
+  const delivering = Object.values(riderData).filter(d=>d.status==='out_for_delivery').length;
+  const done = allOrders.filter(o=>o.status==='delivered').length;
+  const unassigned = allOrders.filter(o=>o.status==='pending_rider').length;
+
+  const s = document.getElementById('rs-active');     if(s) s.textContent=active;
+  const d = document.getElementById('rs-delivering'); if(d) d.textContent=delivering;
+  const dn= document.getElementById('rs-done');       if(dn) dn.textContent=done;
+  const u = document.getElementById('rs-unassigned'); if(u) u.textContent=unassigned;
+
+  // Update sidebar riders badge
+  const badge = document.getElementById('riders-badge');
+  if(badge){
+    badge.textContent = active;
+    badge.style.display = active > 0 ? 'flex' : 'none';
+  }
+}
+
+function focusRiderOnMap(riderId){
+  const d = riderData[riderId];
+  if(!d || !riderMap) return;
+  riderMap.setView([d.lat, d.lng], 15, {animate:true});
+  const m = riderMarkers[riderId]?.marker;
+  if(m) m.openPopup();
+}
+
+// Refresh rider tracker whenever orders update
+const _origRefreshDashboard = refreshDashboard;
+function refreshDashboard(){
+  _origRefreshDashboard();
+  // If rider screen is active, refresh it too
+  if(document.getElementById('screen-riders')?.classList.contains('active')){
+    renderRiderStats();
+    renderRiderCards();
+    renderUnassignedOrders();
+  }
+  // Always update riders badge
+  renderRiderStats();
+}
 </script>
-</body>
-</html>
