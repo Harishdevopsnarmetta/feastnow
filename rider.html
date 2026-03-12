@@ -201,8 +201,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
           window._rtdb = firebase.database();
           window._firebaseReady = true;
           console.log('✅ Rider Firebase ready');
-          // Start listening for real orders once rider logs in
           window._firebaseInitTime = Date.now();
+          // If rider is already online and waiting, start listener now
+          if(window._onFirebaseReady) window._onFirebaseReady();
         }catch(e){ console.warn('Firebase init failed:',e); window._firebaseFailed=true; }
       });
     });
@@ -573,7 +574,19 @@ function toggleOnline(){
     window._onlineTime=Date.now();
     showToast('✅ You are now Online! Looking for orders...');
     renderOrderArea();
-    showIncomingOrder(); // Start real listener or demo
+    if(window._firebaseReady && window._db){
+      // Firebase already ready — start listener immediately
+      startListeningForOrders();
+    } else {
+      // Firebase not ready yet — set callback + fallback
+      console.log('⏳ Firebase not ready, setting callback...');
+      window._onFirebaseReady = ()=>{
+        console.log('🔥 Firebase ready — starting order listener');
+        if(isOnline && !currentOrder) startListeningForOrders();
+      };
+      // Also fallback to showIncomingOrder (which waits up to 8s itself)
+      showIncomingOrder();
+    }
   } else {
     showToast('🔴 You are Offline');
     if(incomingTimer){ clearTimeout(incomingTimer); incomingTimer=null; }
@@ -653,58 +666,108 @@ function renderOrderArea(){
 let _orderListener = null;
 
 function startListeningForOrders(){
-  if(!window._firebaseReady || !window._db) {
-    console.warn('startListeningForOrders: Firebase not ready');
+  if(!window._firebaseReady || !window._db){
+    console.warn('⏳ Firebase not ready — queuing callback');
+    window._onFirebaseReady = ()=>{
+      if(isOnline && !currentOrder) startListeningForOrders();
+    };
     return;
   }
-  if(_orderListener) _orderListener(); // unsub previous
 
-  console.log('👂 Listening for real orders from Firestore...');
-  showToast('🔥 Waiting for real orders...');
+  // Always clean up previous listener first
+  if(_orderListener){ _orderListener(); _orderListener=null; }
 
-  // Simple query — no orderBy to avoid index requirement
+  console.log('👂 Starting real-order listener...');
+
+  // Track which order IDs we've already shown so re-snapshots don't re-show them
+  const shownIds = new Set();
+  let firstSnap = true;
+
   _orderListener = window._db.collection('orders')
     .where('status','==','pending_rider')
     .onSnapshot(snap=>{
-      if(!isOnline || currentOrder) return;
-      console.log('📦 Firestore snapshot:', snap.docs.length, 'pending orders');
-      
-      // Show the most recent pending order
-      if(snap.docs.length > 0){
-        // Sort by createdAt client-side (most recent first)
-        const sorted = snap.docs
-          .map(d=>({id:d.id,...d.data()}))
-          .sort((a,b)=>{
-            const ta = a.createdAt?.toMillis?.() || 0;
-            const tb = b.createdAt?.toMillis?.() || 0;
-            return tb - ta;
-          });
-        showRealOrder(sorted[0]);
+      console.log('📦 Snapshot:', snap.docs.length, 'pending | online:', isOnline, '| hasOrder:', !!currentOrder);
+      if(!isOnline) return;
+
+      if(firstSnap){
+        // On first snapshot, mark all existing orders as "seen" to avoid re-showing stale ones
+        snap.docs.forEach(d=>shownIds.add(d.id));
+        firstSnap = false;
+        // But still show the newest one if no current order
+        if(!currentOrder && snap.docs.length > 0){
+          const sorted = snap.docs
+            .map(d=>{ const data=d.data(); return {...data, id: data.id||d.id, _docId:d.id}; })
+            .sort((a,b)=>(b.createdAt?.toMillis?.()??b.createdAt?.seconds??0)-(a.createdAt?.toMillis?.()??a.createdAt?.seconds??0));
+          console.log('🎯 Showing newest existing order on connect:', sorted[0].id);
+          showRealOrder(sorted[0]);
+        }
+        return;
       }
-    }, err=>{ 
-      console.warn('Order listener error:', err);
-      showToast('⚠️ Listener error: ' + err.code);
+
+      // For subsequent snapshots — only show orders added since we started listening
+      if(currentOrder) return;
+
+      const newDocs = snap.docChanges()
+        .filter(ch=>ch.type==='added' && !shownIds.has(ch.doc.id));
+
+      if(newDocs.length > 0){
+        newDocs.forEach(ch=>shownIds.add(ch.doc.id));
+        const data = newDocs[0].doc.data();
+        const orderData = {...data, id: data.id||newDocs[0].doc.id, _docId:newDocs[0].doc.id};
+        console.log('🆕 New order arrived:', orderData.id);
+        showRealOrder(orderData);
+      }
+    }, err=>{
+      console.error('❌ Listener error:', err.code, err.message);
+      _orderListener = null;
+      // Auto-retry
+      setTimeout(()=>{ if(isOnline && !currentOrder) startListeningForOrders(); }, 3000);
     });
 }
 
 function showRealOrder(data){
-  if(!isOnline || currentOrder) return;
+  if(!isOnline) return;
+  if(currentOrder){ 
+    console.log('⚠️ Already have order, skipping:', data.id);
+    return;
+  }
+  // Always ensure we have a valid order ID (use Firestore doc ID as canonical)
+  if(!data.id) { console.warn('❌ Order missing id field, skipping'); return; }
   console.log('🎯 Showing real order:', data.id);
-  const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
-  let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
-  while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
-  const dist = (1.5+Math.random()*3).toFixed(1);
+
+  // Use the EXACT same coords the customer app saved to Firestore
+  // so both rider and customer maps show identical locations
+  let restPos, destPos;
+  if(data.restPos && data.restPos.lat && data.destPos && data.destPos.lat){
+    restPos = { name: data.restPos.name||'Restaurant', lat: data.restPos.lat, lng: data.restPos.lng };
+    destPos = { name: data.destPos.name||'Customer', lat: data.destPos.lat, lng: data.destPos.lng };
+    console.log('✅ Using Firestore coords — rest:', restPos.name, 'dest:', destPos.name);
+  } else {
+    // Fallback only if Firestore coords missing
+    console.warn('⚠️ No Firestore coords, using random fallback');
+    const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+    let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+    while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
+    restPos = HYD_SPOTS[restIdx];
+    destPos = HYD_SPOTS[destIdx];
+  }
+
+  // Calculate real distance between the two points (approx km)
+  const dLat = restPos.lat - destPos.lat;
+  const dLng = restPos.lng - destPos.lng;
+  const dist = (Math.sqrt(dLat*dLat + dLng*dLng) * 111).toFixed(1);
   const earn = 40 + Math.floor(Math.random()*40) + (data.items?.length||1)*5;
+
   currentOrder = {
     id: data.id || ('FN'+Date.now().toString().slice(-6)),
     rest: data.items?.[0]?.rest || data.rest || 'Restaurant',
-    restPos: HYD_SPOTS[restIdx],
-    destPos: HYD_SPOTS[destIdx],
+    restPos,
+    destPos,
     items: data.items?.length || 1,
     itemsList: data.items || [],
     earn, dist,
     customer: data.userName || data.userId || 'Customer',
-    area: HYD_SPOTS[destIdx].name,
+    area: destPos.name || 'Delivery Location',
     time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
     isReal: true,
   };
@@ -861,12 +924,17 @@ function acceptOrder(){
       riderVehicle: rider.vehicle,
       acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }).catch(e=>console.warn('Accept update error:',e));
-    // Update RTDB tracking
+    // Update RTDB tracking — include shared coords so customer map stays in sync
     window._rtdb.ref('tracking/'+currentOrder.id).update({
       status: 'accepted',
       riderName: rider.name,
       riderLat: riderMarker?.getLatLng().lat || currentOrder.restPos.lat,
       riderLng: riderMarker?.getLatLng().lng || currentOrder.restPos.lng,
+      // Write the same destPos/restPos coords customer app used, confirming alignment
+      destLat: currentOrder.destPos.lat,
+      destLng: currentOrder.destPos.lng,
+      restLat: currentOrder.restPos.lat,
+      restLng: currentOrder.restPos.lng,
     });
     // Start writing rider location to RTDB every 2 seconds
     startWritingLocation();
@@ -887,11 +955,19 @@ function startWritingLocation(){
   _locationTimer = setInterval(()=>{
     if(!currentOrder || !riderMarker) { clearInterval(_locationTimer); return; }
     const pos = riderMarker.getLatLng();
+    // Write to RTDB — customer tracking + restaurant rider map both read this
     window._rtdb.ref('tracking/'+currentOrder.id).update({
       riderLat: pos.lat,
       riderLng: pos.lng,
-      riderName: rider.name,
+      riderName: rider?.name || 'Rider',
+      riderId: rider?.id || 'unknown',
+      status: deliveryPhase>=2 ? 'out_for_delivery' : 'accepted',
       updatedAt: firebase.database.ServerValue.TIMESTAMP,
+      // Keep shared coords so both maps stay aligned
+      destLat: currentOrder.destPos?.lat,
+      destLng: currentOrder.destPos?.lng,
+      restLat: currentOrder.restPos?.lat,
+      restLng: currentOrder.restPos?.lng,
     });
   }, 2000);
 }

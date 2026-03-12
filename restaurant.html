@@ -1270,6 +1270,8 @@ window._onFirebaseReady = function(){
   document.getElementById('fb-status').textContent = '🔥 Firebase Live';
   startOrdersListener();
   loadMenuItems();
+  // Start RTDB rider tracker immediately (not just when visiting Riders screen)
+  if(window._rtdb) startRiderRTDBListener();
 };
 
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -1636,13 +1638,24 @@ async function updateOrderStatus(docId, newStatus){
       status: newStatus,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    // Update RTDB tracking too
     const order = allOrders.find(o=>o._docId===docId||o.id===docId);
+    // Sync RTDB tracking so customer & rider maps update instantly
     if(window._rtdb && order){
-      await window._rtdb.ref('tracking/'+(order.id||docId)).update({ status: newStatus });
+      const trackId = order.id || docId;
+      const rtdbUpdate = { status: newStatus, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+      // On dispatch, write rider info to RTDB if not yet there
+      if(newStatus==='out_for_delivery' && order.riderId){
+        rtdbUpdate.riderName = order.riderName || 'Rider';
+        rtdbUpdate.riderId = order.riderId;
+      }
+      await window._rtdb.ref('tracking/'+trackId).update(rtdbUpdate);
     }
+    // 🔊 Play sound matching the action
+    if(newStatus==='accepted') playAcceptSound();
+    else if(newStatus==='out_for_delivery') playDispatchSound();
+    else if(newStatus==='delivered') playDeliveredSound();
     showToast('✅ Order updated: '+newStatus.replace(/_/g,' '));
-    addActivity('order', `Order <b>#${order?.id||docId}</b> marked as <b>${newStatus.replace(/_/g,' ')}</b>`, 'just now');
+    addActivity('order', `Order <b>#${order?.id||docId}</b> → <b>${newStatus.replace(/_/g,' ')}</b>`, 'just now');
   }catch(e){
     console.error('Status update error:', e);
     showToast('❌ Update failed: '+e.message);
@@ -2111,18 +2124,64 @@ function playOrderAlert(){
 }
 
 function playAcceptSound(){
+  // Rising tone: order accepted ✅
   try{
-    if(_ac.state === 'suspended') _ac.resume();
-    const osc = _ac.createOscillator();
-    const gain = _ac.createGain();
-    osc.connect(gain); gain.connect(_ac.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, _ac.currentTime);
-    osc.frequency.linearRampToValueAtTime(880, _ac.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.3, _ac.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, _ac.currentTime + 0.4);
-    osc.start(); osc.stop(_ac.currentTime + 0.45);
-  } catch(e){}
+    if(_ac.state==='suspended') _ac.resume();
+    const osc=_ac.createOscillator(), g=_ac.createGain();
+    osc.connect(g); g.connect(_ac.destination);
+    osc.type='sine';
+    osc.frequency.setValueAtTime(440,_ac.currentTime);
+    osc.frequency.linearRampToValueAtTime(880,_ac.currentTime+0.15);
+    g.gain.setValueAtTime(0.3,_ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,_ac.currentTime+0.4);
+    osc.start(); osc.stop(_ac.currentTime+0.45);
+  }catch(e){}
+}
+
+function playDispatchSound(){
+  // Double-beep: 🛵 dispatch
+  try{
+    if(_ac.state==='suspended') _ac.resume();
+    [0, 0.22].forEach(offset=>{
+      const osc=_ac.createOscillator(), g=_ac.createGain();
+      osc.connect(g); g.connect(_ac.destination);
+      osc.type='square'; osc.frequency.value=660;
+      g.gain.setValueAtTime(0.18, _ac.currentTime+offset);
+      g.gain.exponentialRampToValueAtTime(0.001, _ac.currentTime+offset+0.18);
+      osc.start(_ac.currentTime+offset); osc.stop(_ac.currentTime+offset+0.2);
+    });
+  }catch(e){}
+}
+
+function playDeliveredSound(){
+  // Happy arpeggio: delivered 🏠
+  try{
+    if(_ac.state==='suspended') _ac.resume();
+    [523.25,659.25,783.99,1046.5].forEach((freq,i)=>{
+      const osc=_ac.createOscillator(), g=_ac.createGain();
+      osc.connect(g); g.connect(_ac.destination);
+      osc.type='sine'; osc.frequency.value=freq;
+      g.gain.setValueAtTime(0, _ac.currentTime+i*0.12);
+      g.gain.linearRampToValueAtTime(0.28, _ac.currentTime+i*0.12+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001, _ac.currentTime+i*0.12+0.45);
+      osc.start(_ac.currentTime+i*0.12); osc.stop(_ac.currentTime+i*0.12+0.5);
+    });
+  }catch(e){}
+}
+
+function playUrgentAlert(){
+  // Rapid pips: order waiting too long ⚠️
+  try{
+    if(_ac.state==='suspended') _ac.resume();
+    [0,0.15,0.30].forEach(offset=>{
+      const osc=_ac.createOscillator(), g=_ac.createGain();
+      osc.connect(g); g.connect(_ac.destination);
+      osc.type='triangle'; osc.frequency.value=880;
+      g.gain.setValueAtTime(0.25, _ac.currentTime+offset);
+      g.gain.exponentialRampToValueAtTime(0.001, _ac.currentTime+offset+0.12);
+      osc.start(_ac.currentTime+offset); osc.stop(_ac.currentTime+offset+0.13);
+    });
+  }catch(e){}
 }
 
 // ════════════════════════════════════════════
@@ -2314,14 +2373,23 @@ function getTimerClass(order){
 let _timerInterval = null;
 function startTimerTick(){
   if(_timerInterval) return;
+  let _lastUrgentAlert = 0;
   _timerInterval = setInterval(()=>{
+    let hasUrgent = false;
     document.querySelectorAll('.timer-chip[data-ordertime]').forEach(el=>{
       const ts = parseInt(el.dataset.ordertime);
       if(!ts) return;
       const mins = (Date.now()-ts)/60000;
       el.textContent = formatWaitTime(ts);
-      el.className = 'timer-chip ' + (mins<10?'ok':mins<20?'warn':'urgent');
+      const cls = mins<10?'ok':mins<20?'warn':'urgent';
+      el.className = 'timer-chip ' + cls;
+      if(cls==='urgent') hasUrgent = true;
     });
+    // Sound alert every 60s when any order is urgent
+    if(hasUrgent && Date.now()-_lastUrgentAlert > 60000){
+      _lastUrgentAlert = Date.now();
+      playUrgentAlert();
+    }
   }, 1000);
 }
 document.addEventListener('DOMContentLoaded', startTimerTick);
@@ -2334,15 +2402,15 @@ let riderMarkers = {}; // riderId → leaflet marker
 let riderData = {};    // riderId → { name, lat, lng, orderId, status, updatedAt }
 let _rtdbRidersRef = null;
 let _riderTrackerActive = false;
+let _rtdbRidersListenerStarted = false; // prevent duplicate RTDB listeners
 
 function initRiderTracker(){
-  if(_riderTrackerActive) return;
-  _riderTrackerActive = true;
   renderRiderStats();
   renderRiderCards();
   renderUnassignedOrders();
-  initRiderMap();
-  if(window._rtdb) startRiderRTDBListener();
+  if(!riderMap) initRiderMap();
+  // RTDB listener is already running from _onFirebaseReady; just resize map
+  setTimeout(()=>{ if(riderMap) riderMap.invalidateSize(); }, 200);
 }
 
 function initRiderMap(){
@@ -2360,7 +2428,9 @@ function initRiderMap(){
 // Listen to all tracking nodes in RTDB for active orders
 function startRiderRTDBListener(){
   if(!window._rtdb) return;
-  // Listen to the entire tracking collection
+  if(_rtdbRidersListenerStarted) return; // already listening
+  _rtdbRidersListenerStarted = true;
+  console.log('🛵 Restaurant: starting RTDB rider tracker');
   const ref = window._rtdb.ref('tracking');
   ref.on('value', snap=>{
     const allTracking = snap.val() || {};
