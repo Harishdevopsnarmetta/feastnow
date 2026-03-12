@@ -529,6 +529,9 @@ function doDemo(){
 function doLogout(){
   localStorage.removeItem('fn_partner');
   rider=null; isOnline=false;
+  currentOrder=null; deliveryPhase=0;
+  if(_orderListener){ _orderListener(); _orderListener=null; }
+  stopWritingLocation();
   showScreen('login-screen');
   document.getElementById('bottom-nav').style.display='none';
 }
@@ -990,8 +993,11 @@ function completeOrder(){
   currentOrder=null; deliveryPhase=0;
   renderOrderArea();
 
-  // Next order after 5 seconds
-  if(isOnline) setTimeout(()=>{ if(isOnline&&!currentOrder) showIncomingOrder(); }, 5000);
+  // Force a fresh Firestore listener for next order
+  if(isOnline){
+    if(_orderListener){ _orderListener(); _orderListener=null; } // clean up old listener
+    setTimeout(()=>{ if(isOnline&&!currentOrder) startListeningForOrders(); }, 2000);
+  }
 }
 
 // ═══════════════════════════════════════
