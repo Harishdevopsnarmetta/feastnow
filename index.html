@@ -2944,17 +2944,19 @@ function openTracking(order){
   }
 }
 
-function buildMap(order){
-  // Destroy old map
-  if(leafletMap){leafletMap.remove();leafletMap=null;}
+// Global ref for restaurant marker so we can manage/remove it
+let _restMarker = null;
 
-  // Use shared coords from order if available (set by saveOrderToFirestore)
-  // This ensures customer map matches rider map exactly
+function buildMap(order){
+  // Destroy old map and reset all markers
+  if(leafletMap){leafletMap.remove();leafletMap=null;}
+  riderMarker=null; destMarker=null; _restMarker=null; _mapRouteLine=null;
+
+  // Use shared coords from Firestore order (set by saveOrderToFirestore)
   if(order._destPos && order._restPos){
     _mapDest = order._destPos;
     _mapRest = order._restPos;
   } else {
-    // Fallback: pick random spots (offline/demo mode)
     const destIdx=Math.floor(Math.random()*HYD_SPOTS.length);
     let restIdx=Math.floor(Math.random()*HYD_SPOTS.length);
     while(restIdx===destIdx) restIdx=(restIdx+1)%HYD_SPOTS.length;
@@ -2965,22 +2967,47 @@ function buildMap(order){
   leafletMap=L.map('delivery-map',{center:[_mapRest.lat,_mapRest.lng],zoom:13,zoomControl:false,attributionControl:false});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
 
-  // Icons
-  const riderIcon = L.divIcon({html:'<div style="font-size:28px;filter:drop-shadow(0 2px 4px #000)">🛵</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-  const homeIcon  = L.divIcon({html:'<div style="text-align:center"><div style="position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(212,168,71,0.3);animation:pulse 1.4s infinite;top:-22px;left:-22px"></div><div style="font-size:32px;filter:drop-shadow(0 0 8px #d4a847)">🏠</div></div>',iconSize:[36,36],iconAnchor:[18,36],className:''});
-  const restIcon  = L.divIcon({html:'<div style="font-size:28px">🍽</div>',iconSize:[32,32],iconAnchor:[16,32],className:''});
+  const restName = order.items?.[0]?.rest || 'Restaurant';
 
-  // Markers
-  riderMarker = L.marker([_mapRest.lat,_mapRest.lng],{icon:riderIcon}).addTo(leafletMap)
+  // Rider icon — green scooter
+  const riderIcon = L.divIcon({
+    html:'<div style="font-size:26px;filter:drop-shadow(0 2px 8px rgba(0,200,83,0.9));line-height:1">🛵</div>',
+    iconSize:[32,32],iconAnchor:[16,16],className:''
+  });
+  // Home icon — gold pulsing
+  const homeIcon = L.divIcon({
+    html:`<div style="position:relative;width:36px;height:36px">
+      <div style="position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(212,168,71,0.25);animation:pulse 1.4s infinite;top:-4px;left:-4px"></div>
+      <div style="font-size:30px;line-height:1;filter:drop-shadow(0 0 8px #d4a847)">🏠</div>
+    </div>`,
+    iconSize:[36,36],iconAnchor:[18,36],className:''
+  });
+  // Restaurant icon — distinct RED circle with name label, clearly different from home
+  const restIcon = L.divIcon({
+    html:`<div style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#e74c3c,#c0392b);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 12px rgba(231,76,60,0.8)">🍽</div>
+      <div style="background:#c0392b;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:3px;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,0.5)">${restName}</div>
+    </div>`,
+    iconSize:[90,58],iconAnchor:[45,40],className:''
+  });
+
+  // Rider marker at restaurant (waiting for pickup) — higher z-index so visible
+  riderMarker = L.marker([_mapRest.lat,_mapRest.lng],{icon:riderIcon,zIndexOffset:1000}).addTo(leafletMap)
     .bindPopup('<b>🛵 Rider</b><br><small>At restaurant</small>',{closeButton:false});
-  destMarker  = L.marker([_mapDest.lat,_mapDest.lng],{icon:homeIcon}).addTo(leafletMap)
-    .bindPopup('<b>🏠 Your Home</b>',{closeButton:false}).openPopup();
-  L.marker([_mapRest.lat,_mapRest.lng],{icon:restIcon}).addTo(leafletMap)
-    .bindPopup(`<b>🍽 ${order.items?.[0]?.rest||'Restaurant'}</b>`,{closeButton:false});
 
-  // Route line
-  _mapRouteLine = L.polyline([[_mapRest.lat,_mapRest.lng],[_mapDest.lat,_mapDest.lng]],
-    {color:'#d4a847',weight:3,dashArray:'8 5',opacity:.8}).addTo(leafletMap);
+  // Customer home marker
+  destMarker = L.marker([_mapDest.lat,_mapDest.lng],{icon:homeIcon,zIndexOffset:900}).addTo(leafletMap)
+    .bindPopup('<b>🏠 Your Home</b>',{closeButton:false});
+
+  // Restaurant marker — offset slightly so it doesn't hide behind rider icon
+  _restMarker = L.marker([_mapRest.lat + 0.0006, _mapRest.lng + 0.0006],{icon:restIcon,zIndexOffset:500}).addTo(leafletMap)
+    .bindPopup(`<b>🍽 ${restName}</b><br><small>Pick-up point</small>`,{closeButton:false}).openPopup();
+
+  // Route line restaurant → home
+  _mapRouteLine = L.polyline(
+    [[_mapRest.lat,_mapRest.lng],[_mapDest.lat,_mapDest.lng]],
+    {color:'#d4a847',weight:3,dashArray:'8 5',opacity:.8}
+  ).addTo(leafletMap);
 
   leafletMap.fitBounds([[_mapRest.lat,_mapRest.lng],[_mapDest.lat,_mapDest.lng]],{padding:[60,60]});
 }
@@ -2988,84 +3015,87 @@ function buildMap(order){
 function startRiderMoving(order, onArrived){
   if(!_mapDest||!_mapRest||!riderMarker) return;
   if(riderAnimTimer){clearInterval(riderAnimTimer);riderAnimTimer=null;}
-  riderMarker.getPopup()?.setContent('<b>🛵 Rider</b><br><small>On the way! 🚀</small>');
 
-  // ── Try REAL rider from Firebase RTDB ──
+  // Single delivered handler used by both RTDB and simulation paths
+  let _deliveredFired = false;
+  function fireDelivered(){
+    if(_deliveredFired) return;
+    _deliveredFired = true;
+    if(_mapRouteLine){_mapRouteLine.remove();_mapRouteLine=null;}
+    if(_restMarker){_restMarker.remove();_restMarker=null;}
+    if(riderMarker) riderMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
+    if(riderMarker) riderMarker.getPopup()?.setContent('<b>✅ Delivered!</b><br><small>Enjoy your meal! 😋</small>');
+    if(riderMarker) riderMarker.openPopup();
+    if(leafletMap) leafletMap.panTo([_mapDest.lat,_mapDest.lng],{animate:true,duration:1});
+    document.getElementById('track-eta').textContent='Delivered! 🎉';
+    document.getElementById('map-eta-chip').textContent='✅ Here!';
+    document.getElementById('map-status-txt').textContent='🎉 Order Delivered!';
+    document.getElementById('map-status-sub').textContent='Enjoy your meal!';
+    if(typeof onArrived==='function') onArrived();
+  }
+
+  // ── Real RTDB listener ──
   if(window._rtdb && window._firebaseReady){
     const ref = window._rtdb.ref('tracking/'+order.id);
-    let _lastDelivered=false;
     let _lastStatus='';
     ref.on('value', snap=>{
       const data=snap.val();
       if(!data||!riderMarker) return;
 
-      // 🗺️ If RTDB has shared dest coords, update map markers to match rider's view
-      if(data.destLat && data.destLng && _mapDest){
-        const newDest={lat:data.destLat, lng:data.destLng};
-        if(Math.abs(newDest.lat-_mapDest.lat)>0.0001 || Math.abs(newDest.lng-_mapDest.lng)>0.0001){
-          _mapDest={lat:data.destLat, lng:data.destLng, name:_mapDest.name};
-          if(destMarker) destMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
+      // Sync dest coords if RTDB has them
+      if(data.destLat && data.destLng){
+        if(Math.abs(data.destLat-_mapDest.lat)>0.0001||Math.abs(data.destLng-_mapDest.lng)>0.0001){
+          _mapDest={lat:data.destLat,lng:data.destLng,name:_mapDest?.name||''};
+          if(destMarker) destMarker.setLatLng([data.destLat,data.destLng]);
         }
       }
 
-      // Real rider position
+      // Move rider to real position
       if(data.riderLat && data.riderLng){
-        const newPos=[data.riderLat, data.riderLng];
-        riderMarker.setLatLng(newPos);
-        if(_mapRouteLine) _mapRouteLine.setLatLngs([newPos,[_mapDest.lat,_mapDest.lng]]);
-        if(leafletMap) leafletMap.panTo(newPos,{animate:true,duration:.9});
-        // ETA based on distance
+        const pos=[data.riderLat,data.riderLng];
+        riderMarker.setLatLng(pos);
+        if(_mapRouteLine) _mapRouteLine.setLatLngs([pos,[_mapDest.lat,_mapDest.lng]]);
+        if(leafletMap) leafletMap.panTo(pos,{animate:true,duration:.9});
         const dist=Math.sqrt(Math.pow(data.riderLat-_mapDest.lat,2)+Math.pow(data.riderLng-_mapDest.lng,2));
-        const etaTxt=dist<0.002?'Arriving!':Math.ceil(dist/0.003)+' min away';
+        const etaTxt=dist<0.002?'Arriving now!':Math.ceil(dist/0.003)+' min away';
         document.getElementById('track-eta').textContent=etaTxt;
         document.getElementById('map-eta-chip').textContent=etaTxt;
       }
 
-      // Status-based step updates
+      // Status label updates
       if(data.status && data.status!==_lastStatus){
         _lastStatus=data.status;
         if(data.status==='accepted'){
           document.getElementById('map-status-txt').textContent='🛵 Rider Accepted!';
           document.getElementById('map-status-sub').textContent='Heading to restaurant...';
+          riderMarker.getPopup()?.setContent('<b>🛵 Rider</b><br><small>Heading to restaurant...</small>');
         } else if(data.status==='out_for_delivery'){
           document.getElementById('map-status-txt').textContent='🛵 Out for Delivery!';
           document.getElementById('map-status-sub').textContent='Rider is heading your way';
-          document.getElementById('track-eta').textContent='~15 min';
-          document.getElementById('map-eta-chip').textContent='~15 min';
-          SFX.outForDelivery();
+          // Remove restaurant marker once rider has picked up
+          if(_restMarker){_restMarker.remove();_restMarker=null;}
+          if(data.riderName){
+            riderMarker.getPopup()?.setContent('<b>🛵 '+data.riderName+'</b><br><small>On the way! 🚀</small>');
+          }
         }
       }
 
-      // Delivered
-      if((data.status==='delivered'||data.status==='completed') && !_lastDelivered){
-        _lastDelivered=true;
+      if((data.status==='delivered'||data.status==='completed')){
         ref.off('value');
-        if(_mapRouteLine) _mapRouteLine.remove();
-        riderMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
-        riderMarker.getPopup()?.setContent('<b>✅ Delivered!</b><br><small>Enjoy your meal! 😋</small>');
-        riderMarker.openPopup();
-        leafletMap.panTo([_mapDest.lat,_mapDest.lng],{animate:true,duration:1});
-        if(typeof onArrived==='function') onArrived();
-      }
-      if(data.riderName){
-        riderMarker.getPopup()?.setContent('<b>🛵 '+data.riderName+'</b><br><small>On the way! 🚀</small>');
+        fireDelivered();
       }
     });
-    return; // Using real RTDB — no simulation needed
+    return;
   }
 
-  // ── Fallback: simulate if Firebase not available ──
+  // ── Fallback simulation (no Firebase) ──
   let step=0; const totalSteps=80;
+  riderMarker.getPopup()?.setContent('<b>🛵 Rider</b><br><small>On the way! 🚀</small>');
   riderAnimTimer=setInterval(()=>{
     step++;
     if(step>=totalSteps){
       clearInterval(riderAnimTimer); riderAnimTimer=null;
-      riderMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
-      if(_mapRouteLine) _mapRouteLine.remove();
-      riderMarker.getPopup()?.setContent('<b>✅ Delivered!</b><br><small>Enjoy your meal! 😋</small>');
-      riderMarker.openPopup();
-      leafletMap.panTo([_mapDest.lat,_mapDest.lng],{animate:true,duration:1});
-      if(typeof onArrived==='function') onArrived();
+      fireDelivered();
       return;
     }
     const t=step/totalSteps;
@@ -3074,10 +3104,13 @@ function startRiderMoving(order, onArrived){
     const lng=_mapRest.lng+(_mapDest.lng-_mapRest.lng)*e;
     riderMarker.setLatLng([lat,lng]);
     if(_mapRouteLine) _mapRouteLine.setLatLngs([[lat,lng],[_mapDest.lat,_mapDest.lng]]);
-    if(step%8===0) leafletMap.panTo([lat,lng],{animate:true,duration:.9});
+    // Hide restaurant marker once rider is well on the way
+    if(step===12 && _restMarker){_restMarker.remove();_restMarker=null;}
+    if(step%8===0) leafletMap?.panTo([lat,lng],{animate:true,duration:.9});
     const minsLeft=Math.ceil((totalSteps-step)/60);
     const secsLeft=(totalSteps-step)%60;
-    document.getElementById('track-eta').textContent=minsLeft>0?minsLeft+' min away':secsLeft+'s away';
+    const etaTxt=minsLeft>0?minsLeft+' min away':secsLeft+'s away';
+    document.getElementById('track-eta').textContent=etaTxt;
     document.getElementById('map-eta-chip').textContent=minsLeft>0?minsLeft+' min':secsLeft+'s';
   },1000);
 }
