@@ -248,7 +248,10 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
   <div class="top-bar">
     <div>
       <div class="top-bar-title" id="rider-greeting">Good morning! 👋</div>
-      <div style="font-size:.75rem;color:var(--muted)" id="rider-name-small">Partner</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+        <div style="font-size:.75rem;color:var(--muted)" id="rider-name-small">Partner</div>
+        <div id="gps-status-pill" style="display:none"></div>
+      </div>
     </div>
     <div class="online-toggle">
       <div class="toggle-label" id="toggle-lbl">OFFLINE</div>
@@ -947,32 +950,197 @@ function acceptOrder(){
   });
 }
 
-// Write real rider location to RTDB continuously
-let _locationTimer = null;
+// ═══════════════════════════════════════
+// 📡 LIVE GPS → FIREBASE RTDB
+// ═══════════════════════════════════════
+let _gpsWatchId = null;      // watchPosition handle
+let _gpsLastPos = null;      // last known GeolocationPosition
+let _gpsRetryTimer = null;   // retry timer when GPS denied temporarily
+let _gpsSimTimer = null;     // fallback simulation timer (GPS unavailable)
+let _gpsMode = 'idle';       // 'idle' | 'acquiring' | 'live' | 'sim'
+
+// Called when rider accepts an order — begin GPS tracking
 function startWritingLocation(){
-  if(_locationTimer){ clearInterval(_locationTimer); _locationTimer=null; }
+  stopWritingLocation(); // clean up any prior session
+
   if(!window._rtdb || !currentOrder) return;
-  _locationTimer = setInterval(()=>{
-    if(!currentOrder || !riderMarker) { clearInterval(_locationTimer); return; }
-    const pos = riderMarker.getLatLng();
-    // Write to RTDB — customer tracking + restaurant rider map both read this
-    window._rtdb.ref('tracking/'+currentOrder.id).update({
-      riderLat: pos.lat,
-      riderLng: pos.lng,
-      riderName: rider?.name || 'Rider',
-      riderId: rider?.id || 'unknown',
-      status: deliveryPhase>=2 ? 'out_for_delivery' : 'accepted',
-      updatedAt: firebase.database.ServerValue.TIMESTAMP,
-      // Keep shared coords so both maps stay aligned
-      destLat: currentOrder.destPos?.lat,
-      destLng: currentOrder.destPos?.lng,
-      restLat: currentOrder.restPos?.lat,
-      restLng: currentOrder.restPos?.lng,
-    });
-  }, 2000);
+
+  // Update UI to show we're acquiring GPS
+  setGpsStatus('acquiring');
+
+  if(!('geolocation' in navigator)){
+    console.warn('📡 Geolocation not supported — using simulation');
+    showToast('⚠️ GPS not available, using map position');
+    _startSimulatedLocation();
+    return;
+  }
+
+  // Try to get an immediate fix first, then watch
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      _onGpsSuccess(pos);
+      // Then watch for continuous updates
+      _gpsWatchId = navigator.geolocation.watchPosition(
+        _onGpsSuccess,
+        _onGpsError,
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      );
+    },
+    err => {
+      _onGpsError(err);
+      // Still set up a watch in case user grants permission later
+      _gpsWatchId = navigator.geolocation.watchPosition(
+        _onGpsSuccess,
+        _onGpsError,
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+      );
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+  );
 }
+
 function stopWritingLocation(){
-  if(_locationTimer){ clearInterval(_locationTimer); _locationTimer=null; }
+  // Stop GPS watch
+  if(_gpsWatchId !== null){
+    navigator.geolocation.clearWatch(_gpsWatchId);
+    _gpsWatchId = null;
+  }
+  // Stop simulation fallback
+  if(_gpsSimTimer){ clearInterval(_gpsSimTimer); _gpsSimTimer = null; }
+  if(_gpsRetryTimer){ clearTimeout(_gpsRetryTimer); _gpsRetryTimer = null; }
+  _gpsMode = 'idle';
+  setGpsStatus('idle');
+}
+
+// GPS success callback
+function _onGpsSuccess(position){
+  const { latitude, longitude, accuracy, heading, speed } = position.coords;
+
+  // First real fix — switch off simulation if it was running
+  if(_gpsMode !== 'live'){
+    if(_gpsSimTimer){ clearInterval(_gpsSimTimer); _gpsSimTimer = null; }
+    _gpsMode = 'live';
+    setGpsStatus('live');
+    showToast('📍 Live GPS active');
+    console.log(`✅ GPS fix: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} ±${Math.round(accuracy)}m`);
+  }
+
+  _gpsLastPos = { lat: latitude, lng: longitude, accuracy, heading, speed };
+
+  // Move the rider marker on the Leaflet map to real position
+  if(riderMarker){
+    riderMarker.setLatLng([latitude, longitude]);
+    if(riderMap && _gpsMode === 'live'){
+      riderMap.panTo([latitude, longitude], { animate: true, duration: 1 });
+    }
+    // Update route line to current real position
+    if(routeLine && currentOrder){
+      const dest = deliveryPhase >= 2
+        ? currentOrder.destPos
+        : currentOrder.restPos;
+      routeLine.setLatLngs([[latitude, longitude],[dest.lat, dest.lng]]);
+    }
+  }
+
+  // Write to Firebase RTDB
+  _writeLocationToRTDB(latitude, longitude, { accuracy, heading, speed });
+}
+
+// GPS error callback
+function _onGpsError(err){
+  console.warn('❌ GPS error:', err.code, err.message);
+
+  if(_gpsMode === 'live') return; // already have live GPS, keep going
+
+  // Map error codes
+  const msgs = {
+    1: 'GPS permission denied',
+    2: 'GPS position unavailable',
+    3: 'GPS timeout',
+  };
+  const msg = msgs[err.code] || 'GPS error';
+
+  if(err.code === 1){
+    // PERMISSION_DENIED — won't recover, fall to simulation immediately
+    showToast(`⚠️ ${msg} — using map position`);
+    _startSimulatedLocation();
+  } else {
+    // Temporary error — try simulation while waiting for GPS
+    if(_gpsMode !== 'sim'){
+      showToast(`⚠️ ${msg} — using map position temporarily`);
+      _startSimulatedLocation();
+    }
+    // Retry real GPS after 20s
+    _gpsRetryTimer = setTimeout(()=>{
+      if(_gpsMode === 'sim' && currentOrder){
+        console.log('🔄 Retrying GPS...');
+        navigator.geolocation.getCurrentPosition(
+          _onGpsSuccess,
+          e => console.warn('GPS retry failed:', e.message),
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
+        );
+      }
+    }, 20000);
+  }
+}
+
+// Simulation fallback — reads position from the animated Leaflet marker
+function _startSimulatedLocation(){
+  if(_gpsSimTimer) return; // already running
+  _gpsMode = 'sim';
+  setGpsStatus('sim');
+
+  _gpsSimTimer = setInterval(()=>{
+    if(!currentOrder || !riderMarker){
+      clearInterval(_gpsSimTimer); _gpsSimTimer = null; return;
+    }
+    const pos = riderMarker.getLatLng();
+    _writeLocationToRTDB(pos.lat, pos.lng, { accuracy: 999, simulated: true });
+  }, 3000);
+}
+
+// Core RTDB write — shared by both real GPS and simulation paths
+function _writeLocationToRTDB(lat, lng, extras = {}){
+  if(!window._rtdb || !currentOrder) return;
+
+  const payload = {
+    riderLat: lat,
+    riderLng: lng,
+    riderName: rider?.name || 'Rider',
+    riderId: rider?.id || 'unknown',
+    status: deliveryPhase >= 2 ? 'out_for_delivery' : 'accepted',
+    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+    // Shared route coords for customer map alignment
+    destLat: currentOrder.destPos?.lat,
+    destLng: currentOrder.destPos?.lng,
+    restLat: currentOrder.restPos?.lat,
+    restLng: currentOrder.restPos?.lng,
+  };
+
+  // Attach optional GPS metadata if available
+  if(extras.accuracy != null) payload.accuracy = Math.round(extras.accuracy);
+  if(extras.heading != null && extras.heading !== null) payload.heading = Math.round(extras.heading);
+  if(extras.speed != null && extras.speed !== null) payload.speedKmh = Math.round(extras.speed * 3.6);
+  if(extras.simulated) payload.simulated = true;
+
+  window._rtdb.ref('tracking/' + currentOrder.id).update(payload)
+    .catch(e => console.warn('RTDB write error:', e));
+}
+
+// GPS status pill in the top bar
+function setGpsStatus(mode){
+  _gpsMode = mode;
+  let el = document.getElementById('gps-status-pill');
+  if(!el) return;
+  const cfg = {
+    idle:       { text: '',             style: 'display:none' },
+    acquiring:  { text: '🛰 Acquiring GPS…', style: 'background:rgba(245,200,66,.15);color:#f5c842;border:1px solid rgba(245,200,66,.3)' },
+    live:       { text: '📍 GPS Live',   style: 'background:rgba(0,230,118,.12);color:#00e676;border:1px solid rgba(0,230,118,.3)' },
+    sim:        { text: '📡 Map Position', style: 'background:rgba(79,195,247,.12);color:#4fc3f7;border:1px solid rgba(79,195,247,.3)' },
+  };
+  const c = cfg[mode] || cfg.idle;
+  el.textContent = c.text;
+  el.setAttribute('style', `font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px;${c.style}`);
 }
 
 // ═══════════════════════════════════════
