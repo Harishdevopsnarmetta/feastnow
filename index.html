@@ -1317,6 +1317,17 @@ body.logged-in #chat-fab{display:flex}
       </div>
       <div class="map-eta-chip" id="map-eta-chip">~30 min</div>
     </div>
+    <!-- Rider info card (hidden until rider accepts) -->
+    <div id="rider-info-card" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:none;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green),#00c853);display:flex;align-items:center;justify-content:center;font-size:1.2rem">🛵</div>
+        <div>
+          <div id="rider-info-name" style="font-weight:700;font-size:.88rem">Your Rider</div>
+          <div id="rider-info-vehicle" style="font-size:.72rem;color:var(--muted);margin-top:1px">On the way</div>
+        </div>
+      </div>
+      <div id="gps-live-badge" style="display:none;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px"></div>
+    </div>
     <div id="delivery-map"></div>
     <div class="track-steps" id="track-steps"></div>
     <div class="track-order-items" id="track-order-items"></div>
@@ -2023,6 +2034,11 @@ const getAddrs=()=>{try{return JSON.parse(localStorage.getItem(AK))||addresses}c
 const saveAddrs=a=>{addresses=a;localStorage.setItem(AK,JSON.stringify(a))};
 
 function showScreen(id){
+  // Detach RTDB tracking listener when navigating away from tracking screen
+  if(id !== 'tracking-screen' && window._activeTrackingRef){
+    window._activeTrackingRef.off('value');
+    window._activeTrackingRef = null;
+  }
   const prev=document.querySelector('.screen.active');
   if(prev&&prev.id!==id){prev.classList.remove('active');}
   const next=document.getElementById(id);
@@ -3038,11 +3054,16 @@ function startRiderMoving(order, onArrived){
   if(window._rtdb && window._firebaseReady){
     const ref = window._rtdb.ref('tracking/'+order.id);
     let _lastStatus='';
+    let _proximityAlerted=false;
+
+    // Store ref globally so we can detach if user navigates away
+    window._activeTrackingRef = ref;
+
     ref.on('value', snap=>{
       const data=snap.val();
       if(!data||!riderMarker) return;
 
-      // Sync dest coords if RTDB has them
+      // ── Sync dest coords if RTDB has updated them ──
       if(data.destLat && data.destLng){
         if(Math.abs(data.destLat-_mapDest.lat)>0.0001||Math.abs(data.destLng-_mapDest.lng)>0.0001){
           _mapDest={lat:data.destLat,lng:data.destLng,name:_mapDest?.name||''};
@@ -3050,38 +3071,96 @@ function startRiderMoving(order, onArrived){
         }
       }
 
-      // Move rider to real position
+      // ── Show rider name + vehicle in info card ──
+      if(data.riderName){
+        const card = document.getElementById('rider-info-card');
+        if(card){
+          card.style.display='flex';
+          const nameEl = document.getElementById('rider-info-name');
+          const vehEl  = document.getElementById('rider-info-vehicle');
+          if(nameEl) nameEl.textContent = data.riderName;
+          if(vehEl)  vehEl.textContent  = data.riderVehicle ? '🏍 '+data.riderVehicle : 'En route to you';
+        }
+      }
+
+      // ── GPS accuracy badge ──
+      const badge = document.getElementById('gps-live-badge');
+      if(badge){
+        if(data.simulated){
+          badge.style.display='inline-block';
+          badge.textContent='📡 Map Position';
+          badge.style.cssText+=';background:rgba(79,195,247,.12);color:#4fc3f7;border:1px solid rgba(79,195,247,.3)';
+        } else if(data.accuracy){
+          badge.style.display='inline-block';
+          const acc = data.accuracy;
+          const isGood = acc < 30;
+          badge.textContent = isGood ? '📍 GPS Live' : '🛰 GPS ±'+acc+'m';
+          badge.style.cssText += isGood
+            ? ';background:rgba(0,230,118,.12);color:#00e676;border:1px solid rgba(0,230,118,.3)'
+            : ';background:rgba(245,200,66,.12);color:#f5c842;border:1px solid rgba(245,200,66,.3)';
+        }
+      }
+
+      // ── Move rider marker to real GPS position ──
       if(data.riderLat && data.riderLng){
         const pos=[data.riderLat,data.riderLng];
         riderMarker.setLatLng(pos);
         if(_mapRouteLine) _mapRouteLine.setLatLngs([pos,[_mapDest.lat,_mapDest.lng]]);
         if(leafletMap) leafletMap.panTo(pos,{animate:true,duration:.9});
-        const dist=Math.sqrt(Math.pow(data.riderLat-_mapDest.lat,2)+Math.pow(data.riderLng-_mapDest.lng,2));
-        const etaTxt=dist<0.002?'Arriving now!':Math.ceil(dist/0.003)+' min away';
+
+        // ── Accurate distance: Haversine formula ──
+        const R=6371; // km
+        const dLat=(data.riderLat-_mapDest.lat)*Math.PI/180;
+        const dLng=(data.riderLng-_mapDest.lng)*Math.PI/180;
+        const a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+                Math.cos(_mapDest.lat*Math.PI/180)*Math.cos(data.riderLat*Math.PI/180)*
+                Math.sin(dLng/2)*Math.sin(dLng/2);
+        const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+        const distM=Math.round(distKm*1000);
+
+        let etaTxt, etaChip;
+        if(distM<80){
+          etaTxt='Arriving now!'; etaChip='🏁 Now!';
+        } else if(distM<500){
+          etaTxt=distM+'m away'; etaChip=distM+'m';
+        } else {
+          const mins=Math.ceil(distKm/0.4); // ~24 km/h avg city speed
+          etaTxt=mins+' min away'; etaChip=mins+' min';
+        }
         document.getElementById('track-eta').textContent=etaTxt;
-        document.getElementById('map-eta-chip').textContent=etaTxt;
+        document.getElementById('map-eta-chip').textContent=etaChip;
+
+        // ── Proximity alert ──
+        if(distM<300 && !_proximityAlerted){
+          _proximityAlerted=true;
+          showToast('🛵 Rider is '+distM+'m away!');
+          addNotif('order','🛵','Rider almost here!','Your order is '+distM+'m away',true);
+          SFX.outForDelivery && SFX.outForDelivery();
+        }
       }
 
-      // Status label updates
+      // ── Status label + popup updates ──
       if(data.status && data.status!==_lastStatus){
         _lastStatus=data.status;
+        const riderLabel = data.riderName ? '🛵 '+data.riderName : '🛵 Rider';
         if(data.status==='accepted'){
           document.getElementById('map-status-txt').textContent='🛵 Rider Accepted!';
-          document.getElementById('map-status-sub').textContent='Heading to restaurant...';
-          riderMarker.getPopup()?.setContent('<b>🛵 Rider</b><br><small>Heading to restaurant...</small>');
+          document.getElementById('map-status-sub').textContent='Heading to restaurant to pick up...';
+          riderMarker.getPopup()?.setContent('<b>'+riderLabel+'</b><br><small>Heading to restaurant...</small>');
         } else if(data.status==='out_for_delivery'){
           document.getElementById('map-status-txt').textContent='🛵 Out for Delivery!';
-          document.getElementById('map-status-sub').textContent='Rider is heading your way';
-          // Remove restaurant marker once rider has picked up
+          document.getElementById('map-status-sub').textContent=data.riderName ? data.riderName+' is heading your way' : 'Rider is heading your way';
           if(_restMarker){_restMarker.remove();_restMarker=null;}
-          if(data.riderName){
-            riderMarker.getPopup()?.setContent('<b>🛵 '+data.riderName+'</b><br><small>On the way! 🚀</small>');
+          riderMarker.getPopup()?.setContent('<b>'+riderLabel+'</b><br><small>On the way! 🚀</small>');
+          if(data.speedKmh){
+            document.getElementById('map-status-sub').textContent+=(data.speedKmh>0?' · '+data.speedKmh+' km/h':'');
           }
         }
       }
 
-      if((data.status==='delivered'||data.status==='completed')){
+      if(data.status==='delivered'||data.status==='completed'){
         ref.off('value');
+        window._activeTrackingRef=null;
         fireDelivered();
       }
     });
