@@ -1959,7 +1959,40 @@ function toggleRestaurantOpen(){
   lbl.textContent = isRestOpen ? 'Restaurant Open' : 'Restaurant Closed';
   emoji.textContent = isRestOpen ? '🟢' : '🔴';
   statusTxt.textContent = isRestOpen ? 'Open & Accepting' : 'Currently Closed';
-  showToast(isRestOpen ? '🟢 Restaurant is now Open!' : '🔴 Restaurant is now Closed');
+
+  if(isRestOpen){
+    // ── OPENING: reconnect Firebase listeners ──
+    if(window._firebaseReady && window._db){
+      startOrdersListener();
+      _rtdbRidersListenerStarted = false;
+      if(document.getElementById('screen-riders')?.classList.contains('active')){
+        initRiderTracker();
+      }
+    }
+    _setRestaurantStatusInDB(true);
+    showToast('🟢 Restaurant Open — Firebase connected');
+    addActivity('status', 'Restaurant <b>opened</b> — order listener active', 'just now');
+  } else {
+    // ── CLOSING: disconnect Firebase listeners ──
+    if(_ordersListener){ _ordersListener(); _ordersListener = null; }
+    if(window._rtdb){
+      window._rtdb.ref('tracking').off();
+      _rtdbRidersListenerStarted = false;
+    }
+    _setRestaurantStatusInDB(false);
+    showToast('🔴 Restaurant Closed — Firebase disconnected');
+    addActivity('status', 'Restaurant <b>closed</b> — order listener stopped', 'just now');
+  }
+}
+
+// Sync open/closed state to Firestore so customer app reflects it
+function _setRestaurantStatusInDB(open){
+  if(!window._firebaseReady || !window._db) return;
+  const restId = window._restaurantId || 'default';
+  window._db.collection('restaurants').doc(restId).set(
+    { isOpen: open, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  ).catch(e => console.warn('Status update error:', e));
 }
 
 // ════════════════════════════════════════════
