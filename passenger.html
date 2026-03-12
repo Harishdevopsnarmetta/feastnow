@@ -21,9 +21,11 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 /* SCREENS */
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(16px);background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+#splash.active,#auth.active,#searching.active,#rating-screen.active{display:flex!important}
+#home.active,#live-tracking.active{display:flex!important}
 
 /* SPLASH */
-#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,rgba(108,99,255,.18),transparent 60%),var(--bg)}
+#splash{flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,rgba(108,99,255,.18),transparent 60%),var(--bg)}
 .splash-logo{font-family:'Bebas Neue',sans-serif;font-size:4.5rem;letter-spacing:4px;background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .splash-tag{color:var(--muted);font-size:.8rem;letter-spacing:3px;text-transform:uppercase;margin-top:4px}
 .splash-icon{font-size:3.5rem;margin-bottom:24px;animation:float 2s ease-in-out infinite}
@@ -33,7 +35,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 @keyframes load{0%{width:0}100%{width:100%}}
 
 /* AUTH */
-#auth{display:flex;flex-direction:column;justify-content:flex-end;padding:32px 24px 56px;background:radial-gradient(ellipse at 20% 10%,rgba(108,99,255,.1),transparent 50%),var(--bg)}
+#auth{flex-direction:column;justify-content:flex-end;padding:32px 24px 56px;background:radial-gradient(ellipse at 20% 10%,rgba(108,99,255,.1),transparent 50%),var(--bg)}
 .auth-title{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:2px;line-height:1;margin-bottom:6px}
 .auth-title span{background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .auth-sub{color:var(--muted);font-size:.88rem;margin-bottom:36px}
@@ -53,7 +55,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .back-btn{width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
 /* HOME SCREEN */
-#home{display:flex;flex-direction:column}
+#home{flex-direction:column}
 .home-map-wrap{flex:1;position:relative;min-height:55vh}
 #home-map{width:100%;height:100%}
 .home-bottom-sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:20px 20px 40px;border-top:1px solid var(--border);margin-top:-20px;position:relative;z-index:10}
@@ -121,7 +123,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .btn-cancel-ride{margin-top:32px;padding:14px 32px;background:transparent;border:1.5px solid var(--red);border-radius:50px;color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:600;cursor:pointer}
 
 /* LIVE TRACKING */
-#live-tracking{display:flex;flex-direction:column}
+#live-tracking{flex-direction:column}
 .track-map-wrap{flex:0 0 55vh;position:relative}
 #track-map{width:100%;height:100%}
 .track-sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:20px;border-top:1px solid var(--border);flex:1;overflow-y:auto}
@@ -432,10 +434,11 @@ const DEMO_DRIVERS = [
 // INIT
 // ══════════════════════════════════
 window.addEventListener('DOMContentLoaded', ()=>{
+  // Always transition out of splash after 2s max
   setTimeout(()=>{
     if(user) goHome();
     else showScreen('auth');
-  }, 1900);
+  }, 2000);
 });
 
 function showScreen(id){
@@ -774,8 +777,13 @@ function listenRTDB(rideId, drvStart, pickup, drop){
       if(data.status==='in_progress'){    phase=2; renderTrackSteps(2); showToast('🛣 Ride started!'); }
       if(data.status==='completed'){      ref.off('value'); _trackRef=null; phase=3; renderTrackSteps(3); setTimeout(endRide,2000); }
     }
-    if(data.simulated) document.getElementById('gps-badge').className='gps-badge sim'; document.getElementById('gps-badge').textContent='📡 Map Position';
-    else { document.getElementById('gps-badge').className='gps-badge live'; document.getElementById('gps-badge').textContent='📍 GPS Live'; }
+    if(data.simulated){
+        document.getElementById('gps-badge').className='gps-badge sim';
+        document.getElementById('gps-badge').textContent='📡 Map Position';
+      } else {
+        document.getElementById('gps-badge').className='gps-badge live';
+        document.getElementById('gps-badge').textContent='📍 GPS Live';
+      }
   });
 
   // Since no real driver app is connected in demo, simulate after 3s
