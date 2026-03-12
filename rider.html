@@ -690,21 +690,40 @@ function startListeningForOrders(){
 function showRealOrder(data){
   if(!isOnline || currentOrder) return;
   console.log('🎯 Showing real order:', data.id);
-  const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
-  let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
-  while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
-  const dist = (1.5+Math.random()*3).toFixed(1);
+
+  // Use the EXACT same coords the customer app saved to Firestore
+  // so both rider and customer maps show identical locations
+  let restPos, destPos;
+  if(data.restPos && data.restPos.lat && data.destPos && data.destPos.lat){
+    restPos = { name: data.restPos.name||'Restaurant', lat: data.restPos.lat, lng: data.restPos.lng };
+    destPos = { name: data.destPos.name||'Customer', lat: data.destPos.lat, lng: data.destPos.lng };
+    console.log('✅ Using Firestore coords — rest:', restPos.name, 'dest:', destPos.name);
+  } else {
+    // Fallback only if Firestore coords missing
+    console.warn('⚠️ No Firestore coords, using random fallback');
+    const restIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+    let destIdx = Math.floor(Math.random()*HYD_SPOTS.length);
+    while(destIdx===restIdx) destIdx=(destIdx+1)%HYD_SPOTS.length;
+    restPos = HYD_SPOTS[restIdx];
+    destPos = HYD_SPOTS[destIdx];
+  }
+
+  // Calculate real distance between the two points (approx km)
+  const dLat = restPos.lat - destPos.lat;
+  const dLng = restPos.lng - destPos.lng;
+  const dist = (Math.sqrt(dLat*dLat + dLng*dLng) * 111).toFixed(1);
   const earn = 40 + Math.floor(Math.random()*40) + (data.items?.length||1)*5;
+
   currentOrder = {
     id: data.id || ('FN'+Date.now().toString().slice(-6)),
     rest: data.items?.[0]?.rest || data.rest || 'Restaurant',
-    restPos: HYD_SPOTS[restIdx],
-    destPos: HYD_SPOTS[destIdx],
+    restPos,
+    destPos,
     items: data.items?.length || 1,
     itemsList: data.items || [],
     earn, dist,
     customer: data.userName || data.userId || 'Customer',
-    area: HYD_SPOTS[destIdx].name,
+    area: destPos.name || 'Delivery Location',
     time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
     isReal: true,
   };
@@ -861,12 +880,17 @@ function acceptOrder(){
       riderVehicle: rider.vehicle,
       acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
     }).catch(e=>console.warn('Accept update error:',e));
-    // Update RTDB tracking
+    // Update RTDB tracking — include shared coords so customer map stays in sync
     window._rtdb.ref('tracking/'+currentOrder.id).update({
       status: 'accepted',
       riderName: rider.name,
       riderLat: riderMarker?.getLatLng().lat || currentOrder.restPos.lat,
       riderLng: riderMarker?.getLatLng().lng || currentOrder.restPos.lng,
+      // Write the same destPos/restPos coords customer app used, confirming alignment
+      destLat: currentOrder.destPos.lat,
+      destLng: currentOrder.destPos.lng,
+      restLat: currentOrder.restPos.lat,
+      restLng: currentOrder.restPos.lng,
     });
     // Start writing rider location to RTDB every 2 seconds
     startWritingLocation();
