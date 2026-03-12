@@ -90,6 +90,98 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .leaflet-container{background:#0a0a14 !important}
 
 @media(max-width:768px){.sidebar{display:none}.stat-grid{grid-template-columns:1fr 1fr}.chart-grid{grid-template-columns:1fr}}
+
+/* ── LOGIN SCREEN ── */
+#login-screen{
+  position:fixed;inset:0;z-index:9000;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(108,99,255,.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(79,172,254,.10) 0%, transparent 50%);
+}
+#login-screen.hidden{display:none}
+.login-box{
+  width:100%;max-width:440px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:48px 40px;
+  position:relative;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  animation:loginReveal .5s cubic-bezier(.16,1,.3,1) forwards;
+}
+@keyframes loginReveal{
+  from{opacity:0;transform:translateY(24px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.login-grid-bg{
+  position:absolute;inset:0;border-radius:24px;overflow:hidden;pointer-events:none;opacity:.04;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+.login-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:4px;
+  background:linear-gradient(135deg,var(--accent),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:4px;
+}
+.login-tagline{font-size:.72rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:36px}
+.login-title{font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.login-sub{font-size:.83rem;color:var(--muted);margin-bottom:32px;line-height:1.5}
+.google-btn{
+  width:100%;padding:15px 20px;
+  background:var(--card2);
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  color:var(--text);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:.95rem;font-weight:600;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  transition:border-color .2s,background .2s,transform .15s;
+  position:relative;overflow:hidden;
+}
+.google-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(79,172,254,.06));
+  opacity:0;transition:opacity .2s;
+}
+.google-btn:hover{border-color:var(--accent);background:#1a1a2e}
+.google-btn:hover::before{opacity:1}
+.google-btn:active{transform:scale(.98)}
+.google-btn-icon{width:22px;height:22px;flex-shrink:0}
+.login-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:.75rem}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.demo-btn{
+  width:100%;padding:13px;
+  background:transparent;border:1.5px solid var(--border);border-radius:14px;
+  color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:500;
+  cursor:pointer;transition:border-color .2s,color .2s;
+}
+.demo-btn:hover{border-color:var(--green);color:var(--green)}
+.login-footer{font-size:.72rem;color:var(--muted);text-align:center;margin-top:28px;line-height:1.6}
+.login-footer a{color:var(--accent);text-decoration:none}
+.login-error{
+  background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);
+  border-radius:10px;padding:10px 14px;
+  font-size:.8rem;color:var(--red);margin-bottom:16px;display:none;
+}
+.login-loading{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:.85rem;color:var(--muted);padding:14px;display:none;
+}
+.spin{animation:spin360 .9s linear infinite;font-size:1.1rem}
+@keyframes spin360{to{transform:rotate(360deg)}}
+
+/* sidebar user card */
+.sidebar-user{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto;display:flex;align-items:center;gap:10px}
+.sidebar-user-av{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex-shrink:0}
+.sidebar-user-av-placeholder{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;border:2px solid var(--accent)}
+.sidebar-user-name{font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.sidebar-user-email{font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.signout-btn{background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:4px 8px;border-radius:8px;transition:color .2s,background .2s;white-space:nowrap}
+.signout-btn:hover{color:var(--red);background:rgba(255,71,87,.08)}
 </style>
 
 <script>
@@ -103,15 +195,29 @@ tr:hover td{background:rgba(255,255,255,.02)}
   };
   function ls(src,cb){const s=document.createElement('script');s.src=src;s.onload=cb;s.onerror=()=>{window._fbFail=true};document.head.appendChild(s);}
   ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',()=>{
-    ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',()=>{
-      ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',()=>{
-        try{
-          if(!firebase.apps.length) firebase.initializeApp(CFG);
-          window._db=firebase.firestore();window._rtdb=firebase.database();window._fbReady=true;
-          document.getElementById('fb-status').textContent='🔥 Firebase Connected';
-          document.getElementById('fb-status').className='fb-status ok';
-          loadLiveData();
-        }catch(e){window._fbFail=true;document.getElementById('fb-status').textContent='⚠️ Demo Mode';document.getElementById('fb-status').className='fb-status err';loadDemoData();}
+    ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js',()=>{
+      ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',()=>{
+        ls('https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',()=>{
+          try{
+            if(!firebase.apps.length) firebase.initializeApp(CFG);
+            window._auth=firebase.auth();
+            window._db=firebase.firestore();
+            window._rtdb=firebase.database();
+            window._fbReady=true;
+            // Auth state observer — gates the whole dashboard
+            window._auth.onAuthStateChanged(user=>{
+              if(user){
+                showDashboard(user);
+              } else {
+                showLoginScreen();
+              }
+            });
+          }catch(e){
+            window._fbFail=true;
+            // Firebase totally unavailable — show login with demo bypass
+            showLoginScreen();
+          }
+        });
       });
     });
   });
@@ -119,6 +225,42 @@ tr:hover td{background:rgba(255,255,255,.02)}
 </script>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-grid-bg"></div>
+    <div class="login-logo">ZIPRIDE</div>
+    <div class="login-tagline">Admin Dashboard</div>
+    <div class="login-title">Welcome back 👋</div>
+    <div class="login-sub">Sign in with your Google account to access<br>the ZipRide operations dashboard.</div>
+
+    <div class="login-error" id="login-error"></div>
+    <div class="login-loading" id="login-loading">
+      <div class="spin">⟳</div> Signing you in...
+    </div>
+
+    <button class="google-btn" onclick="signInWithGoogle()" id="google-btn">
+      <!-- Google SVG icon -->
+      <svg class="google-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="login-divider">or</div>
+
+    <button class="demo-btn" onclick="signInDemo()">⚡ Continue in Demo Mode</button>
+
+    <div class="login-footer">
+      By signing in you agree to ZipRide's <a href="#">Terms of Service</a><br>
+      and <a href="#">Privacy Policy</a>. Admin access only.
+    </div>
+  </div>
+</div>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -132,6 +274,15 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </nav>
   <div class="sidebar-bottom">
     <div class="fb-status err" id="fb-status">⏳ Connecting...</div>
+  </div>
+  <div class="sidebar-user" id="sidebar-user" style="display:none">
+    <div class="sidebar-user-av-placeholder" id="user-av-placeholder">👤</div>
+    <img class="sidebar-user-av" id="user-av" style="display:none" alt="avatar">
+    <div style="flex:1;min-width:0">
+      <div class="sidebar-user-name" id="user-name">Admin</div>
+      <div class="sidebar-user-email" id="user-email">—</div>
+    </div>
+    <button class="signout-btn" onclick="signOut()" title="Sign out">↩</button>
   </div>
 </div>
 
@@ -458,10 +609,90 @@ function showToast(msg){
 }
 
 // ══════════════════════════════════
+// AUTH FUNCTIONS
+// ══════════════════════════════════
+function showLoginScreen(){
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-loading').style.display='none';
+  document.getElementById('google-btn').style.display='flex';
+}
+
+function showDashboard(user){
+  document.getElementById('login-screen').classList.add('hidden');
+  const card=document.getElementById('sidebar-user');
+  card.style.display='flex';
+  document.getElementById('user-name').textContent=user.displayName||'Admin';
+  document.getElementById('user-email').textContent=user.email||'';
+  if(user.photoURL){
+    const img=document.getElementById('user-av');
+    img.src=user.photoURL; img.style.display='block';
+    document.getElementById('user-av-placeholder').style.display='none';
+  } else {
+    document.getElementById('user-av-placeholder').textContent=(user.displayName||'A').charAt(0).toUpperCase();
+  }
+  if(window._fbReady && window._db){
+    document.getElementById('fb-status').textContent='🔥 Firebase Connected';
+    document.getElementById('fb-status').className='fb-status ok';
+    loadLiveData();
+  } else {
+    document.getElementById('fb-status').textContent='⚠️ Demo Mode';
+    document.getElementById('fb-status').className='fb-status err';
+    loadDemoData();
+  }
+  renderAnalytics();
+}
+
+function signInWithGoogle(){
+  if(!window._auth){ showLoginError('Firebase Auth not loaded. Try Demo Mode.'); return; }
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('login-loading').style.display='flex';
+  document.getElementById('google-btn').style.display='none';
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.addScope('email'); provider.addScope('profile');
+  window._auth.signInWithPopup(provider)
+    .then(result=>{ console.log('Signed in:', result.user.email); })
+    .catch(err=>{
+      document.getElementById('login-loading').style.display='none';
+      document.getElementById('google-btn').style.display='flex';
+      const msgs={
+        'auth/popup-blocked':'Popup blocked — please allow popups for this site.',
+        'auth/popup-closed-by-user':'Sign-in cancelled.',
+        'auth/network-request-failed':'Network error. Check your connection.',
+        'auth/unauthorized-domain':'Domain not authorised in Firebase Console → Authentication → Authorised Domains.',
+      };
+      showLoginError(msgs[err.code]||err.message);
+    });
+}
+
+function signInDemo(){
+  showDashboard({displayName:'Demo Admin',email:'demo@zipride.app',photoURL:null});
+  loadDemoData();
+}
+
+function signOut(){
+  if(window._auth){
+    window._auth.signOut().then(()=>{
+      document.getElementById('sidebar-user').style.display='none';
+      showLoginScreen();
+      showToast('👋 Signed out successfully');
+    }).catch(e=>console.warn('Signout error:',e));
+  } else {
+    document.getElementById('sidebar-user').style.display='none';
+    showLoginScreen();
+  }
+}
+
+function showLoginError(msg){
+  const el=document.getElementById('login-error');
+  el.textContent='⚠️ '+msg; el.style.display='block';
+}
+
+// ══════════════════════════════════
 // INIT
 // ══════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
-  if(!window._fbReady && !window._fbFail) setTimeout(()=>{if(!window._fbReady)loadDemoData();},3000);
+  // Fallback: if Firebase takes >4s show login so user isn't on blank screen
+  setTimeout(()=>{ if(!window._fbReady && !window._fbFail) showLoginScreen(); }, 4000);
   renderAnalytics();
   setInterval(()=>{ if(document.getElementById('page-dashboard').classList.contains('active')) renderDashboard(); },30000);
 });
