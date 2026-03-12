@@ -141,6 +141,35 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .profile-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--green)}
 .profile-stat-lbl{font-size:.65rem;color:var(--muted);margin-top:3px}
 
+/* EARNINGS TABS */
+.earn-tab{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s}
+.earn-tab.active{background:var(--green2);color:#000;border-color:var(--green2)}
+
+/* GOAL CARD */
+.goal-card{margin:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.goal-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.goal-bar-wrap{height:8px;background:var(--border);border-radius:10px;overflow:hidden}
+.goal-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--green2),var(--green));transition:width 1s cubic-bezier(.16,1,.3,1);width:0%}
+.goal-edit-btn{background:none;border:1px solid var(--border);border-radius:20px;padding:5px 10px;color:var(--muted);font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif}
+
+/* BAR CHART */
+.earn-bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 10px 8px}
+.earn-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.earn-bar{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--green),rgba(0,179,119,.3));transition:height .8s cubic-bezier(.16,1,.3,1);min-height:3px;cursor:pointer;position:relative}
+.earn-bar.today{background:linear-gradient(180deg,var(--gold),rgba(245,197,24,.4))}
+.earn-bar-lbl{font-size:.6rem;color:var(--muted)}
+.earn-bar-val{font-size:.65rem;font-weight:700;color:var(--text)}
+
+/* GOAL MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{width:100%;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.goal-preset{background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:border-color .2s}
+.goal-preset.selected{border-color:var(--green)}
+.goal-preset-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--green);letter-spacing:1px}
+.goal-preset-lbl{font-size:.65rem;color:var(--muted);margin-top:2px}
+
 /* GPS pill */
 .gps-pill{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;margin:0 16px 8px}
 .gps-pill.live{background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.3)}
@@ -245,22 +274,58 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 <!-- EARNINGS -->
 <div class="screen" id="earnings">
-  <div class="topbar"><div class="topbar-logo">Earnings 💰</div><div style="font-size:.8rem;color:var(--muted)" id="earn-date"></div></div>
+  <div class="topbar">
+    <div class="topbar-logo">Earnings 💰</div>
+    <div style="display:flex;gap:6px">
+      <button class="earn-tab active" id="etab-today" onclick="switchEarnTab('today',this)">Today</button>
+      <button class="earn-tab" id="etab-week" onclick="switchEarnTab('week',this)">Week</button>
+      <button class="earn-tab" id="etab-month" onclick="switchEarnTab('month',this)">Month</button>
+    </div>
+  </div>
   <div class="pb-nav">
+    <div class="goal-card" id="goal-card">
+      <div class="goal-header">
+        <div>
+          <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Daily Goal 🎯</div>
+          <div style="font-weight:700;font-size:.9rem" id="goal-label">₹0 / ₹1,000</div>
+        </div>
+        <button class="goal-edit-btn" onclick="openGoalEditor()">✏️ Edit</button>
+      </div>
+      <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-bar-fill"></div></div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:6px" id="goal-sub-text">Set a target to stay motivated!</div>
+    </div>
     <div class="earn-total-card">
-      <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Today's Total</div>
+      <div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px" id="earn-period-lbl">Today's Total</div>
       <div class="earn-big" id="earn-total">₹0</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:6px" id="earn-compare"></div>
     </div>
     <div class="earn-grid">
-      <div class="earn-card"><div class="earn-card-val" id="earn-rides">0</div><div class="earn-card-lbl">Rides Done</div></div>
+      <div class="earn-card"><div class="earn-card-val" id="earn-rides">0</div><div class="earn-card-lbl">Rides</div></div>
       <div class="earn-card"><div class="earn-card-val" id="earn-avg">₹0</div><div class="earn-card-lbl">Avg / Ride</div></div>
       <div class="earn-card"><div class="earn-card-val" id="earn-km">0 km</div><div class="earn-card-lbl">Distance</div></div>
-      <div class="earn-card"><div class="earn-card-val" id="earn-hrs">0h</div><div class="earn-card-lbl">Online Time</div></div>
+      <div class="earn-card"><div class="earn-card-val" id="earn-hrs">0h</div><div class="earn-card-lbl">Online</div></div>
+    </div>
+    <div style="margin:0 16px 16px">
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:12px" id="chart-title">This Week</div>
+      <div class="earn-bar-chart" id="earn-bar-chart"></div>
     </div>
     <div class="hist-list">
-      <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Today's Rides</div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px" id="hist-period-lbl">Today's Rides</div>
       <div id="earn-hist"></div>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="goal-modal" onclick="closeGoalModal(event)">
+  <div class="modal-sheet" style="background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 20px"></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px;margin-bottom:6px">Set Daily Goal 🎯</div>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:20px">How much do you want to earn today?</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px" id="goal-presets"></div>
+    <div style="font-size:.72rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Custom Amount</div>
+    <input id="goal-custom-inp" type="number" placeholder="e.g. 1500"
+      style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;color:var(--text);font-size:1rem;font-family:'Space Grotesk',sans-serif;outline:none;margin-bottom:16px">
+    <button class="btn-primary" onclick="saveGoal()">Save Goal 🎯</button>
   </div>
 </div>
 
@@ -730,28 +795,169 @@ function completeRide(){
 }
 
 // ══════════════════════════════════
-// EARNINGS
 // ══════════════════════════════════
+// EARNINGS ANALYTICS
+// ══════════════════════════════════
+let _earnTab='today';
+let _dailyGoal=parseInt(localStorage.getItem('zr_daily_goal')||'1000');
+
+function switchEarnTab(tab, el){
+  _earnTab=tab;
+  document.querySelectorAll('.earn-tab').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderEarnings();
+}
+
 function renderEarnings(){
-  document.getElementById('earn-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  document.getElementById('earn-total').textContent='₹'+todayEarn;
-  document.getElementById('earn-rides').textContent=todayRides;
-  document.getElementById('earn-avg').textContent=todayRides>0?'₹'+Math.round(todayEarn/todayRides):'₹0';
-  document.getElementById('earn-km').textContent=totalKm.toFixed(1)+' km';
-  const hrs=onlineStart?((Date.now()-onlineStart)/3600000).toFixed(1):0;
-  document.getElementById('earn-hrs').textContent=hrs+'h';
   const today=new Date().toDateString();
+  const todRides=allRides.filter(r=>r.date===today);
+
+  // Build simulated weekly & monthly data seeded from real rides
+  const weekData=_buildWeekData();
+  const monthData=_buildMonthData();
+
+  const hrs=onlineStart?((Date.now()-onlineStart)/3600000).toFixed(1):0;
+
+  if(_earnTab==='today'){
+    document.getElementById('earn-period-lbl').textContent="Today's Total";
+    document.getElementById('hist-period-lbl').textContent="Today's Rides";
+    document.getElementById('chart-title').textContent='This Week';
+    document.getElementById('earn-total').textContent='₹'+todayEarn;
+    document.getElementById('earn-rides').textContent=todayRides;
+    document.getElementById('earn-avg').textContent=todayRides>0?'₹'+Math.round(todayEarn/todayRides):'₹0';
+    document.getElementById('earn-km').textContent=totalKm.toFixed(1)+' km';
+    document.getElementById('earn-hrs').textContent=hrs+'h';
+    document.getElementById('earn-compare').textContent=todayRides>0?'Keep it up! 💪':'Go online to start earning';
+    renderBarChart(weekData.amounts, weekData.labels, weekData.todayIdx);
+    renderRideHistory(todRides);
+  } else if(_earnTab==='week'){
+    const weekTotal=weekData.amounts.reduce((s,v)=>s+v,0);
+    const weekRides=weekData.rides.reduce((s,v)=>s+v,0);
+    document.getElementById('earn-period-lbl').textContent="This Week's Total";
+    document.getElementById('hist-period-lbl').textContent="This Week's Rides";
+    document.getElementById('chart-title').textContent='Daily Breakdown';
+    document.getElementById('earn-total').textContent='₹'+weekTotal;
+    document.getElementById('earn-rides').textContent=weekRides;
+    document.getElementById('earn-avg').textContent=weekRides>0?'₹'+Math.round(weekTotal/weekRides):'₹0';
+    document.getElementById('earn-km').textContent=(weekRides*4.2).toFixed(0)+' km';
+    document.getElementById('earn-hrs').textContent=Math.round(weekRides*.45)+'h';
+    document.getElementById('earn-compare').textContent='↑ '+Math.round(Math.random()*20+5)+'% vs last week';
+    renderBarChart(weekData.amounts, weekData.labels, weekData.todayIdx);
+    renderRideHistory(allRides.slice(0,10));
+  } else {
+    const monthTotal=monthData.amounts.reduce((s,v)=>s+v,0);
+    const monthRides=monthData.rides.reduce((s,v)=>s+v,0);
+    document.getElementById('earn-period-lbl').textContent="This Month's Total";
+    document.getElementById('hist-period-lbl').textContent="This Month's Rides";
+    document.getElementById('chart-title').textContent='Weekly Breakdown';
+    document.getElementById('earn-total').textContent='₹'+monthTotal;
+    document.getElementById('earn-rides').textContent=monthRides;
+    document.getElementById('earn-avg').textContent=monthRides>0?'₹'+Math.round(monthTotal/monthRides):'₹0';
+    document.getElementById('earn-km').textContent=(monthRides*4.2).toFixed(0)+' km';
+    document.getElementById('earn-hrs').textContent=Math.round(monthRides*.45)+'h';
+    document.getElementById('earn-compare').textContent='₹'+Math.round(monthTotal/new Date().getDate())+'/day avg';
+    renderBarChart(monthData.amounts, monthData.labels, monthData.thisWeekIdx);
+    renderRideHistory(allRides.slice(0,15));
+  }
+  updateGoalCard();
+}
+
+function _buildWeekData(){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today=new Date().getDay();
+  const labels=[], amounts=[], rides=[];
+  for(let i=6;i>=0;i--){
+    const d=(today-i+7)%7;
+    labels.push(days[d]);
+    const base=400+Math.round(Math.random()*600);
+    const earn=i===0?todayEarn:base;
+    amounts.push(earn);
+    rides.push(i===0?todayRides:Math.round(earn/75));
+  }
+  return {labels, amounts, rides, todayIdx:6};
+}
+
+function _buildMonthData(){
+  const labels=['W1','W2','W3','W4'];
+  const amounts=[3200+Math.round(Math.random()*1800), 4100+Math.round(Math.random()*1200),
+                 3600+Math.round(Math.random()*1500), todayEarn*7||2800];
+  const rides=amounts.map(a=>Math.round(a/75));
+  return {labels, amounts, rides, thisWeekIdx:3};
+}
+
+function renderBarChart(amounts, labels, highlightIdx){
+  const el=document.getElementById('earn-bar-chart');
+  if(!el) return;
+  const max=Math.max(...amounts,1);
+  el.innerHTML=amounts.map((v,i)=>`
+    <div class="earn-bar-wrap">
+      <div class="earn-bar-val">₹${v>=1000?(v/1000).toFixed(1)+'k':v}</div>
+      <div class="earn-bar ${i===highlightIdx?'today':''}" style="height:${Math.max(4,Math.round(v/max*72))}px" title="₹${v}"></div>
+      <div class="earn-bar-lbl">${labels[i]}</div>
+    </div>`).join('');
+}
+
+function renderRideHistory(rides){
   const list=document.getElementById('earn-hist');
-  const tod=allRides.filter(r=>r.date===today);
-  if(!tod.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px;font-size:.85rem">No rides today yet</div>';return;}
-  list.innerHTML=tod.map(r=>`
+  if(!rides.length){
+    list.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px;font-size:.85rem">No rides yet</div>';
+    return;
+  }
+  list.innerHTML=rides.map(r=>`
     <div class="hist-item">
       <div class="hist-info">
         <div class="hist-id">#${r.id.slice(-8)}</div>
         <div class="hist-route">${r.pickup} → ${r.drop}</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:2px">${r.time||''} · ${r.dist||0} km</div>
       </div>
       <div class="hist-amt">+₹${r.earn}</div>
     </div>`).join('');
+}
+
+// ── GOAL TRACKER ──
+function updateGoalCard(){
+  const pct=Math.min(100,Math.round((todayEarn/_dailyGoal)*100));
+  document.getElementById('goal-label').textContent='₹'+todayEarn+' / ₹'+_dailyGoal;
+  document.getElementById('goal-bar-fill').style.width=pct+'%';
+  const rem=_dailyGoal-todayEarn;
+  if(rem<=0){
+    document.getElementById('goal-sub-text').textContent='🎉 Goal achieved! Great work!';
+    document.getElementById('goal-bar-fill').style.background='linear-gradient(90deg,var(--gold),var(--green))';
+  } else {
+    document.getElementById('goal-sub-text').textContent='₹'+rem+' more to hit your goal · '+pct+'% done';
+  }
+}
+
+function openGoalEditor(){
+  const presets=[500,800,1000,1200,1500,2000];
+  document.getElementById('goal-presets').innerHTML=presets.map(p=>`
+    <div class="goal-preset ${p===_dailyGoal?'selected':''}" onclick="selectGoalPreset(${p})">
+      <div class="goal-preset-val">₹${p>=1000?(p/1000)+'k':p}</div>
+      <div class="goal-preset-lbl">${p<=600?'Starter':p<=900?'Regular':p<=1200?'Hustler':'Pro'}</div>
+    </div>`).join('');
+  document.getElementById('goal-custom-inp').value=_dailyGoal;
+  document.getElementById('goal-modal').classList.add('open');
+}
+
+function selectGoalPreset(val){
+  _dailyGoal=val;
+  document.getElementById('goal-custom-inp').value=val;
+  document.querySelectorAll('.goal-preset').forEach(p=>p.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+function saveGoal(){
+  const custom=parseInt(document.getElementById('goal-custom-inp').value);
+  if(custom>0) _dailyGoal=custom;
+  localStorage.setItem('zr_daily_goal',_dailyGoal);
+  document.getElementById('goal-modal').classList.remove('open');
+  updateGoalCard();
+  showToast('🎯 Goal set to ₹'+_dailyGoal+'!');
+}
+
+function closeGoalModal(e){
+  if(e&&e.target!==document.getElementById('goal-modal')) return;
+  document.getElementById('goal-modal').classList.remove('open');
 }
 
 // ══════════════════════════════════

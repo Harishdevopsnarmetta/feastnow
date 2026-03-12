@@ -178,6 +178,64 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--card2);border:1px solid var(--border);border-radius:50px;padding:10px 20px;font-size:.83rem;font-weight:500;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── FARE BREAKDOWN MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;transform:translateY(100%);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 20px}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin-bottom:4px}
+.modal-sub{font-size:.78rem;color:var(--muted);margin-bottom:20px}
+.fare-breakdown{background:var(--card2);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.fare-row{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:.88rem}
+.fare-row:last-child{border-bottom:none;font-weight:700;font-size:.95rem}
+.fare-row-lbl{color:var(--muted)}
+.fare-row-val{font-weight:600}
+.surge-badge{background:rgba(245,197,24,.12);color:var(--gold);border:1px solid rgba(245,197,24,.25);border-radius:20px;padding:3px 10px;font-size:.7rem;font-weight:700;margin-left:8px}
+.fare-total-row{background:rgba(0,229,160,.05);border-top:1px solid rgba(0,229,160,.15)}
+.fare-total-row .fare-row-val{color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px}
+.eta-chips{display:flex;gap:8px;margin-bottom:16px}
+.eta-chip{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
+.eta-chip-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--accent);letter-spacing:1px}
+.eta-chip-lbl{font-size:.65rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── SOS BUTTON ── */
+.sos-btn{position:absolute;top:12px;right:12px;z-index:600;width:48px;height:48px;border-radius:50%;background:var(--red);border:3px solid rgba(255,255,255,.3);color:#fff;font-size:.75rem;font-weight:800;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 20px rgba(255,71,87,.5);transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif}
+.sos-btn:active{transform:scale(.93)}
+.sos-btn.triggered{background:#7f0000;animation:sosPulse 1s infinite}
+@keyframes sosPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,71,87,.6)}50%{box-shadow:0 0 0 16px rgba(255,71,87,0)}}
+.sos-modal .modal-sheet{border-top:4px solid var(--red)}
+.sos-countdown{font-family:'Bebas Neue',sans-serif;font-size:5rem;color:var(--red);text-align:center;line-height:1;margin:12px 0}
+.sos-actions{display:flex;gap:10px;margin-top:16px}
+.btn-sos-confirm{flex:1;padding:15px;background:var(--red);border:none;border-radius:50px;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer}
+.btn-sos-cancel{flex:1;padding:15px;background:var(--card2);border:1.5px solid var(--border);border-radius:50px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer}
+.sos-sent{text-align:center;padding:16px 0}
+.sos-sent-icon{font-size:3rem;margin-bottom:10px}
+.sos-sent-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--red);letter-spacing:1px;margin-bottom:6px}
+.sos-sent-sub{font-size:.82rem;color:var(--muted);line-height:1.6}
+
+/* ── IN-RIDE CHAT ── */
+.chat-modal .modal-sheet{height:85vh;display:flex;flex-direction:column;padding-bottom:0}
+.chat-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.chat-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.chat-driver-info{flex:1}
+.chat-driver-name{font-weight:700;font-size:.88rem}
+.chat-driver-status{font-size:.72rem;color:var(--green);margin-top:2px}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.chat-msg{max-width:78%;padding:10px 14px;border-radius:16px;font-size:.85rem;line-height:1.5;animation:msgIn .2s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.sent{background:linear-gradient(135deg,var(--accent),rgba(108,99,255,.7));color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-msg.recv{background:var(--card2);border:1px solid var(--border);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+.chat-msg-time{font-size:.62rem;opacity:.6;margin-top:4px}
+.chat-input-wrap{display:flex;gap:8px;padding:12px 0 env(safe-area-inset-bottom,16px);border-top:1px solid var(--border);background:var(--card);margin:0 -20px;padding-left:20px;padding-right:20px}
+.chat-inp{flex:1;background:var(--card2);border:1.5px solid var(--border);border-radius:50px;padding:11px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:.88rem;outline:none}
+.chat-inp:focus{border-color:var(--accent)}
+.chat-send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-quick-replies{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.chat-quick-replies::-webkit-scrollbar{display:none}
+.qr-chip{background:var(--card2);border:1px solid var(--border);border-radius:50px;padding:7px 12px;font-size:.75rem;white-space:nowrap;cursor:pointer;flex-shrink:0;transition:border-color .2s}
+.qr-chip:hover{border-color:var(--accent)}
+
 /* MAP OVERLAYS */
 .map-center-pin{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);font-size:2rem;pointer-events:none;z-index:500;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
 .map-pickup-badge{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:8px 16px;font-size:.8rem;font-weight:600;z-index:500;white-space:nowrap}
@@ -294,7 +352,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
       <div class="promo-left">🏷️ Apply Promo Code</div>
       <div class="promo-arrow">›</div>
     </div>
-    <button class="btn-primary" onclick="bookRide()">Book Ride →</button>
+    <button class="btn-primary" onclick="showFareModal()">See Fare Breakdown →</button>
   </div>
 </div>
 
@@ -314,8 +372,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 <!-- LIVE TRACKING -->
 <div class="screen" id="live-tracking">
-  <div class="track-map-wrap">
+  <div class="track-map-wrap" style="position:relative">
     <div id="track-map"></div>
+    <button class="sos-btn" id="sos-btn" onclick="triggerSOS()" title="Emergency SOS">SOS</button>
   </div>
   <div class="track-sheet pb-safe">
     <div class="driver-card">
@@ -334,7 +393,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
     <div class="track-steps" id="track-steps"></div>
     <div class="track-actions">
       <button class="track-btn" onclick="showToast('📞 Calling driver...')">📞 Call</button>
-      <button class="track-btn" onclick="showToast('💬 Chat coming soon')">💬 Chat</button>
+      <button class="track-btn" onclick="openChat()">💬 Chat</button>
       <button class="track-btn danger" onclick="cancelRide()">✕ Cancel</button>
     </div>
   </div>
@@ -381,6 +440,78 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- FARE BREAKDOWN MODAL -->
+<div class="modal-overlay" id="fare-modal" onclick="closeFareModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Fare Breakdown</div>
+    <div class="modal-sub" id="fare-modal-route">Pickup → Drop</div>
+    <div class="eta-chips">
+      <div class="eta-chip"><div class="eta-chip-val" id="fb-dist">0 km</div><div class="eta-chip-lbl">Distance</div></div>
+      <div class="eta-chip"><div class="eta-chip-val" id="fb-time">0 min</div><div class="eta-chip-lbl">Est. Time</div></div>
+      <div class="eta-chip"><div class="eta-chip-val" id="fb-surge">1.0x</div><div class="eta-chip-lbl">Surge</div></div>
+    </div>
+    <div class="fare-breakdown" id="fare-breakdown-rows"></div>
+    <button class="btn-primary" onclick="closeFareModal();bookRide()">Confirm & Book →</button>
+  </div>
+</div>
+
+<!-- SOS MODAL -->
+<div class="modal-overlay sos-modal" id="sos-modal" onclick="closeSosModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="sos-pre">
+      <div class="modal-title" style="color:var(--red)">🆘 Emergency SOS</div>
+      <div class="modal-sub">Hold to send your live location to emergency contacts & ZipRide safety team</div>
+      <div class="sos-countdown" id="sos-countdown">5</div>
+      <div style="font-size:.78rem;color:var(--muted);text-align:center;margin-bottom:8px">Auto-sending in <span id="sos-tick">5</span>s · tap Cancel to abort</div>
+      <div class="sos-actions">
+        <button class="btn-sos-cancel" onclick="cancelSOS()">✕ Cancel</button>
+        <button class="btn-sos-confirm" onclick="sendSOSNow()">🆘 Send Now</button>
+      </div>
+    </div>
+    <div id="sos-post" style="display:none">
+      <div class="sos-sent">
+        <div class="sos-sent-icon">✅</div>
+        <div class="sos-sent-title">SOS Alert Sent</div>
+        <div class="sos-sent-sub">
+          Your live location has been shared with<br>
+          ZipRide Safety Team &amp; emergency contacts.<br><br>
+          <b style="color:var(--text)">Helpline: 112 · ZipRide Safety: 1800-ZIP-SAFE</b>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="closeSosModal()" style="margin-top:16px">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay chat-modal" id="chat-modal" onclick="closeChatModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="chat-header">
+      <div class="chat-av" id="chat-drv-av">🧑</div>
+      <div class="chat-driver-info">
+        <div class="chat-driver-name" id="chat-drv-name">Driver</div>
+        <div class="chat-driver-status">🟢 Online · In your ride</div>
+      </div>
+      <button onclick="closeChatModal()" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer">✕</button>
+    </div>
+    <div class="chat-quick-replies">
+      <div class="qr-chip" onclick="sendQuickReply('On my way to pickup 🏃')">On my way 🏃</div>
+      <div class="qr-chip" onclick="sendQuickReply('Please wait, 2 mins')">Wait 2 min ⏳</div>
+      <div class="qr-chip" onclick="sendQuickReply('I am at the gate 🚪')">At the gate 🚪</div>
+      <div class="qr-chip" onclick="sendQuickReply('Can you call me? 📞')">Call me 📞</div>
+      <div class="qr-chip" onclick="sendQuickReply('AC please ❄️')">AC please ❄️</div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-wrap">
+      <input class="chat-inp" id="chat-inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button class="chat-send" onclick="sendChatMsg()">➤</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════
@@ -907,6 +1038,254 @@ function submitRating(){
   document.getElementById('drop-text').textContent='Where to?';
   document.getElementById('drop-text').classList.add('muted');
   setTimeout(()=>{ goHome(); },1000);
+}
+
+// ══════════════════════════════════
+// 🎯 FARE BREAKDOWN MODAL
+// ══════════════════════════════════
+function showFareModal(){
+  if(!selectedRide){showToast('Select a ride type first');return;}
+  if(!pickupLoc||!dropLoc){showToast('Set pickup & drop first');return;}
+
+  // Calculate distance (Haversine)
+  const R=6371;
+  const dLat=(pickupLoc.lat-dropLoc.lat)*Math.PI/180;
+  const dLng=(pickupLoc.lng-dropLoc.lng)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(dropLoc.lat*Math.PI/180)*Math.cos(pickupLoc.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  const distKm=Math.max(1.5, R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+
+  // Surge: higher during peak hours (8-10am, 5-8pm)
+  const hr=new Date().getHours();
+  const isPeak=(hr>=8&&hr<=10)||(hr>=17&&hr<=20);
+  const isRain=Math.random()<.15; // 15% chance rain surge
+  const surgeMultiplier=isPeak?(isRain?1.8:1.4):isRain?1.3:1.0;
+  const surgeLabel=surgeMultiplier>1.5?'High Demand 🌧':surgeMultiplier>1.2?'Peak Hours ⏰':'Normal';
+
+  const rt=selectedRide;
+  const baseFare=rt.base;
+  const distCharge=Math.round(Math.max(0,distKm-rt.baseKm)*rt.perKm);
+  const subtotal=baseFare+distCharge;
+  const surgeCharge=Math.round(subtotal*(surgeMultiplier-1));
+  const gst=Math.round((subtotal+surgeCharge)*0.05);
+  const total=subtotal+surgeCharge+gst;
+  const estMins=Math.round((distKm/28)*60); // avg 28km/h city speed
+
+  // Store for booking
+  window._fareBreakdown={distKm,surgeMultiplier,surgeCharge,gst,total,estMins};
+
+  // Populate modal
+  document.getElementById('fare-modal-route').textContent=pickupLoc.name+' → '+dropLoc.name;
+  document.getElementById('fb-dist').textContent=distKm.toFixed(1)+' km';
+  document.getElementById('fb-time').textContent=estMins+' min';
+  document.getElementById('fb-surge').textContent=surgeMultiplier.toFixed(1)+'x';
+  document.getElementById('fb-surge').style.color=surgeMultiplier>1?'var(--gold)':'var(--green)';
+
+  document.getElementById('fare-breakdown-rows').innerHTML=`
+    <div class="fare-row"><span class="fare-row-lbl">Base Fare (${rt.icon} ${rt.name})</span><span class="fare-row-val">₹${baseFare}</span></div>
+    <div class="fare-row"><span class="fare-row-lbl">Distance (${distKm.toFixed(1)} km × ₹${rt.perKm}/km)</span><span class="fare-row-val">₹${distCharge}</span></div>
+    ${surgeCharge>0?`<div class="fare-row"><span class="fare-row-lbl">Surge <span class="surge-badge">${surgeLabel}</span></span><span class="fare-row-val" style="color:var(--gold)">+₹${surgeCharge}</span></div>`:''}
+    <div class="fare-row"><span class="fare-row-lbl">GST (5%)</span><span class="fare-row-val">₹${gst}</span></div>
+    <div class="fare-row fare-total-row"><span style="font-weight:700">Total</span><span class="fare-row-val">₹${total}</span></div>`;
+
+  // Update currentRide fare for when they actually book
+  if(selectedRide) selectedRide._totalFare=total;
+  document.getElementById('fare-modal').classList.add('open');
+}
+
+function closeFareModal(e){
+  if(e&&e.target!==document.getElementById('fare-modal')) return;
+  document.getElementById('fare-modal').classList.remove('open');
+}
+
+// Override calcFare to use breakdown total if available
+const _origCalcFare=calcFare;
+
+// Patch bookRide to use breakdown fare
+const _origBookRide=bookRide;
+window.bookRide=async function(){
+  if(selectedRide&&selectedRide._totalFare){
+    const origFare=selectedRide.base;
+    selectedRide.base=selectedRide._totalFare;
+    await _origBookRide();
+    selectedRide.base=origFare;
+  } else {
+    await _origBookRide();
+  }
+  document.getElementById('fare-modal').classList.remove('open');
+};
+
+// ══════════════════════════════════
+// 🆘 SOS EMERGENCY
+// ══════════════════════════════════
+let _sosTimer=null, _sosCount=5, _sosSent=false;
+
+function triggerSOS(){
+  if(_sosSent) return;
+  _sosCount=5;
+  document.getElementById('sos-pre').style.display='block';
+  document.getElementById('sos-post').style.display='none';
+  document.getElementById('sos-countdown').textContent=_sosCount;
+  document.getElementById('sos-tick').textContent=_sosCount;
+  document.getElementById('sos-modal').classList.add('open');
+  document.getElementById('sos-btn').classList.add('triggered');
+
+  _sosTimer=setInterval(()=>{
+    _sosCount--;
+    document.getElementById('sos-countdown').textContent=_sosCount;
+    document.getElementById('sos-tick').textContent=_sosCount;
+    if(_sosCount<=0){ clearInterval(_sosTimer); sendSOSNow(); }
+  },1000);
+}
+
+function cancelSOS(){
+  clearInterval(_sosTimer); _sosTimer=null;
+  document.getElementById('sos-modal').classList.remove('open');
+  document.getElementById('sos-btn').classList.remove('triggered');
+  showToast('SOS cancelled');
+}
+
+function closeSosModal(e){
+  if(e&&e.target!==document.getElementById('sos-modal')) return;
+  if(!_sosSent){ cancelSOS(); return; }
+  document.getElementById('sos-modal').classList.remove('open');
+}
+
+function sendSOSNow(){
+  clearInterval(_sosTimer);
+  _sosSent=true;
+  document.getElementById('sos-pre').style.display='none';
+  document.getElementById('sos-post').style.display='block';
+
+  // Get current GPS position
+  const pos=trackMap?trackMap.getCenter():{lat:17.4126,lng:78.4483};
+
+  // Write SOS alert to Firebase RTDB
+  if(window._rtdb && currentRide){
+    window._rtdb.ref('zipride/sos/'+currentRide.id).set({
+      rideId:currentRide.id,
+      userId:user?.id||'unknown',
+      userName:user?.name||user?.phone||'Passenger',
+      driverName:currentRide?.driver?.name||'Unknown',
+      driverVehicle:currentRide?.driver?.vehicle||'Unknown',
+      lat:pos.lat, lng:pos.lng,
+      timestamp:firebase.database.ServerValue.TIMESTAMP,
+      status:'active',
+    }).catch(e=>console.warn('SOS write error:',e));
+  }
+  if(window._db && currentRide){
+    window._db.collection('zipride_sos').add({
+      rideId:currentRide.id,
+      userId:user?.id,
+      lat:pos.lat, lng:pos.lng,
+      sentAt:firebase.firestore.FieldValue.serverTimestamp(),
+      status:'active',
+    }).catch(()=>{});
+  }
+
+  // Visual feedback
+  document.getElementById('sos-btn').style.background='#7f0000';
+  showToast('🆘 SOS sent to safety team!', 4000);
+}
+
+// ══════════════════════════════════
+// 💬 IN-RIDE CHAT
+// ══════════════════════════════════
+let _chatRef=null;
+let _chatOpen=false;
+const DRIVER_AUTO_REPLIES=[
+  'On my way! 🚗','Almost there, 2 minutes','I can see you, please come out 👋',
+  'Sorry for the wait!','Please wait at the gate','Sure, no problem 👍',
+  'I am parked near the entrance','Traffic is heavy, sorry 🙏',
+];
+
+function openChat(){
+  if(!currentRide){showToast('Start a ride first');return;}
+  _chatOpen=true;
+  document.getElementById('chat-drv-av').textContent=currentRide.driver?.emoji||'🧑';
+  document.getElementById('chat-drv-name').textContent=currentRide.driver?.name||'Driver';
+
+  // Seed a welcome message from driver
+  const msgs=document.getElementById('chat-messages');
+  if(!msgs.children.length){
+    appendChatMsg('recv', 'Hi! I am on my way to pick you up 🚗', currentRide.driver?.name);
+  }
+
+  // Listen to Firebase chat messages
+  if(window._rtdb && currentRide){
+    if(_chatRef) _chatRef.off('child_added');
+    _chatRef=window._rtdb.ref('zipride/chats/'+currentRide.id+'/messages');
+    _chatRef.on('child_added', snap=>{
+      const msg=snap.val();
+      if(!msg) return;
+      // Only show messages we haven't rendered yet (avoid duplicates from local send)
+      if(msg.sender==='driver'){
+        appendChatMsg('recv', msg.text, msg.senderName);
+      }
+    });
+  }
+
+  document.getElementById('chat-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('chat-inp').focus(),400);
+  scrollChatToBottom();
+}
+
+function closeChatModal(e){
+  if(e&&e.target!==document.getElementById('chat-modal')) return;
+  _chatOpen=false;
+  document.getElementById('chat-modal').classList.remove('open');
+  if(_chatRef){_chatRef.off('child_added');_chatRef=null;}
+}
+
+function sendChatMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  _sendMsg(text);
+}
+
+function sendQuickReply(text){
+  _sendMsg(text);
+}
+
+function _sendMsg(text){
+  appendChatMsg('sent', text, 'You');
+  if(window._rtdb && currentRide){
+    window._rtdb.ref('zipride/chats/'+currentRide.id+'/messages').push({
+      text, sender:'passenger', senderName:user?.name||'Passenger',
+      timestamp:firebase.database.ServerValue.TIMESTAMP,
+    }).catch(()=>{});
+  }
+  // Simulate driver reply after 2-5s
+  const delay=2000+Math.random()*3000;
+  setTimeout(()=>{
+    if(!currentRide) return;
+    const reply=DRIVER_AUTO_REPLIES[Math.floor(Math.random()*DRIVER_AUTO_REPLIES.length)];
+    appendChatMsg('recv', reply, currentRide.driver?.name||'Driver');
+    if(window._rtdb && currentRide){
+      window._rtdb.ref('zipride/chats/'+currentRide.id+'/messages').push({
+        text:reply, sender:'driver', senderName:currentRide.driver?.name||'Driver',
+        timestamp:firebase.database.ServerValue.TIMESTAMP,
+      }).catch(()=>{});
+    }
+    if(!_chatOpen) showToast('💬 '+currentRide.driver?.name+': '+reply.slice(0,30));
+  }, delay);
+  scrollChatToBottom();
+}
+
+function appendChatMsg(type, text, sender){
+  const wrap=document.getElementById('chat-messages');
+  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');
+  div.className='chat-msg '+type;
+  div.innerHTML=text+'<div class="chat-msg-time">'+time+'</div>';
+  wrap.appendChild(div);
+  scrollChatToBottom();
+}
+
+function scrollChatToBottom(){
+  const el=document.getElementById('chat-messages');
+  if(el) setTimeout(()=>el.scrollTop=el.scrollHeight, 50);
 }
 </script>
 </body>
