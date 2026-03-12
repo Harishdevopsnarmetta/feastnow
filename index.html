@@ -2892,13 +2892,13 @@ function openTracking(order){
   // Build map immediately (rider stays still at restaurant)
   setTimeout(()=>buildMap(order), 400);
 
-  // ── TIMELINE ──────────────────────────────────────
-  // 0s  : Order Placed ✅ + Preparing 👨‍🍳 (active)
-  // 10s : Out for Delivery 🛵 (active) → rider starts moving
-  // 90s : Rider arrives → Delivered 🏠 ✅
+  // ── TIMELINE — driven by real Firestore status ──
+  // Also falls back to 10s timer if Firebase not available
+  let _stepAdvanced = false;
 
-  setTimeout(()=>{
-    // STEP 3: Out for Delivery
+  function advanceToOutForDelivery(){
+    if(_stepAdvanced) return;
+    _stepAdvanced = true;
     setStep(2);
     document.getElementById('track-eta').textContent='~20 min';
     document.getElementById('map-eta-chip').textContent='~20 min';
@@ -2906,8 +2906,7 @@ function openTracking(order){
     document.getElementById('map-status-sub').textContent='Rider is heading your way';
     SFX.outForDelivery();
     startRiderMoving(order, ()=>{
-      // STEP 4: Delivered — fires ONLY when rider physically reaches home marker
-      setStep(4); // all done
+      setStep(4);
       document.getElementById('track-eta').textContent='Delivered! 🎉';
       document.getElementById('map-eta-chip').textContent='✅ Here!';
       document.getElementById('map-status-txt').textContent='🎉 Order Delivered!';
@@ -2915,19 +2914,53 @@ function openTracking(order){
       SFX.delivered();
       addNotif('order','🏠','Order Delivered!','Enjoy your meal! 😋',true);
     });
-  }, 10000); // 10s for preparing phase
+  }
+
+  // Real Firestore status listener
+  if(window._firebaseReady && window._db){
+    let _fsUnsub = window._db.collection('orders').doc(order.id)
+      .onSnapshot(snap=>{
+        const d = snap.data();
+        if(!d) return;
+        if(d.status==='accepted'){
+          document.getElementById('map-status-txt').textContent='🛵 Rider Accepted!';
+          document.getElementById('map-status-sub').textContent='Heading to restaurant...';
+        }
+        if((d.status==='out_for_delivery'||d.status==='accepted') && !_stepAdvanced){
+          advanceToOutForDelivery();
+        }
+        if(d.status==='delivered'){
+          _fsUnsub && _fsUnsub();
+        }
+        // Attach shared coords to order so buildMap uses them
+        if(d.destPos && !order._destPos){ order._destPos = d.destPos; }
+        if(d.restPos && !order._restPos){ order._restPos = d.restPos; }
+      }, err=>console.warn('Tracking listener error:', err));
+    // Fallback: if no real update in 15s, advance anyway (kitchen prep done)
+    setTimeout(()=>{ if(!_stepAdvanced) advanceToOutForDelivery(); }, 15000);
+  } else {
+    // No Firebase — use timed simulation
+    setTimeout(()=>advanceToOutForDelivery(), 10000);
+  }
 }
 
 function buildMap(order){
   // Destroy old map
   if(leafletMap){leafletMap.remove();leafletMap=null;}
 
-  // Pick two DIFFERENT far-apart spots
-  const destIdx=Math.floor(Math.random()*HYD_SPOTS.length);
-  let restIdx=Math.floor(Math.random()*HYD_SPOTS.length);
-  while(restIdx===destIdx) restIdx=(restIdx+1)%HYD_SPOTS.length;
-  _mapDest = HYD_SPOTS[destIdx];    // 🏠 Customer
-  _mapRest = HYD_SPOTS[restIdx];    // 🍽 Restaurant
+  // Use shared coords from order if available (set by saveOrderToFirestore)
+  // This ensures customer map matches rider map exactly
+  if(order._destPos && order._restPos){
+    _mapDest = order._destPos;
+    _mapRest = order._restPos;
+  } else {
+    // Fallback: pick random spots (offline/demo mode)
+    const destIdx=Math.floor(Math.random()*HYD_SPOTS.length);
+    let restIdx=Math.floor(Math.random()*HYD_SPOTS.length);
+    while(restIdx===destIdx) restIdx=(restIdx+1)%HYD_SPOTS.length;
+    _mapDest = HYD_SPOTS[destIdx];
+    _mapRest = HYD_SPOTS[restIdx];
+  }
 
   leafletMap=L.map('delivery-map',{center:[_mapRest.lat,_mapRest.lng],zoom:13,zoomControl:false,attributionControl:false});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(leafletMap);
@@ -2961,9 +2994,20 @@ function startRiderMoving(order, onArrived){
   if(window._rtdb && window._firebaseReady){
     const ref = window._rtdb.ref('tracking/'+order.id);
     let _lastDelivered=false;
+    let _lastStatus='';
     ref.on('value', snap=>{
       const data=snap.val();
       if(!data||!riderMarker) return;
+
+      // 🗺️ If RTDB has shared dest coords, update map markers to match rider's view
+      if(data.destLat && data.destLng && _mapDest){
+        const newDest={lat:data.destLat, lng:data.destLng};
+        if(Math.abs(newDest.lat-_mapDest.lat)>0.0001 || Math.abs(newDest.lng-_mapDest.lng)>0.0001){
+          _mapDest={lat:data.destLat, lng:data.destLng, name:_mapDest.name};
+          if(destMarker) destMarker.setLatLng([_mapDest.lat,_mapDest.lng]);
+        }
+      }
+
       // Real rider position
       if(data.riderLat && data.riderLng){
         const newPos=[data.riderLat, data.riderLng];
@@ -2976,7 +3020,23 @@ function startRiderMoving(order, onArrived){
         document.getElementById('track-eta').textContent=etaTxt;
         document.getElementById('map-eta-chip').textContent=etaTxt;
       }
-      // Status updates
+
+      // Status-based step updates
+      if(data.status && data.status!==_lastStatus){
+        _lastStatus=data.status;
+        if(data.status==='accepted'){
+          document.getElementById('map-status-txt').textContent='🛵 Rider Accepted!';
+          document.getElementById('map-status-sub').textContent='Heading to restaurant...';
+        } else if(data.status==='out_for_delivery'){
+          document.getElementById('map-status-txt').textContent='🛵 Out for Delivery!';
+          document.getElementById('map-status-sub').textContent='Rider is heading your way';
+          document.getElementById('track-eta').textContent='~15 min';
+          document.getElementById('map-eta-chip').textContent='~15 min';
+          SFX.outForDelivery();
+        }
+      }
+
+      // Delivered
       if((data.status==='delivered'||data.status==='completed') && !_lastDelivered){
         _lastDelivered=true;
         ref.off('value');
@@ -4119,6 +4179,23 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
   
   try{
     console.log('📝 Writing order to Firestore...');
+
+    // Pick shared delivery coordinates once — both rider and customer will use these
+    const _HYD=[
+      {name:'Banjara Hills',lat:17.4126,lng:78.4483},{name:'Jubilee Hills',lat:17.4239,lng:78.4085},
+      {name:'Madhapur',lat:17.4435,lng:78.3772},{name:'Hitech City',lat:17.4474,lng:78.3762},
+      {name:'Gachibowli',lat:17.4401,lng:78.3489},{name:'Kondapur',lat:17.4600,lng:78.3615},
+      {name:'Ameerpet',lat:17.4374,lng:78.4487},{name:'Begumpet',lat:17.4415,lng:78.4636},
+    ];
+    const destIdx=Math.floor(Math.random()*_HYD.length);
+    let restIdx=Math.floor(Math.random()*_HYD.length);
+    while(restIdx===destIdx) restIdx=(restIdx+1)%_HYD.length;
+    const sharedDest=_HYD[destIdx];
+    const sharedRest=_HYD[restIdx];
+    // Attach to order so openTracking() uses the same coords
+    order._destPos=sharedDest;
+    order._restPos=sharedRest;
+
     const orderData = {
       id: order.id,
       userId: currentUser?.id || 'guest',
@@ -4129,23 +4206,28 @@ window.saveOrderToFirestore = async function saveOrderToFirestore(order){
       total: order.total || 0,
       status: 'pending_rider',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      // 🗺️ Shared map coords — rider uses these so customer tracking stays in sync
+      destPos: { name: sharedDest.name, lat: sharedDest.lat, lng: sharedDest.lng },
+      restPos: { name: sharedRest.name, lat: sharedRest.lat, lng: sharedRest.lng },
     };
     await window._db.collection('orders').doc(order.id).set(orderData);
     console.log('✅✅✅ ORDER SAVED TO FIRESTORE:', order.id);
     showToast('🔥 Order sent to rider!');
-    setTimeout(()=>alert('✅ ORDER SAVED!\nID: '+order.id+'\nCheck rider app!'),300);
     
     if(window._rtdb){
       await window._rtdb.ref('tracking/' + order.id).set({
         status: 'pending_rider',
+        destLat: sharedDest.lat,
+        destLng: sharedDest.lng,
+        restLat: sharedRest.lat,
+        restLng: sharedRest.lng,
         updatedAt: firebase.database.ServerValue.TIMESTAMP
       });
-      console.log('✅ RTDB tracking created');
+      console.log('✅ RTDB tracking created with shared coords');
     }
   } catch(e){ 
     console.error('❌❌❌ saveOrderToFirestore FAILED:', e.code, e.message);
     showToast('❌ '+( e.code||e.message));
-    setTimeout(()=>alert('❌ WRITE FAILED\nCode: '+(e.code||'?')+'\n'+e.message),300);
   }
 }
 
@@ -4159,10 +4241,10 @@ window.testFirebaseWrite = async function(){
       items:[], total:99, createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     console.log('✅ Manual test PASSED - check Firebase console for TEST123');
-    alert('✅ Firebase write SUCCESS! Check rider app now.');
+
   }catch(e){
     console.error('❌ Manual test FAILED:', e.message);
-    alert('❌ Firebase write FAILED: ' + e.message);
+
   }
 };
 
@@ -4316,7 +4398,7 @@ async function fbTestWrite(){
     });
     fbLog('✅ SUCCESS! Doc: '+testId);
     fbLog('👆 Check rider app now!');
-    alert('✅ Firebase write SUCCESS!\nCheck rider app for test order.');
+
   }catch(e){
     fbLog('❌ FAILED: '+e.code);
     fbLog('   '+e.message);
@@ -4326,7 +4408,7 @@ async function fbTestWrite(){
       fbLog('   Firestore → Rules → set:');
       fbLog('   allow read, write: if true;');
     }
-    alert('❌ WRITE FAILED\nCode: '+e.code+'\n'+e.message);
+
   }
 }
 async function fbReadOrders(){
