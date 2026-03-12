@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ZipRide 🚗</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#08080f;--card:#0f0f1a;--card2:#161625;--border:#1e1e32;
+  --accent:#6c63ff;--accent2:#8b85ff;--green:#00e5a0;--gold:#f5c518;
+  --red:#ff4757;--blue:#4facfe;
+  --text:#f0eeff;--muted:#5a5a7a;--r:18px;
+}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow:hidden}
+#app{width:100%;height:100dvh;position:relative;overflow:hidden}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(16px);background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)}
+
+/* SPLASH */
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 40% 30%,rgba(108,99,255,.18),transparent 60%),var(--bg)}
+.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:4.5rem;letter-spacing:4px;background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.splash-tag{color:var(--muted);font-size:.8rem;letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+.splash-icon{font-size:3.5rem;margin-bottom:24px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.splash-loader{width:48px;height:3px;background:var(--border);border-radius:10px;margin-top:48px;overflow:hidden}
+.splash-loader-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));border-radius:10px;animation:load 1.8s ease forwards}
+@keyframes load{0%{width:0}100%{width:100%}}
+
+/* AUTH */
+#auth{display:flex;flex-direction:column;justify-content:flex-end;padding:32px 24px 56px;background:radial-gradient(ellipse at 20% 10%,rgba(108,99,255,.1),transparent 50%),var(--bg)}
+.auth-title{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;letter-spacing:2px;line-height:1;margin-bottom:6px}
+.auth-title span{background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-sub{color:var(--muted);font-size:.88rem;margin-bottom:36px}
+.inp-lbl{font-size:.7rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px}
+.inp{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:15px 16px;color:var(--text);font-size:1rem;font-family:'Space Grotesk',sans-serif;outline:none;transition:border .2s;margin-bottom:14px}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--muted)}
+.inp-ph{display:flex;gap:10px;align-items:center}
+.ph-code{background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:15px 14px;color:var(--text);font-size:1rem;font-family:'Space Grotesk',sans-serif;width:72px;text-align:center;outline:none}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:50px;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:transform .15s,opacity .2s;margin-top:6px;letter-spacing:.5px}
+.btn-primary:active{transform:scale(.97)}
+.btn-ghost{width:100%;padding:14px;background:transparent;border:1.5px solid var(--border);border-radius:50px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:.9rem;cursor:pointer;margin-top:10px}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.back-btn{width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* HOME SCREEN */
+#home{display:flex;flex-direction:column}
+.home-map-wrap{flex:1;position:relative;min-height:55vh}
+#home-map{width:100%;height:100%}
+.home-bottom-sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:20px 20px 40px;border-top:1px solid var(--border);margin-top:-20px;position:relative;z-index:10}
+.greeting{font-size:.78rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.greeting-name{font-weight:700;font-size:1.1rem;margin-bottom:16px}
+.where-label{font-size:.72rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.pickup-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border .2s}
+.pickup-row:active{border-color:var(--accent)}
+.loc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.loc-dot.pickup{background:var(--green)}
+.loc-dot.drop{background:var(--accent)}
+.loc-text{flex:1;font-size:.9rem;font-weight:500}
+.loc-text.muted{color:var(--muted);font-weight:400}
+.quick-places{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:4px}
+.quick-places::-webkit-scrollbar{display:none}
+.qp-chip{background:var(--card2);border:1px solid var(--border);border-radius:50px;padding:8px 14px;font-size:.78rem;white-space:nowrap;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:6px}
+
+/* LOCATION PICKER */
+#location-picker{padding:0}
+.lp-search-wrap{padding:16px 20px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.lp-inp{width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;color:var(--text);font-size:.95rem;font-family:'Space Grotesk',sans-serif;outline:none}
+.lp-inp:focus{border-color:var(--accent)}
+.lp-results{padding:8px 20px}
+.lp-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.lp-icon{width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.lp-name{font-size:.9rem;font-weight:500}
+.lp-addr{font-size:.75rem;color:var(--muted);margin-top:2px}
+
+/* RIDE TYPE SELECT */
+#ride-select{padding:0}
+.rs-map{height:200px;position:relative}
+#rs-map{width:100%;height:100%}
+.rs-body{padding:20px}
+.rs-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px;margin-bottom:16px}
+.ride-types{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.ride-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border .2s,background .2s}
+.ride-card.selected{border-color:var(--accent);background:rgba(108,99,255,.08)}
+.ride-icon{font-size:2rem;width:52px;text-align:center}
+.ride-info{flex:1}
+.ride-name{font-weight:700;font-size:.95rem}
+.ride-desc{font-size:.75rem;color:var(--muted);margin-top:2px}
+.ride-fare{text-align:right}
+.fare-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--green);letter-spacing:1px}
+.fare-lbl{font-size:.68rem;color:var(--muted)}
+.promo-row{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;cursor:pointer}
+.promo-left{display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600}
+.promo-arrow{color:var(--muted);font-size:.9rem}
+
+/* SEARCHING */
+#searching{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
+.search-anim{width:120px;height:120px;position:relative;margin-bottom:32px}
+.search-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+.search-ring:nth-child(1){border-top-color:var(--accent);animation:spin 1.2s linear infinite}
+.search-ring:nth-child(2){inset:12px;border-top-color:var(--blue);animation:spin 1.8s linear infinite reverse}
+.search-ring:nth-child(3){inset:24px;border-top-color:var(--green);animation:spin 2.4s linear infinite}
+.search-center{position:absolute;inset:36px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.6rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.search-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;margin-bottom:8px}
+.search-sub{color:var(--muted);font-size:.85rem;text-align:center;margin-bottom:32px}
+.search-dots{display:flex;gap:6px}
+.search-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:dotpulse 1.4s ease infinite}
+.search-dot:nth-child(2){animation-delay:.2s}
+.search-dot:nth-child(3){animation-delay:.4s}
+@keyframes dotpulse{0%,80%,100%{transform:scale(0);opacity:.3}40%{transform:scale(1);opacity:1}}
+.btn-cancel-ride{margin-top:32px;padding:14px 32px;background:transparent;border:1.5px solid var(--red);border-radius:50px;color:var(--red);font-family:'Space Grotesk',sans-serif;font-weight:600;cursor:pointer}
+
+/* LIVE TRACKING */
+#live-tracking{display:flex;flex-direction:column}
+.track-map-wrap{flex:0 0 55vh;position:relative}
+#track-map{width:100%;height:100%}
+.track-sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:20px;border-top:1px solid var(--border);flex:1;overflow-y:auto}
+.driver-card{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.driver-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--blue));display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid var(--accent)}
+.driver-name{font-weight:700;font-size:.95rem}
+.driver-vehicle{font-size:.78rem;color:var(--muted);margin-top:2px}
+.driver-rating{font-size:.78rem;color:var(--gold);font-weight:600;margin-top:3px}
+.track-eta-big{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:2px;color:var(--green);line-height:1}
+.track-eta-lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.track-steps{display:flex;flex-direction:column;gap:0;margin-bottom:16px}
+.ts-step{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ts-step:last-child{border-bottom:none}
+.ts-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ts-dot.done{background:var(--green)}
+.ts-dot.active{background:var(--accent);box-shadow:0 0 0 4px rgba(108,99,255,.2);animation:pulsedot 1.4s infinite}
+.ts-dot.pending{background:var(--border)}
+@keyframes pulsedot{0%,100%{box-shadow:0 0 0 4px rgba(108,99,255,.2)}50%{box-shadow:0 0 0 8px rgba(108,99,255,.05)}}
+.ts-lbl{font-size:.88rem;font-weight:500}
+.ts-sub{font-size:.72rem;color:var(--muted)}
+.gps-badge{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px;margin-bottom:12px}
+.gps-badge.live{background:rgba(0,229,160,.1);color:var(--green);border:1px solid rgba(0,229,160,.3)}
+.gps-badge.sim{background:rgba(79,172,254,.1);color:var(--blue);border:1px solid rgba(79,172,254,.3)}
+.track-actions{display:flex;gap:10px}
+.track-btn{flex:1;padding:13px;border-radius:50px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;border:1.5px solid var(--border);background:var(--card2);color:var(--text);display:flex;align-items:center;justify-content:center;gap:6px}
+.track-btn.danger{border-color:var(--red);color:var(--red)}
+
+/* PAYMENT */
+#payment-screen{padding:0}
+.pay-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.pay-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:1px}
+.pay-amount{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:var(--green);letter-spacing:2px;line-height:1}
+.pay-body{padding:20px}
+.pay-methods{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.pay-method{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border .2s}
+.pay-method.selected{border-color:var(--accent)}
+.pay-method-icon{font-size:1.5rem;width:40px;text-align:center}
+.pay-method-name{font-weight:600;font-size:.9rem}
+.pay-method-sub{font-size:.75rem;color:var(--muted);margin-top:2px}
+
+/* RATING */
+#rating-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+.rating-emoji{font-size:4rem;margin-bottom:16px;animation:float 2s ease-in-out infinite}
+.rating-title{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;margin-bottom:6px}
+.rating-sub{color:var(--muted);font-size:.88rem;margin-bottom:32px}
+.stars{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+.star{font-size:2.5rem;cursor:pointer;transition:transform .15s;filter:grayscale(1);opacity:.4}
+.star.active{filter:grayscale(0);opacity:1;transform:scale(1.1)}
+.rating-driver{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:24px;text-align:left}
+
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--card2);border:1px solid var(--border);border-radius:50px;padding:10px 20px;font-size:.83rem;font-weight:500;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MAP OVERLAYS */
+.map-center-pin{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);font-size:2rem;pointer-events:none;z-index:500;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.map-pickup-badge{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--border);border-radius:50px;padding:8px 16px;font-size:.8rem;font-weight:600;z-index:500;white-space:nowrap}
+
+.pb-safe{padding-bottom:env(safe-area-inset-bottom,20px)}
+
+/* LEAFLET dark */
+.leaflet-tile{filter:brightness(.7) saturate(.7) hue-rotate(200deg) invert(1) contrast(.8)}
+.leaflet-container{background:#111 !important}
+</style>
+
+<!-- Firebase -->
+<script>
+(function(){
+  const CFG={
+    apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+    authDomain:"feastnow-10576.firebaseapp.com",
+    databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+    projectId:"feastnow-10576",
+    storageBucket:"feastnow-10576.firebasestorage.app",
+    messagingSenderId:"59738911240",
+    appId:"1:59738911240:web:727b247d12630566bf97bd"
+  };
+  function loadScript(src,cb){ const s=document.createElement('script');s.src=src;s.onload=cb;s.onerror=()=>{window._fbFail=true};document.head.appendChild(s); }
+  loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',()=>{
+    loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',()=>{
+      loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js',()=>{
+        try{
+          if(!firebase.apps.length) firebase.initializeApp(CFG);
+          window._db=firebase.firestore();
+          window._rtdb=firebase.database();
+          window._fbReady=true;
+          console.log('✅ ZipRide Firebase ready');
+          if(window._onFbReady) window._onFbReady();
+        }catch(e){window._fbFail=true;}
+      });
+    });
+  });
+})();
+</script>
+</head>
+<body>
+<div id="app">
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <div class="splash-icon">🚗</div>
+  <div class="splash-logo">ZIPRIDE</div>
+  <div class="splash-tag">Hyderabad's fastest rides</div>
+  <div class="splash-loader"><div class="splash-loader-fill"></div></div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="auth">
+  <div style="font-size:2.5rem;margin-bottom:20px">🚗</div>
+  <div class="auth-title">Get a <span>ride</span><br>instantly.</div>
+  <div class="auth-sub">Enter your phone number to continue</div>
+  <div class="inp-lbl">Mobile Number</div>
+  <div class="inp-ph">
+    <input class="ph-code" value="+91" readonly>
+    <input class="inp" id="auth-phone" placeholder="10-digit number" type="tel" maxlength="10" style="margin-bottom:0" oninput="this.value=this.value.replace(/\D/g,'')">
+  </div>
+  <div style="margin-top:14px"></div>
+  <div id="otp-wrap" style="display:none">
+    <div class="inp-lbl" style="margin-top:10px">OTP</div>
+    <input class="inp" id="auth-otp" placeholder="6-digit OTP" type="tel" maxlength="6">
+  </div>
+  <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Send OTP →</button>
+  <button class="btn-ghost" onclick="demoLogin()">Try Demo Mode</button>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div class="home-map-wrap">
+    <div id="home-map"></div>
+    <div class="map-center-pin">📍</div>
+    <div class="map-pickup-badge" id="pickup-badge">📍 Setting pickup location...</div>
+  </div>
+  <div class="home-bottom-sheet pb-safe">
+    <div class="greeting">Good <span id="greet-time">morning</span> 👋</div>
+    <div class="greeting-name" id="greet-name">Where to?</div>
+    <div class="where-label">Your Ride</div>
+    <div class="pickup-row" onclick="openLocationPicker('pickup')">
+      <div class="loc-dot pickup"></div>
+      <div class="loc-text" id="pickup-text">Current Location</div>
+      <div style="color:var(--muted);font-size:.9rem">⌖</div>
+    </div>
+    <div class="pickup-row" onclick="openLocationPicker('drop')">
+      <div class="loc-dot drop"></div>
+      <div class="loc-text muted" id="drop-text">Where to?</div>
+      <div style="color:var(--muted);font-size:.9rem">›</div>
+    </div>
+    <div class="quick-places" id="quick-places"></div>
+  </div>
+</div>
+
+<!-- LOCATION PICKER -->
+<div class="screen" id="location-picker">
+  <div class="lp-search-wrap">
+    <button class="back-btn" onclick="closeLocationPicker()" style="margin-bottom:12px">←</button>
+    <input class="lp-inp" id="lp-inp" placeholder="Search location..." oninput="filterLocations(this.value)">
+  </div>
+  <div class="lp-results" id="lp-results"></div>
+</div>
+
+<!-- RIDE SELECT -->
+<div class="screen" id="ride-select">
+  <div class="rs-map"><div id="rs-map"></div></div>
+  <div class="rs-body pb-safe">
+    <button class="back-btn" onclick="showScreen('home')" style="margin-bottom:12px">←</button>
+    <div class="rs-title">Choose a Ride</div>
+    <div class="ride-types" id="ride-types"></div>
+    <div class="promo-row" onclick="showToast('🎉 Use code ZIP50 for 50% off!')">
+      <div class="promo-left">🏷️ Apply Promo Code</div>
+      <div class="promo-arrow">›</div>
+    </div>
+    <button class="btn-primary" onclick="bookRide()">Book Ride →</button>
+  </div>
+</div>
+
+<!-- SEARCHING -->
+<div class="screen" id="searching">
+  <div class="search-anim">
+    <div class="search-ring"></div>
+    <div class="search-ring"></div>
+    <div class="search-ring"></div>
+    <div class="search-center" id="search-icon">🚗</div>
+  </div>
+  <div class="search-title">Finding your ride</div>
+  <div class="search-sub" id="search-sub">Looking for nearby drivers...<br>This usually takes under 30 seconds</div>
+  <div class="search-dots"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div></div>
+  <button class="btn-cancel-ride" onclick="cancelSearch()">Cancel</button>
+</div>
+
+<!-- LIVE TRACKING -->
+<div class="screen" id="live-tracking">
+  <div class="track-map-wrap">
+    <div id="track-map"></div>
+  </div>
+  <div class="track-sheet pb-safe">
+    <div class="driver-card">
+      <div class="driver-av" id="drv-av">🧑</div>
+      <div style="flex:1">
+        <div class="driver-name" id="drv-name">Your Driver</div>
+        <div class="driver-vehicle" id="drv-vehicle">Vehicle</div>
+        <div class="driver-rating" id="drv-rating">⭐ 4.9 · 1,240 rides</div>
+      </div>
+      <div style="text-align:right">
+        <div class="track-eta-big" id="track-eta">—</div>
+        <div class="track-eta-lbl" id="track-eta-lbl">away</div>
+      </div>
+    </div>
+    <div class="gps-badge live" id="gps-badge">📍 GPS Live</div>
+    <div class="track-steps" id="track-steps"></div>
+    <div class="track-actions">
+      <button class="track-btn" onclick="showToast('📞 Calling driver...')">📞 Call</button>
+      <button class="track-btn" onclick="showToast('💬 Chat coming soon')">💬 Chat</button>
+      <button class="track-btn danger" onclick="cancelRide()">✕ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT -->
+<div class="screen" id="payment-screen">
+  <div class="pay-header">
+    <button class="back-btn" style="margin-bottom:12px">✕</button>
+    <div class="pay-title">Ride Complete 🎉</div>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:8px">Total Fare</div>
+    <div class="pay-amount" id="pay-amount">₹0</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:4px" id="pay-route">Route</div>
+  </div>
+  <div class="pay-body pb-safe">
+    <div style="font-weight:600;font-size:.88rem;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Pay With</div>
+    <div class="pay-methods" id="pay-methods"></div>
+    <button class="btn-primary" onclick="confirmPayment()">Pay & Continue →</button>
+  </div>
+</div>
+
+<!-- RATING -->
+<div class="screen" id="rating-screen">
+  <div class="rating-emoji">🌟</div>
+  <div class="rating-title">How was your ride?</div>
+  <div class="rating-sub">Rate your experience with <span id="rate-driver-name">your driver</span></div>
+  <div class="rating-driver">
+    <div class="driver-av" style="width:44px;height:44px;font-size:1.2rem" id="rate-av">🧑</div>
+    <div>
+      <div style="font-weight:700;font-size:.9rem" id="rate-drv-name">Driver</div>
+      <div style="font-size:.75rem;color:var(--muted)" id="rate-drv-vehicle">Vehicle</div>
+    </div>
+  </div>
+  <div class="stars" id="stars">
+    <div class="star" onclick="rateStar(1)">⭐</div>
+    <div class="star" onclick="rateStar(2)">⭐</div>
+    <div class="star" onclick="rateStar(3)">⭐</div>
+    <div class="star" onclick="rateStar(4)">⭐</div>
+    <div class="star" onclick="rateStar(5)">⭐</div>
+  </div>
+  <button class="btn-primary" onclick="submitRating()" style="width:100%">Submit Rating →</button>
+  <button class="btn-ghost" onclick="showScreen('home')">Skip</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let user = JSON.parse(localStorage.getItem('zr_user') || 'null');
+let otpSent = false;
+let pickupLoc = null;
+let dropLoc = null;
+let _pickingFor = 'pickup'; // 'pickup' | 'drop'
+let selectedRide = null;
+let currentRide = null;
+let homeMap = null, homeMarker = null;
+let rsMap = null;
+let trackMap = null, driverMarker = null, destMarker = null, routeLine = null;
+let _trackRef = null;
+let _searchTimer = null;
+
+const RIDE_TYPES = [
+  { id:'bike',  icon:'🛵', name:'Bike Taxi',   desc:'Quick solo rides',      baseKm:8,  base:25, perKm:6  },
+  { id:'auto',  icon:'🛺', name:'Auto',         desc:'Budget-friendly',       baseKm:8,  base:40, perKm:9  },
+  { id:'cab',   icon:'🚗', name:'Cab (Sedan)',  desc:'Comfortable AC ride',   baseKm:5,  base:60, perKm:13 },
+  { id:'suv',   icon:'🚙', name:'SUV / Premium',desc:'Spacious & premium',    baseKm:5,  base:90, perKm:18 },
+];
+
+const HYD = [
+  {name:'Banjara Hills',   addr:'Road No. 12, Banjara Hills', lat:17.4126,lng:78.4483, icon:'🏙'},
+  {name:'Jubilee Hills',   addr:'Jubilee Hills, Hyderabad',    lat:17.4239,lng:78.4085, icon:'🌳'},
+  {name:'Madhapur',        addr:'Madhapur, HITEC City',        lat:17.4435,lng:78.3772, icon:'🏢'},
+  {name:'Hitech City',     addr:'HITEC City, Hyderabad',       lat:17.4474,lng:78.3762, icon:'💻'},
+  {name:'Gachibowli',      addr:'Gachibowli, Hyderabad',       lat:17.4401,lng:78.3489, icon:'🎓'},
+  {name:'Kondapur',        addr:'Kondapur, Hyderabad',         lat:17.4600,lng:78.3615, icon:'🏘'},
+  {name:'Ameerpet',        addr:'Ameerpet Metro, Hyderabad',   lat:17.4374,lng:78.4487, icon:'🚇'},
+  {name:'Secunderabad',    addr:'Secunderabad, Hyderabad',     lat:17.4399,lng:78.4983, icon:'🚉'},
+  {name:'Kukatpally',      addr:'Kukatpally Housing Board',    lat:17.4849,lng:78.3995, icon:'🏠'},
+  {name:'LB Nagar',        addr:'LB Nagar, Hyderabad',         lat:17.3483,lng:78.5510, icon:'🏪'},
+  {name:'Begumpet Airport',addr:'Begumpet, Hyderabad',         lat:17.4415,lng:78.4636, icon:'✈'},
+  {name:'Charminar',       addr:'Old City, Hyderabad',         lat:17.3616,lng:78.4747, icon:'🕌'},
+  {name:'Uppal',           addr:'Uppal, Hyderabad',            lat:17.4041,lng:78.5596, icon:'🏭'},
+  {name:'Miyapur',         addr:'Miyapur, Hyderabad',          lat:17.4969,lng:78.3534, icon:'🌿'},
+];
+
+const DEMO_DRIVERS = [
+  {name:'Ravi Kumar',  vehicle:'TS09 AB 1234', type:'cab',  rating:'4.9', rides:'1,240', emoji:'👨'},
+  {name:'Priya Singh', vehicle:'TS08 CD 5678', type:'bike', rating:'4.8', rides:'876',   emoji:'👩'},
+  {name:'Suresh Reddy',vehicle:'TS07 EF 9012', type:'auto', rating:'4.7', rides:'2,100', emoji:'🧔'},
+  {name:'Anita Rao',   vehicle:'TS10 GH 3456', type:'suv',  rating:'5.0', rides:'430',   emoji:'👩‍🦱'},
+];
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(()=>{
+    if(user) goHome();
+    else showScreen('auth');
+  }, 1900);
+});
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg, dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ══════════════════════════════════
+// AUTH
+// ══════════════════════════════════
+function handleAuth(){
+  const phone=document.getElementById('auth-phone').value.trim();
+  if(!otpSent){
+    if(phone.length!==10){showToast('Enter valid 10-digit number');return;}
+    otpSent=true;
+    document.getElementById('otp-wrap').style.display='block';
+    document.getElementById('auth-btn').textContent='Verify OTP →';
+    showToast('OTP sent to +91 '+phone);
+  } else {
+    const otp=document.getElementById('auth-otp').value.trim();
+    if(otp.length!==6){showToast('Enter 6-digit OTP');return;}
+    user={id:'U'+Date.now(),phone,name:'Rider '+phone.slice(-4)};
+    localStorage.setItem('zr_user',JSON.stringify(user));
+    goHome();
+  }
+}
+function demoLogin(){
+  user={id:'UDEMO',phone:'9999999999',name:'Demo User'};
+  localStorage.setItem('zr_user',JSON.stringify(user));
+  goHome();
+}
+
+// ══════════════════════════════════
+// HOME
+// ══════════════════════════════════
+function goHome(){
+  const hr=new Date().getHours();
+  document.getElementById('greet-time').textContent=hr<12?'morning':hr<17?'afternoon':'evening';
+  document.getElementById('greet-name').textContent=user?.name||'Where to?';
+  renderQuickPlaces();
+  showScreen('home');
+  setTimeout(initHomeMap,400);
+}
+
+function renderQuickPlaces(){
+  const qp=document.getElementById('quick-places');
+  const places=[
+    {icon:'🏠',name:'Home'},{icon:'💼',name:'Office'},{icon:'✈',name:'Airport'},
+    {icon:'🏥',name:'Hospital'},{icon:'🛍',name:'Mall'},
+  ];
+  qp.innerHTML=places.map(p=>`<div class="qp-chip" onclick="quickPick('${p.name}')">${p.icon} ${p.name}</div>`).join('');
+}
+
+function quickPick(name){
+  const spot=HYD.find(h=>h.name.includes(name)||name.includes(h.name.split(' ')[0]))||HYD[Math.floor(Math.random()*HYD.length)];
+  setDropLoc(spot);
+}
+
+function initHomeMap(){
+  if(homeMap){homeMap.remove();homeMap=null;}
+  const center=pickupLoc||HYD[0];
+  homeMap=L.map('home-map',{center:[center.lat,center.lng],zoom:14,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(homeMap);
+  homeMap.on('move',()=>{
+    const c=homeMap.getCenter();
+    // Update badge with nearest area
+    const nearest=HYD.reduce((a,b)=>{
+      const da=Math.hypot(a.lat-c.lat,a.lng-c.lng);
+      const db=Math.hypot(b.lat-c.lat,b.lng-c.lng);
+      return da<db?a:b;
+    });
+    document.getElementById('pickup-badge').textContent='📍 Near '+nearest.name;
+    pickupLoc=nearest;
+    document.getElementById('pickup-text').textContent=nearest.name;
+  });
+}
+
+// ══════════════════════════════════
+// LOCATION PICKER
+// ══════════════════════════════════
+function openLocationPicker(type){
+  _pickingFor=type;
+  document.getElementById('lp-inp').value='';
+  renderLocationResults(HYD);
+  showScreen('location-picker');
+  setTimeout(()=>document.getElementById('lp-inp').focus(),300);
+}
+function closeLocationPicker(){
+  showScreen('home');
+  if(dropLoc) showRideSelect();
+}
+function filterLocations(q){
+  const filtered=q?HYD.filter(h=>h.name.toLowerCase().includes(q.toLowerCase())||h.addr.toLowerCase().includes(q.toLowerCase())):HYD;
+  renderLocationResults(filtered);
+}
+function renderLocationResults(list){
+  document.getElementById('lp-results').innerHTML=list.map(h=>`
+    <div class="lp-item" onclick="selectLocation(${HYD.indexOf(h)})">
+      <div class="lp-icon">${h.icon}</div>
+      <div><div class="lp-name">${h.name}</div><div class="lp-addr">${h.addr}</div></div>
+    </div>`).join('');
+}
+function selectLocation(idx){
+  const loc=HYD[idx];
+  if(_pickingFor==='pickup'){
+    pickupLoc=loc;
+    document.getElementById('pickup-text').textContent=loc.name;
+  } else {
+    setDropLoc(loc);
+  }
+  showScreen('home');
+  if(dropLoc) setTimeout(showRideSelect,200);
+}
+function setDropLoc(loc){
+  dropLoc=loc;
+  document.getElementById('drop-text').textContent=loc.name;
+  document.getElementById('drop-text').classList.remove('muted');
+}
+
+// ══════════════════════════════════
+// RIDE SELECT
+// ══════════════════════════════════
+function showRideSelect(){
+  if(!pickupLoc||!dropLoc){showToast('Set pickup & drop first');return;}
+  renderRideTypes();
+  showScreen('ride-select');
+  setTimeout(initRsMap,400);
+}
+function calcFare(rt){
+  if(!pickupLoc||!dropLoc) return rt.base;
+  const dLat=pickupLoc.lat-dropLoc.lat, dLng=pickupLoc.lng-dropLoc.lng;
+  const km=Math.max(1.5,(Math.sqrt(dLat*dLat+dLng*dLng)*111));
+  return Math.round(rt.base + Math.max(0,km-rt.baseKm)*rt.perKm);
+}
+function renderRideTypes(){
+  selectedRide=RIDE_TYPES[2]; // default cab
+  document.getElementById('ride-types').innerHTML=RIDE_TYPES.map(rt=>{
+    const fare=calcFare(rt);
+    return `<div class="ride-card ${rt.id==='cab'?'selected':''}" id="rc-${rt.id}" onclick="selectRideType('${rt.id}')">
+      <div class="ride-icon">${rt.icon}</div>
+      <div class="ride-info">
+        <div class="ride-name">${rt.name}</div>
+        <div class="ride-desc">${rt.desc}</div>
+      </div>
+      <div class="ride-fare">
+        <div class="fare-val">₹${fare}</div>
+        <div class="fare-lbl">~${Math.ceil(fare/15)} min</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function selectRideType(id){
+  selectedRide=RIDE_TYPES.find(r=>r.id===id);
+  document.querySelectorAll('.ride-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('rc-'+id).classList.add('selected');
+}
+function initRsMap(){
+  if(rsMap){rsMap.remove();rsMap=null;}
+  const p=pickupLoc||HYD[0], d=dropLoc||HYD[1];
+  rsMap=L.map('rs-map',{center:[(p.lat+d.lat)/2,(p.lng+d.lng)/2],zoom:12,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(rsMap);
+  const pIcon=L.divIcon({html:'<div style="font-size:20px">📍</div>',iconSize:[24,24],iconAnchor:[12,24],className:''});
+  const dIcon=L.divIcon({html:'<div style="font-size:20px">🏁</div>',iconSize:[24,24],iconAnchor:[12,24],className:''});
+  L.marker([p.lat,p.lng],{icon:pIcon}).addTo(rsMap);
+  L.marker([d.lat,d.lng],{icon:dIcon}).addTo(rsMap);
+  L.polyline([[p.lat,p.lng],[d.lat,d.lng]],{color:'#6c63ff',weight:3,dashArray:'8 5'}).addTo(rsMap);
+  rsMap.fitBounds([[p.lat,p.lng],[d.lat,d.lng]],{padding:[40,40]});
+}
+
+// ══════════════════════════════════
+// BOOK RIDE
+// ══════════════════════════════════
+async function bookRide(){
+  if(!selectedRide){showToast('Select a ride type');return;}
+  const rideId='ZR'+Date.now().toString().slice(-8);
+  const fare=calcFare(selectedRide);
+  const driver=DEMO_DRIVERS.find(d=>d.type===selectedRide.id)||DEMO_DRIVERS[0];
+
+  currentRide={
+    id:rideId, fare, driver,
+    pickup:pickupLoc, drop:dropLoc,
+    rideType:selectedRide,
+    status:'searching',
+    time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+  };
+
+  // Save to Firestore
+  if(window._fbReady && window._db){
+    window._db.collection('zipride_rides').doc(rideId).set({
+      id:rideId, userId:user.id, userName:user.name||user.phone,
+      pickupName:pickupLoc.name, pickupLat:pickupLoc.lat, pickupLng:pickupLoc.lng,
+      dropName:dropLoc.name,    dropLat:dropLoc.lat,    dropLng:dropLoc.lng,
+      fare, rideType:selectedRide.id, status:'searching',
+      driverName:driver.name, driverVehicle:driver.vehicle,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+    }).catch(e=>console.warn('Ride save error:',e));
+  }
+
+  document.getElementById('search-icon').textContent=selectedRide.icon;
+  showScreen('searching');
+  startSearching(rideId, driver);
+}
+
+function startSearching(rideId, driver){
+  let t=0;
+  const msgs=['Looking for nearby drivers...','Connecting to drivers in your area...','Almost there...'];
+  _searchTimer=setInterval(()=>{
+    t++;
+    if(t<msgs.length) document.getElementById('search-sub').innerHTML=msgs[t]+'<br>This usually takes under 30 seconds';
+    if(t>=5){
+      clearInterval(_searchTimer);
+      showToast('🎉 Driver found!');
+      startLiveTracking(rideId,driver);
+    }
+  },1800);
+}
+
+function cancelSearch(){
+  clearInterval(_searchTimer);
+  currentRide=null;
+  showScreen('ride-select');
+}
+
+// ══════════════════════════════════
+// LIVE TRACKING
+// ══════════════════════════════════
+function startLiveTracking(rideId, driver){
+  // Populate driver card
+  document.getElementById('drv-av').textContent=driver.emoji;
+  document.getElementById('drv-name').textContent=driver.name;
+  document.getElementById('drv-vehicle').textContent=driver.vehicle+' · '+currentRide.rideType.icon+' '+currentRide.rideType.name;
+  document.getElementById('drv-rating').textContent='⭐ '+driver.rating+' · '+driver.rides+' rides';
+  document.getElementById('rate-av').textContent=driver.emoji;
+  document.getElementById('rate-drv-name').textContent=driver.name;
+  document.getElementById('rate-drv-vehicle').textContent=driver.vehicle;
+  document.getElementById('rate-driver-name').textContent=driver.name;
+
+  renderTrackSteps(0);
+  showScreen('live-tracking');
+  setTimeout(()=>initTrackMap(rideId),400);
+}
+
+function renderTrackSteps(phase){
+  // 0=driver en route to pickup, 1=driver arrived, 2=ride in progress, 3=arrived at drop
+  const steps=[
+    {label:'Driver en route to pickup',   sub:currentRide?.pickup?.name||'Your location'},
+    {label:'Driver arrived',              sub:'Walk to '+currentRide?.rideType?.icon+' '+currentRide?.driver?.vehicle},
+    {label:'Ride in progress',            sub:'En route to '+currentRide?.drop?.name},
+    {label:'Arrived at destination',      sub:currentRide?.drop?.name||'Destination'},
+  ];
+  document.getElementById('track-steps').innerHTML=steps.map((s,i)=>`
+    <div class="ts-step">
+      <div class="ts-dot ${i<phase?'done':i===phase?'active':'pending'}"></div>
+      <div>
+        <div class="ts-lbl" style="${i>phase?'color:var(--muted)':''}">${s.label}</div>
+        <div class="ts-sub">${s.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+function initTrackMap(rideId){
+  if(trackMap){trackMap.remove();trackMap=null;}
+  const p=currentRide.pickup, d=currentRide.drop;
+  trackMap=L.map('track-map',{center:[p.lat,p.lng],zoom:13,zoomControl:false,attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(trackMap);
+
+  const drvIcon=L.divIcon({html:`<div style="font-size:26px;filter:drop-shadow(0 2px 8px rgba(108,99,255,.8))">${currentRide.rideType.icon}</div>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+  const pickIcon=L.divIcon({html:'<div style="font-size:22px">📍</div>',iconSize:[24,24],iconAnchor:[12,24],className:''});
+  const dropIcon=L.divIcon({html:'<div style="font-size:22px">🏁</div>',iconSize:[24,24],iconAnchor:[12,24],className:''});
+
+  // Driver starts at a random nearby spot
+  const drvStart={lat:p.lat+(Math.random()-.5)*.02, lng:p.lng+(Math.random()-.5)*.02};
+  driverMarker=L.marker([drvStart.lat,drvStart.lng],{icon:drvIcon,zIndexOffset:1000}).addTo(trackMap).bindPopup('<b>'+currentRide.driver.name+'</b>',{closeButton:false});
+  L.marker([p.lat,p.lng],{icon:pickIcon}).addTo(trackMap).bindPopup('<b>📍 Pickup</b>',{closeButton:false});
+  destMarker=L.marker([d.lat,d.lng],{icon:dropIcon}).addTo(trackMap).bindPopup('<b>🏁 Drop</b>',{closeButton:false});
+  routeLine=L.polyline([[drvStart.lat,drvStart.lng],[p.lat,p.lng]],{color:'#6c63ff',weight:3,dashArray:'8 5'}).addTo(trackMap);
+  trackMap.fitBounds([[drvStart.lat,drvStart.lng],[d.lat,d.lng]],{padding:[50,50]});
+
+  // Try RTDB first, fallback to simulation
+  if(window._fbReady && window._rtdb){
+    listenRTDB(rideId, drvStart, p, d);
+  } else {
+    simulateRide(drvStart, p, d);
+  }
+}
+
+function listenRTDB(rideId, drvStart, pickup, drop){
+  const ref=window._rtdb.ref('zipride/rides/'+rideId+'/tracking');
+  _trackRef=ref;
+  let phase=0, _lastStatus='', _proximityAlerted=false;
+
+  // Write initial driver pos to RTDB (demo — normally driver app does this)
+  ref.set({driverLat:drvStart.lat,driverLng:drvStart.lng,status:'en_route_pickup',
+            driverName:currentRide.driver.name,driverVehicle:currentRide.driver.vehicle,
+            updatedAt:firebase.database.ServerValue.TIMESTAMP});
+
+  ref.on('value',snap=>{
+    const data=snap.val();
+    if(!data||!driverMarker) return;
+
+    if(data.driverLat && data.driverLng){
+      const pos=[data.driverLat,data.driverLng];
+      driverMarker.setLatLng(pos);
+
+      // Haversine to drop
+      const R=6371;
+      const dLat=(data.driverLat-drop.lat)*Math.PI/180;
+      const dLng=(data.driverLng-drop.lng)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(drop.lat*Math.PI/180)*Math.cos(data.driverLat*Math.PI/180)*Math.sin(dLng/2)**2;
+      const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      const distM=Math.round(distKm*1000);
+
+      const target=phase<2?pickup:drop;
+      if(routeLine) routeLine.setLatLngs([pos,[target.lat,target.lng]]);
+      if(trackMap) trackMap.panTo(pos,{animate:true,duration:.9});
+
+      const eta=distM<80?'Here!':distM<500?distM+'m':'~'+Math.ceil(distKm/0.4)+'min';
+      document.getElementById('track-eta').textContent=eta;
+      document.getElementById('track-eta-lbl').textContent=phase<2?'to pickup':'to drop';
+
+      if(distM<200 && !_proximityAlerted && phase>=2){
+        _proximityAlerted=true;
+        showToast('🏁 Almost at your destination!');
+      }
+    }
+
+    if(data.status && data.status!==_lastStatus){
+      _lastStatus=data.status;
+      if(data.status==='arrived_pickup'){ phase=1; renderTrackSteps(1); showToast('🚗 Driver has arrived!'); }
+      if(data.status==='in_progress'){    phase=2; renderTrackSteps(2); showToast('🛣 Ride started!'); }
+      if(data.status==='completed'){      ref.off('value'); _trackRef=null; phase=3; renderTrackSteps(3); setTimeout(endRide,2000); }
+    }
+    if(data.simulated) document.getElementById('gps-badge').className='gps-badge sim'; document.getElementById('gps-badge').textContent='📡 Map Position';
+    else { document.getElementById('gps-badge').className='gps-badge live'; document.getElementById('gps-badge').textContent='📍 GPS Live'; }
+  });
+
+  // Since no real driver app is connected in demo, simulate after 3s
+  setTimeout(()=>simulateRide(drvStart,pickup,drop,ref),3000);
+}
+
+function simulateRide(drvStart, pickup, drop, rtdbRef){
+  // Phase 1: drive to pickup (~8s)
+  // Phase 2: drive to drop (~12s)
+  let phase=0;
+  let step=0;
+
+  function moveTo(from, to, totalSteps, onDone, statusStart, statusEnd){
+    let s=0;
+    const timer=setInterval(()=>{
+      s++;
+      if(s>=totalSteps){ clearInterval(timer); if(typeof onDone==='function') onDone(); return; }
+      const t=s/totalSteps;
+      const e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+      const lat=from.lat+(to.lat-from.lat)*e;
+      const lng=from.lng+(to.lng-from.lng)*e;
+      if(driverMarker) driverMarker.setLatLng([lat,lng]);
+      if(trackMap) { if(s%6===0) trackMap.panTo([lat,lng],{animate:true,duration:.8}); }
+      if(routeLine) routeLine.setLatLngs([[lat,lng],[to.lat,to.lng]]);
+
+      const R=6371,dLat=(lat-to.lat)*Math.PI/180,dLng=(lng-to.lng)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(to.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dLng/2)**2;
+      const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      const distM=Math.round(distKm*1000);
+      const eta=distM<80?'Here!':distM<500?distM+'m':'~'+Math.ceil(distKm/0.4)+'min';
+      document.getElementById('track-eta').textContent=eta;
+      document.getElementById('track-eta-lbl').textContent=phase===0?'to pickup':'to drop';
+
+      if(rtdbRef) rtdbRef.update({driverLat:lat,driverLng:lng,status:s<totalSteps/2?statusStart:statusEnd,simulated:true,updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+    },1000);
+    return timer;
+  }
+
+  // Drive to pickup
+  moveTo(drvStart, pickup, 10, ()=>{
+    phase=1; renderTrackSteps(1);
+    showToast('🚗 Driver has arrived at pickup!');
+    document.getElementById('track-eta').textContent='Here!';
+    if(rtdbRef) rtdbRef.update({status:'arrived_pickup',simulated:true}).catch(()=>{});
+    setTimeout(()=>{
+      phase=2; renderTrackSteps(2);
+      showToast('🛣 Ride started!');
+      if(rtdbRef) rtdbRef.update({status:'in_progress',simulated:true}).catch(()=>{});
+      // Drive to drop
+      moveTo(pickup, drop, 14, ()=>{
+        phase=3; renderTrackSteps(3);
+        document.getElementById('track-eta').textContent='Here!';
+        if(rtdbRef) rtdbRef.update({status:'completed',simulated:true}).catch(()=>{});
+        setTimeout(endRide,2000);
+      },'in_progress','in_progress');
+    },3000);
+  },'en_route_pickup','approaching_pickup');
+}
+
+function cancelRide(){
+  if(_trackRef){_trackRef.off('value');_trackRef=null;}
+  currentRide=null; pickupLoc=null; dropLoc=null;
+  document.getElementById('drop-text').textContent='Where to?';
+  document.getElementById('drop-text').classList.add('muted');
+  showScreen('home');
+  showToast('Ride cancelled');
+}
+
+function endRide(){
+  if(_trackRef){_trackRef.off('value');_trackRef=null;}
+  if(currentRide){
+    document.getElementById('pay-amount').textContent='₹'+currentRide.fare;
+    document.getElementById('pay-route').textContent=currentRide.pickup.name+' → '+currentRide.drop.name;
+    renderPayMethods();
+    showScreen('payment-screen');
+  }
+}
+
+// ══════════════════════════════════
+// PAYMENT
+// ══════════════════════════════════
+let selectedPay='upi';
+function renderPayMethods(){
+  const methods=[
+    {id:'upi',icon:'💳',name:'UPI',sub:'GPay, PhonePe, Paytm'},
+    {id:'cash',icon:'💵',name:'Cash',sub:'Pay driver directly'},
+    {id:'wallet',icon:'🪙',name:'ZipWallet',sub:'₹250 available'},
+  ];
+  document.getElementById('pay-methods').innerHTML=methods.map(m=>`
+    <div class="pay-method ${m.id==='upi'?'selected':''}" id="pm-${m.id}" onclick="selectPay('${m.id}')">
+      <div class="pay-method-icon">${m.icon}</div>
+      <div><div class="pay-method-name">${m.name}</div><div class="pay-method-sub">${m.sub}</div></div>
+    </div>`).join('');
+}
+function selectPay(id){
+  selectedPay=id;
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  document.getElementById('pm-'+id).classList.add('selected');
+}
+function confirmPayment(){
+  if(window._fbReady && window._db && currentRide){
+    window._db.collection('zipride_rides').doc(currentRide.id).update({
+      status:'completed',paymentMethod:selectedPay,
+      completedAt:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(()=>{});
+  }
+  showScreen('rating-screen');
+}
+
+// ══════════════════════════════════
+// RATING
+// ══════════════════════════════════
+let _starRating=0;
+function rateStar(n){
+  _starRating=n;
+  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('active',i<n));
+}
+function submitRating(){
+  showToast('🌟 Thanks for rating!');
+  currentRide=null; pickupLoc=null; dropLoc=null;
+  document.getElementById('drop-text').textContent='Where to?';
+  document.getElementById('drop-text').classList.add('muted');
+  setTimeout(()=>{ goHome(); },1000);
+}
+</script>
+</body>
+</html>
