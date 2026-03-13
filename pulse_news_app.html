@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--surface3:#252533;
+    --border:#2a2a3a;--text:#f0f0f8;--text2:#9999b8;--text3:#5555778;
+    --accent:#e8503a;--accent2:#f0a500;--blue:#3b7dd8;--green:#2db87a;
+    --purple:#8b5cf6;--pink:#e84393;
+    --font:'Georgia',serif;--sans:'Helvetica Neue',sans-serif;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+  /* TOP NAV */
+  .topnav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;height:56px;background:var(--surface);
+    border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+  }
+  .logo{font-family:var(--font);font-size:22px;font-weight:700;letter-spacing:-0.5px;color:var(--text)}
+  .logo span{color:var(--accent)}
+  .nav-actions{display:flex;gap:8px;align-items:center}
+  .search-box{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:20px;padding:6px 14px;cursor:text;
+  }
+  .search-box input{
+    background:none;border:none;outline:none;color:var(--text);
+    font-size:13px;width:160px;font-family:var(--sans);
+  }
+  .search-box input::placeholder{color:var(--text2)}
+  .icon-btn{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--border);
+    background:var(--surface2);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:16px;color:var(--text2);transition:all 0.2s;
+  }
+  .icon-btn:hover{background:var(--surface3);color:var(--text)}
+  .notif-dot{position:relative}
+  .notif-dot::after{
+    content:'';position:absolute;top:6px;right:6px;
+    width:7px;height:7px;border-radius:50%;background:var(--accent);
+    border:2px solid var(--surface);
+  }
+
+  /* CATEGORY BAR */
+  .catbar{
+    display:flex;gap:4px;padding:12px 20px;overflow-x:auto;
+    background:var(--surface);border-bottom:1px solid var(--border);
+    scrollbar-width:none;
+  }
+  .catbar::-webkit-scrollbar{display:none}
+  .cat-btn{
+    padding:6px 16px;border-radius:20px;border:1px solid var(--border);
+    background:transparent;color:var(--text2);font-size:12px;font-weight:500;
+    cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:var(--sans);
+    display:flex;align-items:center;gap:5px;
+  }
+  .cat-btn:hover{background:var(--surface2);color:var(--text)}
+  .cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* MAIN LAYOUT */
+  .main{display:flex;min-height:calc(100vh - 56px - 53px)}
+  .feed{flex:1;padding:20px;max-width:760px}
+  .sidebar{width:300px;padding:20px;border-left:1px solid var(--border);flex-shrink:0}
+
+  /* HERO CARD */
+  .hero-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    overflow:hidden;margin-bottom:16px;cursor:pointer;transition:all 0.2s;
+  }
+  .hero-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .hero-img{
+    width:100%;height:200px;display:flex;align-items:flex-end;padding:16px;
+    position:relative;overflow:hidden;
+  }
+  .hero-gradient{
+    position:absolute;inset:0;
+    background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%);
+  }
+  .hero-content{position:relative;z-index:1}
+  .hero-cat{
+    display:inline-block;padding:3px 10px;border-radius:4px;
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;
+    margin-bottom:8px;
+  }
+  .hero-title{font-family:var(--font);font-size:20px;line-height:1.3;color:#fff;font-weight:700}
+  .hero-meta{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .hero-body{padding:14px 16px 16px}
+  .hero-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+  .meta-row{display:flex;align-items:center;gap:12px}
+
+  /* ARTICLE CARD */
+  .article-card{
+    display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);
+    cursor:pointer;transition:all 0.15s;
+  }
+  .article-card:hover .art-title{color:var(--accent)}
+  .article-card:last-child{border-bottom:none}
+  .art-img{
+    width:90px;height:70px;border-radius:8px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:28px;
+    overflow:hidden;
+  }
+  .art-content{flex:1;min-width:0}
+  .art-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px}
+  .art-title{font-size:14px;font-weight:600;line-height:1.4;color:var(--text);margin-bottom:5px;transition:color 0.15s}
+  .art-meta{display:flex;align-items:center;gap:8px}
+
+  /* META ELEMENTS */
+  .time{font-size:11px;color:var(--text2)}
+  .source{font-size:11px;color:var(--text2);font-weight:500}
+  .read-time{font-size:11px;color:var(--text2)}
+  .dot{width:3px;height:3px;border-radius:50%;background:var(--text2);display:inline-block}
+  .bookmark-btn{
+    margin-left:auto;background:none;border:none;cursor:pointer;
+    font-size:14px;color:var(--text2);transition:color 0.2s;padding:2px;
+  }
+  .bookmark-btn:hover{color:var(--accent2)}
+  .bookmark-btn.saved{color:var(--accent2)}
+
+  /* TRENDING */
+  .section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text2);margin-bottom:12px}
+  .trend-item{
+    display:flex;gap:10px;align-items:flex-start;padding:10px 0;
+    border-bottom:1px solid var(--border);cursor:pointer;
+  }
+  .trend-item:last-child{border-bottom:none}
+  .trend-num{font-size:20px;font-weight:700;color:var(--border);min-width:28px;line-height:1}
+  .trend-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;transition:color 0.15s}
+  .trend-item:hover .trend-title{color:var(--accent)}
+  .trend-cat{font-size:10px;color:var(--text2);margin-top:2px}
+
+  /* WEATHER WIDGET */
+  .weather-card{
+    background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+    padding:14px;margin-bottom:16px;
+  }
+  .weather-main{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .weather-temp{font-size:36px;font-weight:700;color:var(--text)}
+  .weather-icon{font-size:36px}
+  .weather-city{font-size:13px;color:var(--text2);margin-bottom:2px}
+  .weather-desc{font-size:12px;color:var(--text2)}
+  .weather-extras{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .weather-extra{font-size:11px;color:var(--text2);text-align:center;flex:1}
+  .weather-extra strong{display:block;font-size:13px;color:var(--text);font-weight:500}
+
+  /* ARTICLE READER */
+  .reader-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    opacity:0;pointer-events:none;transition:opacity 0.3s;
+  }
+  .reader-overlay.open{opacity:1;pointer-events:all}
+  .reader-modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    width:100%;max-width:680px;max-height:90vh;overflow-y:auto;
+    transform:translateY(20px);transition:transform 0.3s;
+  }
+  .reader-overlay.open .reader-modal{transform:translateY(0)}
+  .reader-header{
+    position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:10;
+  }
+  .reader-actions{display:flex;gap:6px;align-items:center}
+  .reader-body{padding:24px}
+  .reader-cat{display:inline-block;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px}
+  .reader-title{font-family:var(--font);font-size:26px;font-weight:700;line-height:1.3;color:var(--text);margin-bottom:12px}
+  .reader-hero{width:100%;height:220px;border-radius:10px;margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-size:72px;background:var(--surface2)}
+  .reader-byline{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  .author-av{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+  .author-name{font-size:13px;font-weight:600;color:var(--text)}
+  .author-meta{font-size:11px;color:var(--text2)}
+  .reader-text{font-size:15px;line-height:1.8;color:var(--text2);font-family:var(--font)}
+  .reader-text p{margin-bottom:16px}
+  .reader-text strong{color:var(--text);font-weight:600}
+  .reader-text blockquote{
+    border-left:3px solid var(--accent);padding-left:16px;
+    margin:20px 0;font-style:italic;color:var(--text);
+  }
+  .reader-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+  .tag{padding:4px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--text2)}
+  .font-toggle{display:flex;gap:4px}
+  .font-btn{padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--sans)}
+  .font-btn:hover{color:var(--text)}
+  .progress-bar{height:2px;background:var(--border);position:sticky;top:49px}
+  .progress-fill{height:100%;background:var(--accent);width:0;transition:width 0.1s}
+
+  /* TOAST */
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+    background:var(--surface3);border:1px solid var(--border);border-radius:8px;
+    padding:10px 18px;font-size:13px;color:var(--text);z-index:300;
+    transition:transform 0.3s;white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* LOAD MORE */
+  .load-more{
+    width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;
+    background:var(--surface2);color:var(--text2);font-size:13px;font-weight:500;
+    cursor:pointer;margin-top:16px;font-family:var(--sans);transition:all 0.2s;
+  }
+  .load-more:hover{background:var(--surface3);color:var(--text)}
+
+  /* BREAKING BANNER */
+  .breaking{
+    background:var(--accent);padding:8px 20px;display:flex;align-items:center;gap:10px;
+    font-size:12px;font-weight:600;color:#fff;overflow:hidden;
+  }
+  .breaking-tag{background:rgba(0,0,0,0.3);padding:2px 8px;border-radius:3px;font-size:10px;letter-spacing:1px;flex-shrink:0}
+  .breaking-scroll{white-space:nowrap;animation:scroll 20s linear infinite}
+  @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+  @media(max-width:700px){
+    .sidebar{display:none}
+    .search-box{display:none}
+    .main{flex-direction:column}
+    .feed{max-width:100%}
+  }
+</style>
+</head>
+<body>
+
+<!-- BREAKING NEWS TICKER -->
+<div class="breaking">
+  <span class="breaking-tag">BREAKING</span>
+  <span class="breaking-scroll">
+    Global markets rally as inflation data comes in lower than expected &nbsp;&nbsp;•&nbsp;&nbsp;
+    Scientists discover potential breakthrough in Alzheimer's treatment &nbsp;&nbsp;•&nbsp;&nbsp;
+    Tech giant unveils next-gen AI chips at annual conference &nbsp;&nbsp;•&nbsp;&nbsp;
+    Climate summit reaches historic agreement on carbon emissions &nbsp;&nbsp;•&nbsp;&nbsp;
+    Space agency confirms successful Mars sample return mission &nbsp;&nbsp;•&nbsp;&nbsp;
+    Global markets rally as inflation data comes in lower than expected &nbsp;&nbsp;•&nbsp;&nbsp;
+    Scientists discover potential breakthrough in Alzheimer's treatment &nbsp;&nbsp;•&nbsp;&nbsp;
+  </span>
+</div>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="logo">Pulse<span>.</span></div>
+  <div class="search-box">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9999b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search news..." id="searchInput" oninput="handleSearch(this.value)">
+  </div>
+  <div class="nav-actions">
+    <div class="icon-btn notif-dot" title="Notifications">🔔</div>
+    <div class="icon-btn" title="Bookmarks" onclick="showBookmarks()">🔖</div>
+    <div class="icon-btn" title="Settings">⚙️</div>
+  </div>
+</div>
+
+<!-- CATEGORY BAR -->
+<div class="catbar" id="catbar"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="feed" id="feed"></div>
+  <div class="sidebar">
+    <!-- Weather -->
+    <div class="weather-card">
+      <div class="section-title">Weather</div>
+      <div class="weather-main">
+        <div>
+          <div class="weather-city">Hyderabad, IN</div>
+          <div class="weather-temp">34°C</div>
+          <div class="weather-desc">Partly Cloudy</div>
+        </div>
+        <div class="weather-icon">⛅</div>
+      </div>
+      <div class="weather-extras">
+        <div class="weather-extra"><strong>72%</strong>Humidity</div>
+        <div class="weather-extra"><strong>18 km/h</strong>Wind</div>
+        <div class="weather-extra"><strong>38°C</strong>Feels like</div>
+      </div>
+    </div>
+
+    <!-- Trending -->
+    <div class="section-title">Trending Now</div>
+    <div id="trending"></div>
+  </div>
+</div>
+
+<!-- ARTICLE READER MODAL -->
+<div class="reader-overlay" id="reader" onclick="closeReader(event)">
+  <div class="reader-modal" id="readerModal">
+    <div class="reader-header">
+      <div class="reader-actions">
+        <div class="icon-btn" onclick="closeReaderBtn()" title="Close">✕</div>
+        <div class="font-toggle">
+          <button class="font-btn" onclick="changeFontSize(-1)">A−</button>
+          <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+        </div>
+      </div>
+      <div class="reader-actions">
+        <div class="icon-btn" id="readerBookmark" onclick="toggleReaderBookmark()" title="Bookmark">🔖</div>
+        <div class="icon-btn" onclick="shareArticle()" title="Share">↗</div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="reader-body" id="readerBody"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = [
+  {id:'all',label:'All News',icon:'📰',color:'var(--accent)'},
+  {id:'world',label:'World',icon:'🌍',color:'#3b7dd8'},
+  {id:'tech',label:'Technology',icon:'💻',color:'#8b5cf6'},
+  {id:'business',label:'Business',icon:'📈',color:'#f0a500'},
+  {id:'science',label:'Science',icon:'🔬',color:'#2db87a'},
+  {id:'health',label:'Health',icon:'❤️',color:'#e84393'},
+  {id:'sports',label:'Sports',icon:'⚽',color:'#e8503a'},
+  {id:'entertainment',label:'Entertainment',icon:'🎬',color:'#e84393'},
+  {id:'politics',label:'Politics',icon:'🏛️',color:'#9999b8'},
+  {id:'environment',label:'Environment',icon:'🌱',color:'#2db87a'},
+];
+
+const ARTICLES = [
+  {id:1,cat:'tech',title:'OpenAI Unveils GPT-5 With Unprecedented Reasoning Capabilities',desc:'The latest model demonstrates human-level performance across a broad range of cognitive tasks, sparking new debates about AGI timelines.',emoji:'🤖',source:'TechCrunch',time:'2h ago',readTime:'4 min read',author:'Sarah Mitchell',authorInit:'SM',featured:true,
+  content:`<p>OpenAI has officially launched GPT-5, its most powerful language model to date, claiming it achieves human-level performance across a broad range of cognitive tasks — from complex mathematical reasoning to nuanced creative writing.</p><p>The announcement, made at a packed press event in San Francisco, sent shockwaves through the AI industry and reignited debates about how close we truly are to artificial general intelligence.</p><blockquote>"This is not just an incremental improvement. GPT-5 represents a genuine paradigm shift in what AI systems are capable of," said OpenAI CEO Sam Altman during the keynote.</blockquote><p>Early benchmarks show GPT-5 scoring in the 99th percentile on standardized tests including the bar exam, medical licensing exams, and advanced mathematics competitions. In coding tasks, it reportedly outperforms 95% of professional software engineers.</p><p><strong>What's New in GPT-5</strong></p><p>The model introduces several architectural innovations, including a novel memory system that allows it to maintain context across extremely long conversations, and a self-correction mechanism that catches logical errors in real-time.</p><p>Multimodal capabilities have been significantly enhanced — GPT-5 can now process and generate images, audio, and video in a unified framework, blurring the line between language and perception.</p><p>Safety researchers at OpenAI say the model underwent more than 18 months of alignment training, using a new technique called "Constitutional AI 2.0" to instill robust ethical guardrails.</p>`,
+  tags:['AI','OpenAI','GPT-5','Technology','Machine Learning']},
+
+  {id:2,cat:'business',title:'Global Markets Surge as US Inflation Hits 2-Year Low',desc:'Investor confidence rebounds sharply as Federal Reserve signals potential rate cuts in the coming quarter.',emoji:'📊',source:'Bloomberg',time:'45m ago',readTime:'3 min read',author:'James Chen',authorInit:'JC',featured:false,
+  content:`<p>Global financial markets surged on Friday after the US Bureau of Labor Statistics reported that inflation fell to its lowest level in two years, raising hopes that the Federal Reserve will begin cutting interest rates as early as next quarter.</p><p>The S&P 500 gained 2.3%, the Nasdaq rose 3.1%, and the Dow Jones Industrial Average climbed nearly 600 points in the biggest single-day rally since November 2023.</p><blockquote>"This is the data the market has been waiting for. The Fed now has the cover it needs to pivot," said Janet Wu, chief economist at Goldman Sachs.</blockquote><p>The Consumer Price Index rose just 2.1% year-over-year in February, down from 2.8% in January and significantly below the 2.4% consensus estimate among economists. Core inflation, which strips out food and energy, came in at 2.3%.</p><p><strong>Fed Response</strong></p><p>Federal Reserve Chair Jerome Powell acknowledged the data in a brief statement, calling it "encouraging progress" while cautioning that the central bank would need to see "sustained evidence" before adjusting policy. Markets are now pricing in a 78% probability of a rate cut at the May meeting.</p>`,
+  tags:['Markets','Economy','Inflation','Federal Reserve','Stocks']},
+
+  {id:3,cat:'science',title:'Scientists Confirm Water Ice Found in Permanently Shadowed Moon Craters',desc:'NASA and ESA data provides definitive evidence that billions of gallons of ice could support future lunar missions.',emoji:'🌙',source:'Nature',time:'3h ago',readTime:'5 min read',author:'Dr. Priya Nair',authorInit:'PN',featured:false,
+  content:`<p>An international team of scientists has confirmed the presence of substantial water ice deposits in permanently shadowed regions near the Moon's south pole, a discovery that could fundamentally reshape plans for long-term human habitation of the lunar surface.</p><p>The findings, published in the journal Nature Geoscience, combine data from NASA's Lunar Reconnaissance Orbiter, ESA's SMART-1 mission, and India's Chandrayaan-3 rover to paint the most detailed picture yet of lunar ice distribution.</p><p>Researchers estimate the deposits contain at least 600 billion kilograms of water ice — enough to fill over 240,000 Olympic swimming pools. The ice sits in craters that haven't seen sunlight in billions of years, where temperatures hover around -250°C.</p><blockquote>"These are not trace amounts. We're talking about genuinely substantial resources that could be harvested for drinking water, oxygen production, and rocket fuel," said lead researcher Dr. Elena Vasquez of the European Space Agency.</blockquote><p><strong>Implications for Artemis</strong></p><p>NASA's Artemis program, which aims to establish a permanent lunar base by 2030, has long identified water ice as a critical resource. The ability to manufacture rocket propellant on the Moon — rather than hauling it from Earth — could dramatically reduce mission costs.</p>`,
+  tags:['Space','Moon','NASA','Water','Lunar Mission']},
+
+  {id:4,cat:'health',title:'Breakthrough Drug Halts Alzheimer\'s Progression in Phase 3 Trial',desc:'A new antibody treatment reduced cognitive decline by 40% in patients with early-stage disease over 18 months.',emoji:'🧠',source:'The Lancet',time:'5h ago',readTime:'6 min read',author:'Dr. Anna Kowalski',authorInit:'AK',featured:false,
+  content:`<p>A landmark Phase 3 clinical trial has demonstrated that a new antibody drug can significantly slow the progression of Alzheimer's disease in patients with early-stage diagnoses, offering hope to millions of families worldwide.</p><p>The drug, donanemab, developed by Eli Lilly, reduced cognitive decline by 40% compared to placebo over an 18-month period. The trial enrolled 1,736 patients across 24 countries, making it one of the largest Alzheimer's studies ever conducted.</p><p><strong>How It Works</strong></p><p>Donanemab targets amyloid plaques — abnormal protein deposits that accumulate in the brains of Alzheimer's patients and are believed to disrupt communication between neurons. By clearing these plaques, the drug appears to buy patients more time before significant cognitive impairment sets in.</p><blockquote>"For the first time, we have strong evidence that targeting amyloid early in the disease course can meaningfully change its trajectory," said Dr. Mark Mintun, Chief Science Officer at Eli Lilly.</blockquote><p>The FDA granted the drug Priority Review status and a decision is expected within the next six months. If approved, it would join lecanemab as only the second Alzheimer's treatment proven to alter disease progression rather than merely manage symptoms.</p>`,
+  tags:['Alzheimer\'s','Medicine','Clinical Trial','Neuroscience','Eli Lilly']},
+
+  {id:5,cat:'world',title:'Historic Climate Agreement Signed by 140 Nations at Geneva Summit',desc:'The landmark deal commits signatories to net-zero emissions by 2045 and establishes a $500B green transition fund.',emoji:'🌍',source:'Reuters',time:'1h ago',readTime:'4 min read',author:'Marie Dupont',authorInit:'MD',featured:false,
+  content:`<p>One hundred and forty nations signed a landmark climate agreement at the Geneva Environmental Summit on Thursday, committing to achieve net-zero carbon emissions by 2045 — five years earlier than the targets set by the Paris Agreement — and establishing a $500 billion fund to help developing nations transition to clean energy.</p><p>The deal, brokered after three days of intense negotiations, represents the most ambitious multilateral climate commitment in history and includes for the first time binding enforcement mechanisms with financial penalties for non-compliance.</p><blockquote>"Today we chose our children over our convenience. This is the turning point future generations will look back on," said UN Secretary-General António Guterres at the signing ceremony.</blockquote><p><strong>Key Commitments</strong></p><p>Under the agreement, signatory nations must phase out coal power by 2035, halt new oil and gas exploration licenses by 2030, and achieve at least 80% renewable energy generation by 2040. Annual progress reports will be submitted to an independent international monitoring body.</p><p>The $500 billion Green Transition Fund — to be contributed proportionally by developed nations — will finance renewable energy infrastructure, climate adaptation projects, and job retraining programs in vulnerable economies.</p>`,
+  tags:['Climate','United Nations','Environment','Geneva','Carbon']},
+
+  {id:6,cat:'sports',title:'India Defeats Australia in World Cup Final with Record-Breaking Score',desc:'Virat Kohli\'s century anchors a dominant 180-run victory as India lifts its third Cricket World Cup title.',emoji:'🏏',source:'ESPN Cricinfo',time:'6h ago',readTime:'3 min read',author:'Rahul Sharma',authorInit:'RS',featured:false,
+  content:`<p>India claimed its third Cricket World Cup title on Sunday with a commanding 180-run victory over Australia in a final that will be remembered for generations. Set 360 to win, Australia were bowled out for 179 in 38 overs as India's pace attack proved relentless.</p><p>The foundation was laid by Virat Kohli, who produced a masterful century — his 49th in One Day International cricket — to anchor India's imposing total of 359/6. Kohli's 112-ball knock of 117 included 12 boundaries and three sixes.</p><blockquote>"This is what we've worked for. Every practice session, every early morning — this is why," said Kohli in the post-match presentation, visibly emotional.</blockquote><p>Jasprit Bumrah led the bowling attack with figures of 5 for 28, dismantling Australia's top order inside the first 12 overs. Mohammed Siraj contributed 3 wickets as the defending champions crumbled under pressure.</p><p>A capacity crowd of 90,000 at the Narendra Modi Stadium in Ahmedabad erupted in celebration as the final wicket fell, with millions more watching across the country in what became one of the most-watched sports broadcasts in Indian television history.</p>`,
+  tags:['Cricket','World Cup','India','Virat Kohli','Australia']},
+
+  {id:7,cat:'tech',title:'Apple\'s Vision Pro 2 Leaks Reveal Radical New Design and $1,499 Price',desc:'Next-generation spatial computer reportedly weighs 40% less with double the battery life and a modular lens system.',emoji:'🥽',source:'9to5Mac',time:'8h ago',readTime:'3 min read',author:'Mark Gurman',authorInit:'MG',featured:false,
+  content:`<p>Leaked schematics and supply chain information point to a dramatically redesigned Apple Vision Pro 2, addressing the most common criticisms of the original — its weight, battery life, and price — when it launches later this year at an expected starting price of $1,499.</p><p>The second-generation headset is said to be 40% lighter than the current model, thanks to a new carbon fiber frame and the integration of the battery pack directly into a redesigned head strap. Battery life is expected to double from 2 hours to approximately 4 hours on a single charge.</p><p><strong>Key New Features</strong></p><p>A modular lens system would allow users to easily swap prescription lenses at home, eliminating the need for the expensive Zeiss inserts required for the original model. The display system has been upgraded to micro-OLED panels with higher resolution and a wider field of view.</p><blockquote>"The original Vision Pro was a developer preview at consumer prices. Vision Pro 2 is what they actually wanted to ship in 2023," according to a person familiar with Apple's roadmap.</blockquote><p>The M4 chip powers the new headset, with a dedicated neural engine said to dramatically improve hand tracking accuracy and eye-tracking responsiveness. A new "social mode" is rumored to make the external display more natural-looking to others in the room.</p>`,
+  tags:['Apple','Vision Pro','AR','VR','Spatial Computing']},
+
+  {id:8,cat:'environment',title:'Amazon Rainforest Sees Deforestation Drop 82% Under New Protection Laws',desc:'Brazil\'s aggressive enforcement measures and indigenous land rights protections credited with historic reversal.',emoji:'🌿',source:'BBC',time:'4h ago',readTime:'4 min read',author:'Carlos Rivera',authorInit:'CR',featured:false,
+  content:`<p>Deforestation in the Brazilian Amazon fell by 82% in 2024 compared to the peak years of 2019-2022, according to data released by Brazil's National Institute for Space Research (INPE), representing the most significant environmental turnaround in the region's modern history.</p><p>The dramatic decline is attributed to a combination of aggressive law enforcement, the reversal of policies that had opened protected areas to agricultural and mining interests, and landmark legislation that formally demarcated and legally protected indigenous territories spanning 14 million hectares.</p><blockquote>"Nature can recover faster than we imagined when we simply stop destroying it. The Amazon is resilient. We needed to give it a chance," said Brazil's Environment Minister Marina Silva.</blockquote><p><strong>What Changed</strong></p><p>The Brazilian federal government deployed 2,400 additional environmental enforcement agents, established real-time satellite monitoring of deforestation activity, and prosecuted over 3,000 cases of illegal logging and land clearing. Fines collected exceeded $2.8 billion.</p><p>Economic incentives also played a role. The EU's new deforestation regulation, which bars imports of commodities linked to forest destruction, gave Brazilian agricultural exporters strong commercial motivation to clean up their supply chains.</p>`,
+  tags:['Amazon','Deforestation','Brazil','Environment','Conservation']},
+];
+
+let currentCat = 'all';
+let bookmarks = new Set();
+let fontSize = 15;
+let currentArticle = null;
+
+function catColor(catId){
+  const c = CATS.find(x=>x.id===catId);
+  return c ? c.color : 'var(--accent)';
+}
+function catLabel(catId){
+  const c = CATS.find(x=>x.id===catId);
+  return c ? c.label : catId;
+}
+
+// Render category bar
+function renderCats(){
+  const bar = document.getElementById('catbar');
+  bar.innerHTML = CATS.map(c=>`
+    <button class="cat-btn ${c.id===currentCat?'active':''}" onclick="selectCat('${c.id}')">
+      ${c.icon} ${c.label}
+    </button>
+  `).join('');
+}
+
+function selectCat(id){
+  currentCat = id;
+  renderCats();
+  renderFeed();
+}
+
+// Render feed
+function renderFeed(filter=''){
+  const feed = document.getElementById('feed');
+  let arts = ARTICLES;
+  if(currentCat !== 'all') arts = arts.filter(a=>a.cat===currentCat);
+  if(filter) arts = arts.filter(a=>a.title.toLowerCase().includes(filter)||a.desc.toLowerCase().includes(filter));
+
+  if(!arts.length){
+    feed.innerHTML=`<div style="text-align:center;padding:60px 0;color:var(--text2)"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:15px">No articles found</div></div>`;
+    return;
+  }
+
+  const featured = arts.find(a=>a.featured && currentCat==='all');
+  const rest = featured ? arts.filter(a=>!a.featured || currentCat!=='all') : arts;
+
+  let html = '';
+
+  if(featured){
+    const col = catColor(featured.cat);
+    html += `
+    <div class="hero-card" onclick="openArticle(${featured.id})">
+      <div class="hero-img" style="background:${col}22">
+        <div class="hero-gradient"></div>
+        <div class="hero-content">
+          <span class="hero-cat" style="background:${col};color:#fff">${catLabel(featured.cat)}</span>
+          <div class="hero-title">${featured.title}</div>
+          <div class="hero-meta">
+            <span class="source">${featured.source}</span>
+            <span class="dot"></span>
+            <span class="time">${featured.time}</span>
+            <span class="dot"></span>
+            <span class="read-time">${featured.readTime}</span>
+          </div>
+        </div>
+        <div style="position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:64px;opacity:0.4">${featured.emoji}</div>
+      </div>
+      <div class="hero-body">
+        <div class="hero-desc">${featured.desc}</div>
+        <div class="meta-row">
+          <span style="font-size:12px;color:var(--text2)">By ${featured.author}</span>
+          <button class="bookmark-btn ${bookmarks.has(featured.id)?'saved':''}" onclick="event.stopPropagation();toggleBookmark(${featured.id})">${bookmarks.has(featured.id)?'🔖':'🏷️'}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div>`;
+  rest.forEach(a=>{
+    const col = catColor(a.cat);
+    html += `
+    <div class="article-card" onclick="openArticle(${a.id})">
+      <div class="art-img" style="background:${col}22">${a.emoji}</div>
+      <div class="art-content">
+        <div class="art-cat" style="color:${col}">${catLabel(a.cat)}</div>
+        <div class="art-title">${a.title}</div>
+        <div class="art-meta">
+          <span class="source">${a.source}</span>
+          <span class="dot"></span>
+          <span class="time">${a.time}</span>
+          <span class="dot"></span>
+          <span class="read-time">${a.readTime}</span>
+          <button class="bookmark-btn ${bookmarks.has(a.id)?'saved':''}" onclick="event.stopPropagation();toggleBookmark(${a.id})">${bookmarks.has(a.id)?'🔖':'🏷️'}</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  html += `<button class="load-more" onclick="showToast('No more articles to load')">Load more articles</button>`;
+  feed.innerHTML = html;
+}
+
+// Render trending
+function renderTrending(){
+  const trendDiv = document.getElementById('trending');
+  const top5 = [...ARTICLES].sort(()=>Math.random()-0.5).slice(0,5);
+  trendDiv.innerHTML = top5.map((a,i)=>`
+    <div class="trend-item" onclick="openArticle(${a.id})">
+      <div class="trend-num">0${i+1}</div>
+      <div>
+        <div class="trend-title">${a.title}</div>
+        <div class="trend-cat">${catLabel(a.cat)} · ${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Open article reader
+function openArticle(id){
+  const art = ARTICLES.find(a=>a.id===id);
+  if(!art) return;
+  currentArticle = art;
+  const col = catColor(art.cat);
+  const body = document.getElementById('readerBody');
+  body.innerHTML = `
+    <span class="reader-cat" style="background:${col}22;color:${col}">${catLabel(art.cat)}</span>
+    <div class="reader-title">${art.title}</div>
+    <div class="reader-hero">${art.emoji}</div>
+    <div class="reader-byline">
+      <div class="author-av" style="background:${col}">${art.authorInit}</div>
+      <div>
+        <div class="author-name">${art.author}</div>
+        <div class="author-meta">${art.source} · ${art.time} · ${art.readTime}</div>
+      </div>
+    </div>
+    <div class="reader-text" id="readerText" style="font-size:${fontSize}px">${art.content}</div>
+    <div class="reader-tags">${art.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+  `;
+  updateBookmarkIcon();
+  const overlay = document.getElementById('reader');
+  overlay.classList.add('open');
+  document.getElementById('readerModal').scrollTop = 0;
+  document.getElementById('progressFill').style.width = '0';
+  document.getElementById('readerModal').onscroll = updateProgress;
+}
+
+function updateProgress(){
+  const modal = document.getElementById('readerModal');
+  const pct = modal.scrollTop / (modal.scrollHeight - modal.clientHeight) * 100;
+  document.getElementById('progressFill').style.width = Math.round(pct) + '%';
+}
+
+function closeReader(e){
+  if(e.target === document.getElementById('reader')) closeReaderBtn();
+}
+function closeReaderBtn(){
+  document.getElementById('reader').classList.remove('open');
+}
+
+function updateBookmarkIcon(){
+  if(!currentArticle) return;
+  const btn = document.getElementById('readerBookmark');
+  btn.textContent = bookmarks.has(currentArticle.id) ? '🔖' : '🏷️';
+}
+
+function toggleReaderBookmark(){
+  if(!currentArticle) return;
+  toggleBookmark(currentArticle.id);
+  updateBookmarkIcon();
+}
+
+function toggleBookmark(id){
+  if(bookmarks.has(id)){
+    bookmarks.delete(id);
+    showToast('Removed from bookmarks');
+  } else {
+    bookmarks.add(id);
+    showToast('Saved to bookmarks');
+  }
+  renderFeed();
+}
+
+function showBookmarks(){
+  if(bookmarks.size === 0){ showToast('No bookmarks yet'); return; }
+  const saved = ARTICLES.filter(a=>bookmarks.has(a.id));
+  const orig = currentCat;
+  currentCat = 'all';
+  const feed = document.getElementById('feed');
+  let html = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <div style="font-size:13px;font-weight:600;color:var(--text)">🔖 Saved Articles (${saved.length})</div>
+    <button onclick="selectCat('all')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)">← Back</button>
+  </div>`;
+  saved.forEach(a=>{
+    const col = catColor(a.cat);
+    html += `<div class="article-card" onclick="openArticle(${a.id})">
+      <div class="art-img" style="background:${col}22">${a.emoji}</div>
+      <div class="art-content">
+        <div class="art-cat" style="color:${col}">${catLabel(a.cat)}</div>
+        <div class="art-title">${a.title}</div>
+        <div class="art-meta"><span class="source">${a.source}</span><span class="dot"></span><span class="time">${a.time}</span></div>
+      </div>
+    </div>`;
+  });
+  feed.innerHTML = html;
+}
+
+function changeFontSize(d){
+  fontSize = Math.min(20, Math.max(12, fontSize + d));
+  const t = document.getElementById('readerText');
+  if(t) t.style.fontSize = fontSize + 'px';
+}
+
+function shareArticle(){
+  showToast('Link copied to clipboard!');
+}
+
+function handleSearch(val){
+  renderFeed(val.toLowerCase());
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// Init
+renderCats();
+renderFeed();
+renderTrending();
+</script>
+</body>
+</html>
