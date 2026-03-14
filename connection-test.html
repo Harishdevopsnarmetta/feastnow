@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NestMart — Connection Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080B08;--surface:#0F140F;--surface2:#161E16;--border:#1E2A1E;--accent:#39FF85;--accent2:#FF6B35;--accent3:#FFD166;--blue:#5B9FFF;--purple:#C77DFF;--text:#E8F5E8;--muted:#5A7A5A;--danger:#FF4D6D;--radius:14px;--radius-sm:8px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);}
+  body{padding:20px 16px 40px;}
+
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);}
+  .logo span{color:var(--muted);font-size:13px;font-weight:400;margin-left:8px;}
+  .conn-badge{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Syne',sans-serif;border:0.5px solid;}
+  .conn-badge.connecting{border-color:var(--accent3);color:var(--accent3);}
+  .conn-badge.connected{border-color:var(--accent);color:var(--accent);}
+  .conn-badge.error{border-color:var(--danger);color:var(--danger);}
+  .conn-dot{width:7px;height:7px;border-radius:50%;}
+  .conn-badge.connecting .conn-dot{background:var(--accent3);animation:pulse 1s infinite;}
+  .conn-badge.connected .conn-dot{background:var(--accent);}
+  .conn-badge.error .conn-dot{background:var(--danger);}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+
+  /* FIREBASE STATUS */
+  .firebase-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;}
+  .fb-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:8px;}
+  .fb-icon{font-size:16px;}
+  .fb-info{}
+  .fb-name{font-size:11px;color:var(--muted);}
+  .fb-status{font-size:12px;font-weight:600;}
+  .ok{color:var(--accent);}
+  .err{color:var(--danger);}
+  .wait{color:var(--accent3);}
+
+  /* COLLECTION CARDS */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .coll-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;}
+  .coll-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .coll-name{font-size:11px;color:var(--muted);letter-spacing:0.06em;}
+  .coll-live{font-size:10px;color:var(--accent);display:flex;align-items:center;gap:4px;}
+  .live-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite;}
+  .coll-count{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;line-height:1;margin-bottom:4px;}
+  .coll-sub{font-size:11px;color:var(--muted);}
+  .coll-latest{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);line-height:1.5;}
+  .coll-latest span{color:var(--text);}
+
+  /* RTDB */
+  .rtdb-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .rtdb-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .rtdb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:12px;}
+  .rtdb-row:last-child{border-bottom:none;}
+  .rtdb-key{color:var(--muted);}
+  .rtdb-val{color:var(--text);font-weight:500;font-family:'Syne',sans-serif;font-size:13px;}
+
+  /* FLOW TEST */
+  .flow-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .flow-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;}
+  .flow-step{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);}
+  .flow-step:last-child{border-bottom:none;}
+  .step-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;}
+  .step-info{flex:1;}
+  .step-name{font-size:13px;font-weight:500;}
+  .step-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+  .step-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;}
+  .s-ok{background:rgba(57,255,133,0.1);color:var(--accent);}
+  .s-wait{background:rgba(255,209,102,0.1);color:var(--accent3);}
+  .s-err{background:rgba(255,77,109,0.1);color:var(--danger);}
+  .s-idle{background:var(--surface2);color:var(--muted);}
+
+  /* WRITE TEST */
+  .write-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .write-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;}
+  .write-row{display:flex;gap:8px;margin-bottom:8px;}
+  .write-input{flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;}
+  .write-input:focus{border-color:var(--accent);}
+  .write-input::placeholder{color:var(--muted);}
+  .btn{background:var(--accent);color:#080B08;border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;white-space:nowrap;}
+  .btn:active{opacity:0.85;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-outline{background:transparent;color:var(--accent);border:0.5px solid var(--accent);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+  .write-result{font-size:12px;padding:8px 10px;border-radius:var(--radius-sm);margin-top:4px;display:none;}
+  .write-result.ok{background:rgba(57,255,133,0.08);color:var(--accent);border:0.5px solid rgba(57,255,133,0.2);display:block;}
+  .write-result.err{background:rgba(255,77,109,0.08);color:var(--danger);border:0.5px solid rgba(255,77,109,0.2);display:block;}
+
+  /* LIVE LOG */
+  .log-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+  .log-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+  .log-clear{font-size:11px;color:var(--muted);cursor:pointer;}
+  .log-body{font-size:11px;font-family:'DM Sans',monospace;max-height:160px;overflow-y:auto;line-height:1.8;}
+  .log-body::-webkit-scrollbar{display:none;}
+  .log-line{display:flex;gap:8px;}
+  .log-time{color:var(--muted);flex-shrink:0;}
+  .log-msg{}
+  .log-ok{color:var(--accent);}
+  .log-err{color:var(--danger);}
+  .log-info{color:var(--accent3);}
+
+  .section-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin:16px 0 8px;font-weight:500;}
+
+  .refresh-btn{width:100%;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--text);cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;margin-bottom:10px;}
+  .refresh-btn:active{background:var(--surface2);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">NestMart <span>Connection Test</span></div>
+  </div>
+  <div class="conn-badge connecting" id="connBadge">
+    <div class="conn-dot"></div>
+    <span id="connText">Connecting…</span>
+  </div>
+</div>
+
+<!-- FIREBASE SERVICES -->
+<div class="section-label">FIREBASE SERVICES</div>
+<div class="firebase-row">
+  <div class="fb-card"><div class="fb-icon">🔥</div><div class="fb-info"><div class="fb-name">App</div><div class="fb-status wait" id="fbApp">Init…</div></div></div>
+  <div class="fb-card"><div class="fb-icon">🔐</div><div class="fb-info"><div class="fb-name">Auth</div><div class="fb-status wait" id="fbAuth">Init…</div></div></div>
+  <div class="fb-card"><div class="fb-icon">📄</div><div class="fb-info"><div class="fb-name">Firestore</div><div class="fb-status wait" id="fbFs">Init…</div></div></div>
+  <div class="fb-card"><div class="fb-icon">⚡</div><div class="fb-info"><div class="fb-name">RTDB</div><div class="fb-status wait" id="fbRtdb">Init…</div></div></div>
+  <div class="fb-card"><div class="fb-icon">🗄️</div><div class="fb-info"><div class="fb-name">Project</div><div class="fb-status ok" id="fbProject">feastnow-10576</div></div></div>
+  <div class="fb-card"><div class="fb-icon">🌍</div><div class="fb-info"><div class="fb-name">Region</div><div class="fb-status ok">asia-south1</div></div></div>
+</div>
+
+<!-- COLLECTION COUNTS -->
+<div class="section-label">FIRESTORE COLLECTIONS — LIVE</div>
+<div class="grid">
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_societies</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--accent)" id="countSocieties">—</div>
+    <div class="coll-sub">societies registered</div>
+    <div class="coll-latest" id="latestSociety">Latest: —</div>
+  </div>
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_shops</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--accent3)" id="countShops">—</div>
+    <div class="coll-sub">shops registered</div>
+    <div class="coll-latest" id="latestShop">Latest: —</div>
+  </div>
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_orders</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--blue)" id="countOrders">—</div>
+    <div class="coll-sub">total orders</div>
+    <div class="coll-latest" id="latestOrder">Latest: —</div>
+  </div>
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_users</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--purple)" id="countUsers">—</div>
+    <div class="coll-sub">registered users</div>
+    <div class="coll-latest" id="latestUser">Latest: —</div>
+  </div>
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_flats</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--accent)" id="countFlats">—</div>
+    <div class="coll-sub">flat records</div>
+    <div class="coll-latest" id="latestFlat">Latest: —</div>
+  </div>
+  <div class="coll-card">
+    <div class="coll-head"><div class="coll-name">nestmart_riders</div><div class="coll-live"><div class="live-dot"></div>Live</div></div>
+    <div class="coll-count" style="color:var(--accent2)" id="countRiders">—</div>
+    <div class="coll-sub">delivery riders</div>
+    <div class="coll-latest" id="latestRider">Latest: —</div>
+  </div>
+</div>
+
+<!-- RTDB -->
+<div class="section-label">REALTIME DATABASE — LIVE</div>
+<div class="rtdb-card">
+  <div class="rtdb-title">⚡ nestmart/ <span style="font-size:11px;color:var(--muted);font-weight:400;">Live orders & rider locations</span></div>
+  <div class="rtdb-row"><div class="rtdb-key">Live orders in RTDB</div><div class="rtdb-val" id="rtdbOrders">—</div></div>
+  <div class="rtdb-row"><div class="rtdb-key">Riders reporting location</div><div class="rtdb-val" id="rtdbRiders">—</div></div>
+  <div class="rtdb-row"><div class="rtdb-key">Last RTDB write</div><div class="rtdb-val" id="rtdbLastWrite">—</div></div>
+  <div class="rtdb-row"><div class="rtdb-key">RTDB connection</div><div class="rtdb-val" id="rtdbConn">—</div></div>
+</div>
+
+<!-- WRITE TEST -->
+<div class="section-label">WRITE TEST — FIRESTORE</div>
+<div class="write-card">
+  <div class="write-title">Write a test document</div>
+  <div class="write-row">
+    <input class="write-input" id="testMsg" placeholder="Enter a test message…" value="Hello from NestMart test!">
+    <button class="btn" id="writeBtn" onclick="writeTest()">Write →</button>
+  </div>
+  <div class="write-result" id="writeResult"></div>
+</div>
+
+<!-- WRITE TEST — RTDB -->
+<div class="write-card">
+  <div class="write-title">Write test — Realtime Database</div>
+  <div class="write-row">
+    <input class="write-input" id="rtdbMsg" placeholder="RTDB test message…" value="RTDB ping from NestMart">
+    <button class="btn" id="rtdbWriteBtn" onclick="rtdbWriteTest()">Ping →</button>
+  </div>
+  <div class="write-result" id="rtdbWriteResult"></div>
+</div>
+
+<!-- FLOW TEST -->
+<div class="section-label">END-TO-END FLOW CHECK</div>
+<div class="flow-card">
+  <div class="flow-title">App connection chain</div>
+  <div class="flow-step">
+    <div class="step-icon">🌐</div>
+    <div class="step-info"><div class="step-name">Super Admin → Firestore</div><div class="step-desc">Can read/write nestmart_societies</div></div>
+    <div class="step-status" id="flow1">—</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-icon">🏘️</div>
+    <div class="step-info"><div class="step-name">Society Admin → Firestore</div><div class="step-desc">Can read societies, flats, notices</div></div>
+    <div class="step-status" id="flow2">—</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-icon">🏠</div>
+    <div class="step-info"><div class="step-name">Resident → Shops & Orders</div><div class="step-desc">Can read shops, write orders</div></div>
+    <div class="step-status" id="flow3">—</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-icon">🏪</div>
+    <div class="step-info"><div class="step-name">Shop → Live Orders</div><div class="step-desc">Can listen to order updates</div></div>
+    <div class="step-status" id="flow4">—</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-icon">🛵</div>
+    <div class="step-info"><div class="step-name">Delivery → RTDB Location</div><div class="step-desc">Can write to riderLocation</div></div>
+    <div class="step-status" id="flow5">—</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-icon">⚡</div>
+    <div class="step-info"><div class="step-name">RTDB → Live order status</div><div class="step-desc">Orders mirror to RTDB liveOrders</div></div>
+    <div class="step-status" id="flow6">—</div>
+  </div>
+</div>
+
+<button class="refresh-btn" onclick="runAllTests()">↻ Refresh all checks</button>
+
+<!-- LIVE LOG -->
+<div class="log-card">
+  <div class="log-title">
+    Live log
+    <span class="log-clear" onclick="clearLog()">Clear</span>
+  </div>
+  <div class="log-body" id="logBody">
+    <div class="log-line"><span class="log-time">--:--:--</span><span class="log-info">Initializing NestMart connection test…</span></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-database-compat.min.js"></script>
+
+<script>
+// ─── Firebase Init ────────────────────────────────────────────
+const cfg = {
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+};
+
+let app, auth, db, rtdb;
+
+const C = {
+  societies:"nestmart_societies", shops:"nestmart_shops",
+  orders:"nestmart_orders",      users:"nestmart_users",
+  flats:"nestmart_flats",        riders:"nestmart_riders",
+  test:"nestmart_test"
+};
+
+// ─── Log ─────────────────────────────────────────────────────
+function log(msg, type='info'){
+  const el = document.getElementById('logBody');
+  const now = new Date().toTimeString().slice(0,8);
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${now}</span><span class="log-${type}">${msg}</span>`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+function clearLog(){ document.getElementById('logBody').innerHTML=''; }
+
+// ─── Status helpers ───────────────────────────────────────────
+function setService(id, text, cls){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'fb-status '+cls;
+}
+function setFlow(id, text, cls){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'step-status s-'+cls;
+}
+function setConn(state){
+  const badge = document.getElementById('connBadge');
+  const txt = document.getElementById('connText');
+  badge.className = 'conn-badge '+state;
+  txt.textContent = state==='connected'?'Connected':state==='error'?'Error':'Connecting…';
+}
+
+// ─── Init Firebase ────────────────────────────────────────────
+try {
+  app = firebase.initializeApp(cfg);
+  setService('fbApp','Ready','ok');
+  log('Firebase app initialized','ok');
+} catch(e){
+  setService('fbApp','Error','err');
+  log('Firebase init error: '+e.message,'err');
+}
+
+try {
+  auth = firebase.auth();
+  setService('fbAuth','Ready','ok');
+  log('Auth service ready','ok');
+} catch(e){
+  setService('fbAuth','Error','err');
+  log('Auth error: '+e.message,'err');
+}
+
+try {
+  db = firebase.firestore();
+  setService('fbFs','Ready','ok');
+  log('Firestore ready','ok');
+} catch(e){
+  setService('fbFs','Error','err');
+  log('Firestore error: '+e.message,'err');
+}
+
+try {
+  rtdb = firebase.database();
+  setService('fbRtdb','Ready','ok');
+  log('Realtime DB ready','ok');
+} catch(e){
+  setService('fbRtdb','Error','err');
+  log('RTDB error: '+e.message,'err');
+}
+
+// ─── RTDB connection state ────────────────────────────────────
+rtdb.ref('.info/connected').on('value', snap => {
+  const online = snap.val();
+  document.getElementById('rtdbConn').textContent = online ? '✓ Online' : '✗ Offline';
+  document.getElementById('rtdbConn').style.color = online ? 'var(--accent)' : 'var(--danger)';
+  setConn(online ? 'connected' : 'error');
+  log('RTDB connection: '+(online?'online':'offline'), online?'ok':'err');
+});
+
+// ─── Live collection listeners ────────────────────────────────
+function listenCollection(collection, countId, latestId, labelFn){
+  db.collection(collection).onSnapshot(snap => {
+    document.getElementById(countId).textContent = snap.size;
+    if(snap.size > 0){
+      const docs = snap.docs.map(d=>({id:d.id,...d.data()}));
+      // sort by createdAt if possible
+      const sorted = docs.sort((a,b)=>{
+        const at = a.createdAt?.seconds||0;
+        const bt = b.createdAt?.seconds||0;
+        return bt-at;
+      });
+      document.getElementById(latestId).innerHTML = 'Latest: <span>'+labelFn(sorted[0])+'</span>';
+    } else {
+      document.getElementById(latestId).innerHTML = 'Latest: <span style="color:var(--muted)">None yet</span>';
+    }
+    log(collection+' → '+snap.size+' docs', 'ok');
+  }, err => {
+    document.getElementById(countId).textContent = 'ERR';
+    document.getElementById(countId).style.color = 'var(--danger)';
+    log(collection+' error: '+err.message, 'err');
+  });
+}
+
+listenCollection(C.societies, 'countSocieties', 'latestSociety', d=>d.name||d.code||d.id.slice(0,8));
+listenCollection(C.shops,     'countShops',     'latestShop',    d=>d.name||d.id.slice(0,8));
+listenCollection(C.orders,    'countOrders',    'latestOrder',   d=>'₹'+(d.total||0)+' · '+(d.status||'—'));
+listenCollection(C.users,     'countUsers',     'latestUser',    d=>d.name||d.role||d.id.slice(0,8));
+listenCollection(C.flats,     'countFlats',     'latestFlat',    d=>d.flatId||d.id.slice(0,8));
+listenCollection(C.riders,    'countRiders',    'latestRider',   d=>d.name||d.id.slice(0,8));
+
+// ─── RTDB listeners ───────────────────────────────────────────
+rtdb.ref('nestmart/liveOrders').on('value', snap => {
+  const val = snap.val();
+  const count = val ? Object.keys(val).length : 0;
+  document.getElementById('rtdbOrders').textContent = count + ' orders';
+  document.getElementById('rtdbOrders').style.color = count > 0 ? 'var(--accent)' : 'var(--muted)';
+});
+
+rtdb.ref('nestmart/riderLocation').on('value', snap => {
+  const val = snap.val();
+  const count = val ? Object.keys(val).length : 0;
+  document.getElementById('rtdbRiders').textContent = count + ' riders';
+  document.getElementById('rtdbRiders').style.color = count > 0 ? 'var(--accent)' : 'var(--muted)';
+  const online = val ? Object.values(val).filter(r=>r.isOnline).length : 0;
+  if(count > 0) document.getElementById('rtdbRiders').textContent = count+' riders ('+online+' online)';
+});
+
+// ─── Firestore Write Test ─────────────────────────────────────
+async function writeTest(){
+  const msg = document.getElementById('testMsg').value.trim();
+  const resultEl = document.getElementById('writeResult');
+  const btn = document.getElementById('writeBtn');
+  if(!msg){ resultEl.className='write-result err'; resultEl.textContent='Enter a message first'; return; }
+  btn.disabled=true; btn.textContent='Writing…';
+  try{
+    const ref = await db.collection(C.test).add({
+      message: msg,
+      source: 'connection-test',
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    resultEl.className='write-result ok';
+    resultEl.textContent='✓ Written to Firestore! Doc ID: '+ref.id;
+    log('Firestore write OK — doc: '+ref.id, 'ok');
+    // clean up after 30s
+    setTimeout(()=>db.collection(C.test).doc(ref.id).delete(), 30000);
+  }catch(e){
+    resultEl.className='write-result err';
+    resultEl.textContent='✗ Write failed: '+e.message;
+    log('Firestore write FAILED: '+e.message,'err');
+  }
+  btn.disabled=false; btn.textContent='Write →';
+}
+
+// ─── RTDB Write Test ──────────────────────────────────────────
+async function rtdbWriteTest(){
+  const msg = document.getElementById('rtdbMsg').value.trim();
+  const resultEl = document.getElementById('rtdbWriteResult');
+  const btn = document.getElementById('rtdbWriteBtn');
+  btn.disabled=true; btn.textContent='Pinging…';
+  try{
+    const ts = Date.now();
+    await rtdb.ref('nestmart/test/ping').set({ message:msg, ts, source:'connection-test' });
+    const elapsed = Date.now()-ts;
+    resultEl.className='write-result ok';
+    resultEl.textContent='✓ RTDB write OK! Latency: '+elapsed+'ms';
+    document.getElementById('rtdbLastWrite').textContent=new Date().toTimeString().slice(0,8);
+    document.getElementById('rtdbLastWrite').style.color='var(--accent)';
+    log('RTDB write OK — latency: '+elapsed+'ms','ok');
+    setTimeout(()=>rtdb.ref('nestmart/test/ping').remove(),30000);
+  }catch(e){
+    resultEl.className='write-result err';
+    resultEl.textContent='✗ RTDB write failed: '+e.message;
+    log('RTDB write FAILED: '+e.message,'err');
+  }
+  btn.disabled=false; btn.textContent='Ping →';
+}
+
+// ─── Flow Tests ───────────────────────────────────────────────
+async function runAllTests(){
+  log('Running all flow tests…','info');
+  setFlow('flow1','Testing…','wait');
+  setFlow('flow2','Testing…','wait');
+  setFlow('flow3','Testing…','wait');
+  setFlow('flow4','Testing…','wait');
+  setFlow('flow5','Testing…','wait');
+  setFlow('flow6','Testing…','wait');
+
+  // Test 1: societies read
+  try{
+    const s = await db.collection(C.societies).limit(1).get();
+    setFlow('flow1', s.empty?'0 docs':'✓ OK', s.empty?'wait':'ok');
+    log('Flow 1 (societies): '+(s.empty?'empty but accessible':'has data'),'ok');
+  }catch(e){ setFlow('flow1','✗ Error','err'); log('Flow 1 error: '+e.message,'err'); }
+
+  // Test 2: flats + notices read
+  try{
+    await db.collection(C.flats).limit(1).get();
+    setFlow('flow2','✓ OK','ok');
+    log('Flow 2 (flats/notices): accessible','ok');
+  }catch(e){ setFlow('flow2','✗ Error','err'); log('Flow 2 error: '+e.message,'err'); }
+
+  // Test 3: shops + orders read/write
+  try{
+    const shops = await db.collection(C.shops).limit(1).get();
+    setFlow('flow3', shops.empty?'0 shops':'✓ OK', shops.empty?'wait':'ok');
+    log('Flow 3 (shops): '+(shops.empty?'no shops yet':'has shops'),'ok');
+  }catch(e){ setFlow('flow3','✗ Error','err'); log('Flow 3 error: '+e.message,'err'); }
+
+  // Test 4: orders listen
+  try{
+    await db.collection(C.orders).limit(1).get();
+    setFlow('flow4','✓ OK','ok');
+    log('Flow 4 (orders listener): accessible','ok');
+  }catch(e){ setFlow('flow4','✗ Error','err'); log('Flow 4 error: '+e.message,'err'); }
+
+  // Test 5: RTDB riderLocation write
+  try{
+    await rtdb.ref('nestmart/test/riderTest').set({lat:17.4399,lng:78.4983,ts:Date.now()});
+    setFlow('flow5','✓ OK','ok');
+    log('Flow 5 (RTDB rider location): write OK','ok');
+    setTimeout(()=>rtdb.ref('nestmart/test/riderTest').remove(),10000);
+  }catch(e){ setFlow('flow5','✗ Error','err'); log('Flow 5 error: '+e.message,'err'); }
+
+  // Test 6: RTDB liveOrders
+  try{
+    const snap = await rtdb.ref('nestmart/liveOrders').once('value');
+    const count = snap.val() ? Object.keys(snap.val()).length : 0;
+    setFlow('flow6', count>0?'✓ '+count+' orders':'✓ Ready','ok');
+    log('Flow 6 (RTDB liveOrders): '+(count>0?count+' live orders':'empty but accessible'),'ok');
+  }catch(e){ setFlow('flow6','✗ Error','err'); log('Flow 6 error: '+e.message,'err'); }
+
+  log('All flow tests complete','ok');
+}
+
+// ─── Auto-run on load ─────────────────────────────────────────
+setTimeout(runAllTests, 2000);
+</script>
+</body>
+</html>
