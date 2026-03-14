@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NestMart — Shop Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0A0F0D;--surface:#131A16;--surface2:#1A231E;--border:#243029;--accent:#2DFF8F;--accent2:#FF6B35;--accent3:#FFD166;--text:#EEF2EF;--muted:#6B7C71;--danger:#FF4D4D;--radius:16px;--radius-sm:10px;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{font-family:'DM Sans',sans-serif;color:var(--text);}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  #splash{background:var(--bg);align-items:center;justify-content:center;gap:10px;}
+  .splash-logo{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-2px;}
+  .splash-sub{font-size:12px;color:var(--muted);letter-spacing:0.12em;}
+  .splash-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;margin-top:16px;}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+  #login{background:var(--bg);justify-content:flex-end;}
+  .login-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 20px;}
+  .login-icon{font-size:56px;margin-bottom:14px;}
+  .login-logo{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-1px;margin-bottom:6px;}
+  .login-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .login-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-hint{font-size:13px;color:var(--muted);margin-bottom:22px;}
+  .field-group{margin-bottom:13px;}
+  .field-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+  .inp{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp::placeholder{color:var(--muted);}
+  select.inp{appearance:none;}
+  .btn-main{width:100%;background:var(--accent);color:#0A0F0D;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-top:8px;transition:opacity 0.15s,transform 0.1s;}
+  .btn-main:active{opacity:0.85;transform:scale(0.98);}
+  .btn-main:disabled{opacity:0.5;cursor:not-allowed;}
+  #dashboard{background:var(--bg);}
+  .topbar{padding:16px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .topbar-shop{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;}
+  .topbar-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .status-toggle{display:flex;align-items:center;gap:8px;background:var(--surface);border:0.5px solid var(--border);border-radius:20px;padding:6px 14px;cursor:pointer;}
+  .toggle-dot{width:8px;height:8px;border-radius:50%;}
+  .toggle-dot.open{background:var(--accent);}
+  .toggle-dot.closed{background:var(--danger);}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px 4px;flex-shrink:0;}
+  .stat-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .dash-scroll{flex:1;overflow-y:auto;padding-bottom:80px;}
+  .dash-scroll::-webkit-scrollbar{display:none;}
+  .section-head{padding:16px 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .section-badge{font-size:11px;background:var(--accent2);color:#fff;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .order-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin:0 20px 12px;}
+  .order-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .order-id-tag{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);}
+  .order-time{font-size:11px;color:var(--muted);}
+  .order-flat{font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .order-flat-badge{background:var(--surface2);border:0.5px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--accent3);}
+  .order-items-list{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+  .order-bottom{display:flex;align-items:center;justify-content:space-between;}
+  .order-total{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .order-actions{display:flex;gap:8px;}
+  .btn-accept{flex:1;background:var(--accent);color:#0A0F0D;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+  .btn-reject{background:transparent;color:var(--danger);border:0.5px solid var(--danger);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;}
+  .btn-ready{background:var(--accent3);color:#0A0F0D;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+  .status-pill{font-size:11px;padding:4px 12px;border-radius:20px;font-weight:500;}
+  .pill-placed{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .pill-accepted{background:rgba(255,209,102,0.15);color:var(--accent3);}
+  .pill-preparing{background:rgba(255,209,102,0.15);color:var(--accent3);}
+  .pill-ready{background:rgba(45,255,143,0.12);color:var(--accent);}
+  .pill-delivered{background:var(--surface2);color:var(--muted);}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-icon{font-size:48px;margin-bottom:12px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;cursor:pointer;color:var(--muted);}
+  .nav-item.active{color:var(--accent);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;font-weight:500;}
+  #menuPage{background:var(--bg);}
+  .page-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:0.5px solid var(--border);}
+  .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .btn-add-item{background:var(--accent);color:#0A0F0D;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+  .menu-scroll{flex:1;overflow-y:auto;padding:12px 20px 80px;}
+  .menu-scroll::-webkit-scrollbar{display:none;}
+  .menu-item-row{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+  .mi-emoji{font-size:28px;flex-shrink:0;}
+  .mi-info{flex:1;}
+  .mi-name{font-size:14px;font-weight:500;}
+  .mi-price{font-family:'Syne',sans-serif;font-size:14px;color:var(--accent);font-weight:700;margin-top:2px;}
+  .mi-toggle{width:42px;height:24px;border-radius:12px;background:var(--accent);border:none;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+  .mi-toggle.off{background:var(--surface2);border:0.5px solid var(--border);}
+  .mi-toggle::after{content:'';position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s;}
+  .mi-toggle:not(.off)::after{left:21px;}
+  .mi-toggle.off::after{left:3px;}
+  #earningsPage{background:var(--bg);}
+  .earn-scroll{flex:1;overflow-y:auto;padding:16px 20px 80px;}
+  .earn-scroll::-webkit-scrollbar{display:none;}
+  .earn-hero{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:14px;}
+  .earn-amount{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--accent);}
+  .earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .eg-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;}
+  .eg-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .eg-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;}
+  .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:50;display:none;align-items:flex-end;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:24px;width:100%;border-top:0.5px solid var(--border);}
+  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:18px;}
+  .modal-actions{display:flex;gap:10px;margin-top:16px;}
+  .btn-cancel{flex:1;background:var(--surface2);color:var(--text);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:15px;cursor:pointer;}
+  .toast{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0A0F0D;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .toast.show{opacity:1;}
+  .loading{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="screen active" id="splash">
+  <div class="splash-logo">NestMart</div>
+  <div class="splash-sub">SHOP PANEL</div>
+  <div class="splash-dot"></div>
+</div>
+
+<div class="screen" id="login">
+  <div class="login-top">
+    <div class="login-icon">🏪</div>
+    <div class="login-logo">Shop Panel</div>
+    <div class="login-tagline">Manage orders, menu & earnings.</div>
+  </div>
+  <div class="login-sheet">
+    <div class="login-title">Sign in to your shop</div>
+    <div class="login-hint">Phone number registered with NestMart</div>
+    <div class="field-group">
+      <label class="field-label">SHOP NAME</label>
+      <input class="inp" id="shopName" placeholder="e.g. Ravi's Kitchen">
+    </div>
+    <div class="field-group">
+      <label class="field-label">CATEGORY</label>
+      <select class="inp" id="shopCat">
+        <option value="">Select category</option>
+        <option>🍱 Food / Restaurant</option>
+        <option>🛒 Grocery</option>
+        <option>💊 Pharmacy</option>
+        <option>👕 Laundry</option>
+        <option>🔧 Home Services</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">PHONE NUMBER</label>
+      <input class="inp" id="shopPhone" placeholder="9876543210" maxlength="10" type="tel">
+    </div>
+    <div class="field-group">
+      <label class="field-label">CITY</label>
+      <select class="inp" id="shopCity">
+        <option>Hyderabad</option><option>Bengaluru</option><option>Pune</option><option>Mumbai</option><option>Chennai</option>
+      </select>
+    </div>
+    <button class="btn-main" id="shopLoginBtn" onclick="shopLogin()">Register & Open Shop →</button>
+  </div>
+</div>
+
+<div class="screen" id="dashboard">
+  <div class="topbar">
+    <div>
+      <div class="topbar-shop" id="dashShopName">—</div>
+      <div class="topbar-meta" id="dashShopCat">—</div>
+    </div>
+    <div class="status-toggle" id="statusToggle" onclick="toggleStatus()">
+      <div class="toggle-dot open" id="toggleDot"></div>
+      <div id="toggleLabel" style="font-size:13px;font-weight:500;">Open</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Today</div><div class="stat-val" style="color:var(--accent)" id="statOrders">0</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val" style="color:var(--accent2)" id="statPending">0</div></div>
+    <div class="stat-card"><div class="stat-label">Earnings</div><div class="stat-val" style="color:var(--accent3)" id="statEarnings">₹0</div></div>
+  </div>
+  <div class="dash-scroll">
+    <div class="section-head">
+      <div class="section-title">Live orders</div>
+      <div class="section-badge" id="liveCount">0</div>
+    </div>
+    <div id="liveOrdersList"><div class="loading">Listening for orders…</div></div>
+    <div class="section-head"><div class="section-title">Completed today</div></div>
+    <div id="completedList"></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Orders</div></div>
+    <div class="nav-item" onclick="showMenu()"><div class="nav-icon">🍽️</div><div class="nav-label">Menu</div></div>
+    <div class="nav-item" onclick="showEarnings()"><div class="nav-icon">💰</div><div class="nav-label">Earnings</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="menuPage">
+  <div class="page-header">
+    <div class="page-title">My Menu</div>
+    <button class="btn-add-item" onclick="showAddModal()">+ Add</button>
+  </div>
+  <div class="menu-scroll" id="menuList"><div class="loading">Loading menu…</div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Orders</div></div>
+    <div class="nav-item active" onclick="showMenu()"><div class="nav-icon">🍽️</div><div class="nav-label">Menu</div></div>
+    <div class="nav-item" onclick="showEarnings()"><div class="nav-icon">💰</div><div class="nav-label">Earnings</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="earningsPage">
+  <div class="page-header" style="border-bottom:0.5px solid var(--border)"><div class="page-title">Earnings</div></div>
+  <div class="earn-scroll">
+    <div class="earn-hero">
+      <div class="earn-amount" id="earnTotal">₹0</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px;">Total earned today</div>
+    </div>
+    <div class="earn-grid">
+      <div class="eg-card"><div class="eg-label">Orders done</div><div class="eg-val" id="earnCount" style="color:var(--accent)">0</div></div>
+      <div class="eg-card"><div class="eg-label">Avg order</div><div class="eg-val" id="earnAvg" style="color:var(--accent3)">₹0</div></div>
+      <div class="eg-card"><div class="eg-label">Platform fee (8%)</div><div class="eg-val" id="earnFee" style="color:var(--danger)">₹0</div></div>
+      <div class="eg-card"><div class="eg-label">Net payout</div><div class="eg-val" id="earnNet" style="color:var(--accent)">₹0</div></div>
+    </div>
+    <div id="earnHistory"></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Orders</div></div>
+    <div class="nav-item" onclick="showMenu()"><div class="nav-icon">🍽️</div><div class="nav-label">Menu</div></div>
+    <div class="nav-item active" onclick="showEarnings()"><div class="nav-icon">💰</div><div class="nav-label">Earnings</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addModal">
+  <div class="modal-sheet">
+    <div class="modal-title">Add menu item</div>
+    <div class="field-group"><label class="field-label">ITEM NAME</label><input class="inp" id="newName" placeholder="Butter Chicken"></div>
+    <div class="field-group"><label class="field-label">PRICE (₹)</label><input class="inp" id="newPrice" type="number" placeholder="199"></div>
+    <div class="field-group"><label class="field-label">EMOJI</label><input class="inp" id="newEmoji" placeholder="🍗" maxlength="2"></div>
+    <div class="field-group"><label class="field-label">SECTION</label><input class="inp" id="newSection" placeholder="Main Course"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideAddModal()">Cancel</button>
+      <button class="btn-main" style="flex:1;margin-top:0;" onclick="addMenuItem()">Add Item →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-database-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+const rtdb=firebase.database();
+const C={shops:"nestmart_shops",menu:"nestmart_menu",orders:"nestmart_orders",users:"nestmart_users"};
+
+let shopDoc=null;
+let menuItems=[];
+let unsubOrders=null;
+let isOpen=true;
+let totalEarned=0;
+let completedOrders=[];
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis;}
+
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    const snap=await db.collection(C.shops).where('ownerUid','==',user.uid).limit(1).get();
+    if(!snap.empty){
+      shopDoc={id:snap.docs[0].id,...snap.docs[0].data()};
+      setupDash();show('dashboard');return;
+    }
+  }
+  setTimeout(()=>show('login'),1200);
+});
+
+async function shopLogin(){
+  const name=document.getElementById('shopName').value.trim();
+  const cat=document.getElementById('shopCat').value;
+  const phone=document.getElementById('shopPhone').value.trim();
+  const city=document.getElementById('shopCity').value;
+  if(!name||!cat||!phone){showToast('Fill all fields');return;}
+  setBtn('shopLoginBtn','Registering…',true);
+  try{
+    // anonymous auth for shop (in production use phone OTP same as resident)
+    const cred=await auth.signInAnonymously();
+    const uid=cred.user.uid;
+    // create or update shop doc
+    const existing=await db.collection(C.shops).where('phone','==',phone).limit(1).get();
+    let shopId;
+    if(existing.empty){
+      const ref=await db.collection(C.shops).add({
+        name,category:cat,phone,city,
+        ownerUid:uid,status:'approved',
+        emoji:catEmoji(cat),rating:'4.5',deliveryTime:'20-30 min',
+        badge:'open',badgeLabel:'Open now',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      shopId=ref.id;
+    } else {
+      shopId=existing.docs[0].id;
+      await db.collection(C.shops).doc(shopId).update({ownerUid:uid});
+    }
+    shopDoc={id:shopId,name,category:cat,phone,city,ownerUid:uid,status:'approved'};
+    setupDash();show('dashboard');
+  }catch(err){showToast('Error: '+err.message);}
+  setBtn('shopLoginBtn','Register & Open Shop →',false);
+}
+
+function catEmoji(cat){
+  const m={'🍱 Food / Restaurant':'🍱','🛒 Grocery':'🛒','💊 Pharmacy':'💊','👕 Laundry':'👕','🔧 Home Services':'🔧'};
+  return m[cat]||'🏪';
+}
+
+function setupDash(){
+  document.getElementById('dashShopName').textContent=shopDoc.name;
+  document.getElementById('dashShopCat').textContent=shopDoc.category||'Shop';
+  listenOrders();
+  loadMenu();
+}
+
+function listenOrders(){
+  if(unsubOrders) unsubOrders();
+  unsubOrders=db.collection(C.orders)
+    .where('shopId','==',shopDoc.id)
+    .where('status','in',['placed','accepted','preparing','ready'])
+    .orderBy('createdAt','desc')
+    .onSnapshot(snap=>{
+      const live=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderLiveOrders(live);
+      document.getElementById('statOrders').textContent=live.length;
+      document.getElementById('statPending').textContent=live.filter(o=>o.status==='placed').length;
+      document.getElementById('liveCount').textContent=live.filter(o=>o.status==='placed').length+' new';
+    });
+  // completed
+  db.collection(C.orders)
+    .where('shopId','==',shopDoc.id)
+    .where('status','==','delivered')
+    .orderBy('createdAt','desc').limit(10)
+    .onSnapshot(snap=>{
+      completedOrders=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderCompleted();
+      totalEarned=completedOrders.reduce((s,o)=>s+o.total,0);
+      document.getElementById('statEarnings').textContent='₹'+totalEarned;
+    });
+}
+
+function renderLiveOrders(orders){
+  const el=document.getElementById('liveOrdersList');
+  if(!orders.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🎉</div><div>No pending orders</div></div>`;return;}
+  el.innerHTML=orders.map(o=>`
+    <div class="order-card">
+      <div class="order-top">
+        <div><div class="order-id-tag">#${o.id.substring(0,8).toUpperCase()}</div><div class="order-time">${timeAgo(o.createdAt)}</div></div>
+        <div class="status-pill pill-${o.status}">${o.status}</div>
+      </div>
+      <div class="order-flat">Flat <span class="order-flat-badge">${o.flatId}</span> <span style="font-size:11px;color:var(--muted)">${o.societyCode||''}</span></div>
+      <div class="order-items-list">${(o.items||[]).map(i=>i.name+' × '+i.qty).join(', ')}</div>
+      <div class="order-bottom">
+        <div class="order-total">₹${o.total}</div>
+        <div class="order-actions">
+          ${o.status==='placed'?`<button class="btn-reject" onclick="updateStatus('${o.id}','rejected')">Reject</button><button class="btn-accept" onclick="updateStatus('${o.id}','preparing')">Accept</button>`:''}
+          ${o.status==='preparing'||o.status==='accepted'?`<button class="btn-ready" onclick="updateStatus('${o.id}','ready')">Mark Ready ✓</button>`:''}
+          ${o.status==='ready'?`<div style="font-size:12px;color:var(--accent);">Waiting for rider…</div>`:''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCompleted(){
+  const el=document.getElementById('completedList');
+  if(!completedOrders.length){el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">No completed orders yet</div>`;return;}
+  el.innerHTML=completedOrders.map(o=>`
+    <div class="order-card">
+      <div class="order-top"><div class="order-id-tag">#${o.id.substring(0,8).toUpperCase()}</div><div class="status-pill pill-delivered">Delivered</div></div>
+      <div class="order-flat">Flat <span class="order-flat-badge">${o.flatId}</span></div>
+      <div class="order-items-list">${(o.items||[]).map(i=>i.name+' × '+i.qty).join(', ')}</div>
+      <div class="order-bottom"><div class="order-total">₹${o.total}</div></div>
+    </div>
+  `).join('');
+}
+
+async function updateStatus(orderId,status){
+  try{
+    await db.collection(C.orders).doc(orderId).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await rtdb.ref(`nestmart/liveOrders/${orderId}`).update({status,updatedAt:Date.now()});
+    showToast('Order '+status);
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+async function loadMenu(){
+  try{
+    const snap=await db.collection(C.menu).where('shopId','==',shopDoc.id).get();
+    menuItems=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMenu();
+  }catch(e){menuItems=[];renderMenu();}
+}
+
+function renderMenu(){
+  const el=document.getElementById('menuList');
+  if(!menuItems.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🍽️</div><div>No items yet. Add your first item!</div></div>`;return;}
+  el.innerHTML=menuItems.map((item,i)=>`
+    <div class="menu-item-row">
+      <div class="mi-emoji">${item.emoji||'🛍️'}</div>
+      <div class="mi-info"><div class="mi-name">${item.name}</div><div class="mi-price">₹${item.price}</div></div>
+      <button class="mi-toggle ${item.available===false?'off':''}" onclick="toggleItem('${item.id}',${item.available!==false})"></button>
+    </div>
+  `).join('');
+}
+
+async function toggleItem(id,currentlyOn){
+  await db.collection(C.menu).doc(id).update({available:!currentlyOn});
+  const idx=menuItems.findIndex(m=>m.id===id);
+  if(idx>=0) menuItems[idx].available=!currentlyOn;
+  renderMenu();
+  showToast(currentlyOn?'Item hidden from menu':'Item visible on menu');
+}
+
+async function addMenuItem(){
+  const name=document.getElementById('newName').value.trim();
+  const price=parseInt(document.getElementById('newPrice').value)||0;
+  const emoji=document.getElementById('newEmoji').value.trim()||'🛍️';
+  const section=document.getElementById('newSection').value.trim()||'Items';
+  if(!name||!price){showToast('Fill name and price');return;}
+  try{
+    const ref=await db.collection(C.menu).add({shopId:shopDoc.id,name,price,emoji,section,available:true,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    menuItems.push({id:ref.id,shopId:shopDoc.id,name,price,emoji,section,available:true});
+    document.getElementById('newName').value='';document.getElementById('newPrice').value='';document.getElementById('newEmoji').value='';document.getElementById('newSection').value='';
+    hideAddModal();renderMenu();showToast(name+' added!');
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+function toggleStatus(){
+  isOpen=!isOpen;
+  document.getElementById('toggleDot').className='toggle-dot '+(isOpen?'open':'closed');
+  document.getElementById('toggleLabel').textContent=isOpen?'Open':'Closed';
+  db.collection(C.shops).doc(shopDoc.id).update({isOpen});
+  showToast(isOpen?'Shop is Open':'Shop is Closed');
+}
+
+function showEarnings(){
+  const done=completedOrders.length;
+  const total=completedOrders.reduce((s,o)=>s+o.total,0);
+  const fee=Math.round(total*0.08);
+  document.getElementById('earnTotal').textContent='₹'+total;
+  document.getElementById('earnCount').textContent=done;
+  document.getElementById('earnAvg').textContent=done?'₹'+Math.round(total/done):'₹0';
+  document.getElementById('earnFee').textContent='₹'+fee;
+  document.getElementById('earnNet').textContent='₹'+(total-fee);
+  document.getElementById('earnHistory').innerHTML=completedOrders.map(o=>`
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent)">#${o.id.substring(0,8).toUpperCase()}</div>
+        <div style="font-size:11px;color:var(--muted)">Flat ${o.flatId} · ${timeAgo(o.createdAt)}</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">₹${o.total}</div>
+    </div>
+  `).join('');
+  show('earningsPage');
+}
+
+function timeAgo(ts){
+  if(!ts) return '';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const diff=Math.floor((Date.now()-d)/60000);
+  if(diff<1) return 'just now';
+  if(diff<60) return diff+'m ago';
+  return Math.floor(diff/60)+'h ago';
+}
+
+function doLogout(){auth.signOut().then(()=>{shopDoc=null;if(unsubOrders)unsubOrders();show('login');showToast('Logged out');});}
+function showDash(){show('dashboard');}
+function showMenu(){show('menuPage');loadMenu();}
+function showAddModal(){document.getElementById('addModal').classList.add('show');}
+function hideAddModal(){document.getElementById('addModal').classList.remove('show');}
+</script>
+</body>
+</html>

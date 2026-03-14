@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NestMart — Super Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080B08;--surface:#0F140F;--surface2:#161E16;--border:#1E2A1E;--accent:#39FF85;--accent2:#FF6B35;--accent3:#FFD166;--blue:#5B9FFF;--purple:#C77DFF;--text:#E8F5E8;--muted:#5A7A5A;--danger:#FF4D6D;--radius:16px;--radius-sm:10px;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{font-family:'DM Sans',sans-serif;color:var(--text);}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  #splash{background:var(--bg);align-items:center;justify-content:center;gap:10px;}
+  .splash-logo{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-2px;}
+  .splash-sub{font-size:12px;color:var(--muted);letter-spacing:0.12em;}
+  .splash-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;margin-top:16px;}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+  #login{background:var(--bg);justify-content:flex-end;}
+  .login-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 20px;}
+  .login-icon{font-size:56px;margin-bottom:14px;}
+  .login-logo{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-1px;margin-bottom:6px;}
+  .login-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .login-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-hint{font-size:13px;color:var(--muted);margin-bottom:22px;}
+  .field-group{margin-bottom:13px;}
+  .field-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+  .inp{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp::placeholder{color:var(--muted);}
+  select.inp{appearance:none;}
+  .btn-main{width:100%;background:var(--accent);color:#080B08;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-top:8px;transition:opacity 0.15s,transform 0.1s;}
+  .btn-main:active{opacity:0.85;transform:scale(0.98);}
+  .btn-main:disabled{opacity:0.5;cursor:not-allowed;}
+  .demo-hint{text-align:center;font-size:12px;color:var(--muted);margin-top:12px;cursor:pointer;}
+  .demo-hint span{color:var(--accent);}
+  .error-msg{font-size:12px;color:var(--danger);margin-top:8px;display:none;}
+  #dashboard{background:var(--bg);}
+  .topbar{padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .platform-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent);}
+  .platform-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+  .super-badge{background:rgba(57,255,133,0.1);border:0.5px solid rgba(57,255,133,0.25);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--accent);font-weight:600;font-family:'Syne',sans-serif;}
+  .hero-stats{padding:8px 20px 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;}
+  .hero-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;}
+  .hero-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1;}
+  .hero-label{font-size:12px;color:var(--muted);margin-top:5px;}
+  .hero-change{font-size:11px;margin-top:4px;font-weight:500;color:var(--accent);}
+  .dash-scroll{flex:1;overflow-y:auto;padding-bottom:80px;}
+  .dash-scroll::-webkit-scrollbar{display:none;}
+  .section-head{padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .section-action{font-size:12px;color:var(--accent);cursor:pointer;}
+  .society-row{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);margin:0 20px 8px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .soc-icon{width:38px;height:38px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .soc-info{flex:1;min-width:0;}
+  .soc-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .soc-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .soc-right{text-align:right;flex-shrink:0;}
+  .soc-rev{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent);}
+  .soc-plan{font-size:11px;margin-top:2px;color:var(--accent3);}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;cursor:pointer;color:var(--muted);}
+  .nav-item.active{color:var(--accent);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;font-weight:500;}
+  #shopsPage{background:var(--bg);}
+  .page-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:0.5px solid var(--border);}
+  .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .tabs{display:flex;gap:0;padding:12px 20px;flex-shrink:0;}
+  .tab{flex:1;text-align:center;padding:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .shops-scroll{flex:1;overflow-y:auto;padding:10px 20px 80px;}
+  .shops-scroll::-webkit-scrollbar{display:none;}
+  .shop-row{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+  .shop-emoji{font-size:26px;flex-shrink:0;}
+  .shop-info{flex:1;min-width:0;}
+  .shop-name{font-size:14px;font-weight:500;}
+  .shop-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .shop-actions{display:flex;gap:6px;margin-top:8px;}
+  .btn-sm{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:500;border:0.5px solid;}
+  .btn-approve-sm{background:rgba(57,255,133,0.1);color:var(--accent);border-color:rgba(57,255,133,0.3);}
+  .btn-suspend-sm{background:transparent;color:var(--danger);border-color:var(--danger);}
+  .shop-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;flex-shrink:0;}
+  .status-approved{background:rgba(57,255,133,0.1);color:var(--accent);}
+  .status-pending{background:rgba(255,209,102,0.12);color:var(--accent3);}
+  .status-suspended{background:rgba(255,77,109,0.12);color:var(--danger);}
+  #revenuePage{background:var(--bg);}
+  .rev-scroll{flex:1;overflow-y:auto;padding:14px 20px 80px;}
+  .rev-scroll::-webkit-scrollbar{display:none;}
+  .rev-hero{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:14px;}
+  .rev-amount{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--accent);}
+  .rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .rg-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;}
+  .rg-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .rg-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;}
+  .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.75);z-index:50;display:none;align-items:flex-end;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:24px;width:100%;border-top:0.5px solid var(--border);max-height:85vh;overflow-y:auto;}
+  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:10px;margin-top:14px;}
+  .btn-cancel{flex:1;background:var(--surface2);color:var(--text);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:15px;cursor:pointer;}
+  .toast{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#080B08;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .toast.show{opacity:1;}
+  .loading{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="screen active" id="splash">
+  <div class="splash-logo">NestMart</div>
+  <div class="splash-sub">SUPER ADMIN</div>
+  <div class="splash-dot"></div>
+</div>
+
+<div class="screen" id="login">
+  <div class="login-top">
+    <div class="login-icon">🌐</div>
+    <div class="login-logo">Super Admin</div>
+    <div class="login-tagline">Full platform control — societies,<br>shops, riders and revenue.</div>
+  </div>
+  <div class="login-sheet">
+    <div class="login-title">Platform login</div>
+    <div class="login-hint">Owner credentials only</div>
+    <div class="field-group"><label class="field-label">EMAIL</label><input class="inp" id="adminEmail" placeholder="admin@nestmart.in" type="email"></div>
+    <div class="field-group"><label class="field-label">PASSWORD</label><input class="inp" id="adminPass" placeholder="••••••••" type="password"></div>
+    <div class="error-msg" id="loginError">Invalid email or password.</div>
+    <button class="btn-main" id="loginBtn" onclick="superLogin()">Enter Platform →</button>
+    <div class="demo-hint" onclick="fillDemo()">Demo: <span>admin@nestmart.in / nestmart2024</span></div>
+  </div>
+</div>
+
+<div class="screen" id="dashboard">
+  <div class="topbar">
+    <div><div class="platform-name">NestMart</div><div class="platform-sub">Platform overview</div></div>
+    <div class="super-badge">Super Admin</div>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-card"><div class="hero-val" style="color:var(--accent)" id="heroSocieties">—</div><div class="hero-label">Societies live</div><div class="hero-change" id="heroSocSub">Loading…</div></div>
+    <div class="hero-card"><div class="hero-val" style="color:var(--accent3)" id="heroRevenue">—</div><div class="hero-label">Revenue this month</div><div class="hero-change">Subscriptions</div></div>
+    <div class="hero-card"><div class="hero-val" style="color:var(--blue)" id="heroOrders">—</div><div class="hero-label">Total orders</div><div class="hero-change">All time</div></div>
+    <div class="hero-card"><div class="hero-val" style="color:var(--purple)" id="heroShops">—</div><div class="hero-label">Active shops</div><div class="hero-change">Platform-wide</div></div>
+  </div>
+  <div class="dash-scroll">
+    <div class="section-head"><div class="section-title">All societies</div><div class="section-action" onclick="showAddSocModal()">+ Add society</div></div>
+    <div id="societiesList"><div class="loading">Loading societies…</div></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Overview</div></div>
+    <div class="nav-item" onclick="showShops()"><div class="nav-icon">🏪</div><div class="nav-label">Shops</div></div>
+    <div class="nav-item" onclick="showRevenue()"><div class="nav-icon">💰</div><div class="nav-label">Revenue</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="shopsPage">
+  <div class="page-header"><div class="page-title">Shops</div><div style="font-size:13px;color:var(--muted)" id="shopCount">—</div></div>
+  <div class="tabs">
+    <div class="tab active" onclick="filterShops('all',this)">All</div>
+    <div class="tab" onclick="filterShops('pending',this)">Pending</div>
+    <div class="tab" onclick="filterShops('approved',this)">Live</div>
+    <div class="tab" onclick="filterShops('suspended',this)">Suspended</div>
+  </div>
+  <div class="shops-scroll" id="shopsList"><div class="loading">Loading shops…</div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Overview</div></div>
+    <div class="nav-item active" onclick="showShops()"><div class="nav-icon">🏪</div><div class="nav-label">Shops</div></div>
+    <div class="nav-item" onclick="showRevenue()"><div class="nav-icon">💰</div><div class="nav-label">Revenue</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="revenuePage">
+  <div class="page-header" style="border-bottom:0.5px solid var(--border)"><div class="page-title">Revenue</div></div>
+  <div class="rev-scroll">
+    <div class="rev-hero">
+      <div class="rev-amount" id="revTotal">₹0</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px;">Total subscription revenue</div>
+    </div>
+    <div class="rev-grid">
+      <div class="rg-card"><div class="rg-label">Societies paying</div><div class="rg-val" id="revSocCount" style="color:var(--accent)">0</div></div>
+      <div class="rg-card"><div class="rg-label">Monthly MRR</div><div class="rg-val" id="revMRR" style="color:var(--accent3)">₹0</div></div>
+      <div class="rg-card"><div class="rg-label">Basic plans</div><div class="rg-val" id="revBasic" style="color:var(--muted)">0</div></div>
+      <div class="rg-card"><div class="rg-label">Pro+ plans</div><div class="rg-val" id="revPro" style="color:var(--accent)">0</div></div>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;">Revenue by society</div>
+    <div id="revBySociety"></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Overview</div></div>
+    <div class="nav-item" onclick="showShops()"><div class="nav-icon">🏪</div><div class="nav-label">Shops</div></div>
+    <div class="nav-item active" onclick="showRevenue()"><div class="nav-icon">💰</div><div class="nav-label">Revenue</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addSocModal">
+  <div class="modal-sheet">
+    <div class="modal-title">Add new society</div>
+    <div class="field-group"><label class="field-label">SOCIETY NAME</label><input class="inp" id="newSocName" placeholder="Prestige High Fields"></div>
+    <div class="field-group"><label class="field-label">CITY</label><select class="inp" id="newSocCity"><option>Hyderabad</option><option>Bengaluru</option><option>Pune</option><option>Mumbai</option><option>Chennai</option></select></div>
+    <div class="field-group"><label class="field-label">TOTAL FLATS</label><input class="inp" id="newSocFlats" type="number" placeholder="240"></div>
+    <div class="field-group"><label class="field-label">PLAN</label><select class="inp" id="newSocPlan"><option value="basic">Basic — ₹3,000/month</option><option value="pro">Pro — ₹6,000/month</option><option value="enterprise">Enterprise — ₹12,000/month</option></select></div>
+    <div class="field-group"><label class="field-label">ADMIN PHONE</label><input class="inp" id="newSocPhone" type="tel" placeholder="9876543210"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideAddSocModal()">Cancel</button>
+      <button class="btn-main" style="flex:1;margin-top:0;" onclick="addSociety()">Add Society →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+const C={societies:"nestmart_societies",shops:"nestmart_shops",orders:"nestmart_orders",riders:"nestmart_riders"};
+
+let allShops=[];
+let allSocieties=[];
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis;}
+function fillDemo(){document.getElementById('adminEmail').value='admin@nestmart.in';document.getElementById('adminPass').value='nestmart2024';}
+
+auth.onAuthStateChanged(user=>{
+  if(user&&user.email){loadPlatformData();show('dashboard');return;}
+  setTimeout(()=>show('login'),1200);
+});
+
+async function superLogin(){
+  const email=document.getElementById('adminEmail').value.trim();
+  const pass=document.getElementById('adminPass').value.trim();
+  if(!email||!pass){document.getElementById('loginError').style.display='block';return;}
+  setBtn('loginBtn','Signing in…',true);
+  document.getElementById('loginError').style.display='none';
+  try{
+    await auth.signInWithEmailAndPassword(email,pass);
+    // auth state listener will handle navigation
+  }catch(err){
+    // if user doesn't exist, create it (first-time setup)
+    if(err.code==='auth/user-not-found'||err.code==='auth/invalid-credential'){
+      try{
+        await auth.createUserWithEmailAndPassword(email,pass);
+      }catch(e2){
+        document.getElementById('loginError').style.display='block';
+        setBtn('loginBtn','Enter Platform →',false); return;
+      }
+    } else {
+      document.getElementById('loginError').style.display='block';
+      setBtn('loginBtn','Enter Platform →',false); return;
+    }
+  }
+  setBtn('loginBtn','Enter Platform →',false);
+}
+
+async function loadPlatformData(){
+  try{
+    // societies
+    const socSnap=await db.collection(C.societies).get();
+    allSocieties=socSnap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('heroSocieties').textContent=allSocieties.length;
+    document.getElementById('heroSocSub').textContent=allSocieties.length+' across '+[...new Set(allSocieties.map(s=>s.city))].length+' cities';
+    // shops
+    const shopSnap=await db.collection(C.shops).get();
+    allShops=shopSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const activeShops=allShops.filter(s=>s.status==='approved').length;
+    document.getElementById('heroShops').textContent=activeShops;
+    // orders
+    const ordSnap=await db.collection(C.orders).get();
+    document.getElementById('heroOrders').textContent=ordSnap.size;
+    // revenue
+    const planRevenue={basic:3000,pro:6000,enterprise:12000};
+    const mrr=allSocieties.reduce((s,soc)=>s+(planRevenue[soc.plan]||3000),0);
+    document.getElementById('heroRevenue').textContent='₹'+(mrr/1000).toFixed(0)+'k';
+    renderSocieties();
+  }catch(e){
+    document.getElementById('heroSocieties').textContent='0';
+    document.getElementById('heroShops').textContent='0';
+    document.getElementById('heroOrders').textContent='0';
+    document.getElementById('heroRevenue').textContent='₹0';
+    document.getElementById('societiesList').innerHTML=`<div class="loading">No societies yet. Add your first one!</div>`;
+  }
+}
+
+function renderSocieties(){
+  const el=document.getElementById('societiesList');
+  if(!allSocieties.length){el.innerHTML=`<div class="loading">No societies yet. Tap + Add society.</div>`;return;}
+  el.innerHTML=allSocieties.map(s=>`
+    <div class="society-row" onclick="showToast('${s.name} · ${s.code} · ${s.totalFlats||0} flats')">
+      <div class="soc-icon">🏘️</div>
+      <div class="soc-info">
+        <div class="soc-name">${s.name}</div>
+        <div class="soc-meta">${s.city||'—'} · ${s.totalFlats||0} flats · ${s.code}</div>
+      </div>
+      <div class="soc-right">
+        <div class="soc-rev">₹${((planRevenue()[s.plan||'basic'])/1000).toFixed(0)}k</div>
+        <div class="soc-plan">${s.plan||'basic'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function planRevenue(){return{basic:3000,pro:6000,enterprise:12000};}
+
+async function showShops(){
+  show('shopsPage');
+  if(allShops.length) renderShops('all');
+  else{
+    const snap=await db.collection(C.shops).get();
+    allShops=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderShops('all');
+  }
+}
+
+function renderShops(filter){
+  const filtered=filter==='all'?allShops:allShops.filter(s=>s.status===filter);
+  document.getElementById('shopCount').textContent=filtered.length+' shops';
+  const el=document.getElementById('shopsList');
+  if(!filtered.length){el.innerHTML=`<div class="loading">No shops in this category</div>`;return;}
+  el.innerHTML=filtered.map((s,i)=>`
+    <div class="shop-row">
+      <div class="shop-emoji">${s.emoji||'🏪'}</div>
+      <div class="shop-info">
+        <div class="shop-name">${s.name}</div>
+        <div class="shop-meta">${s.city||'—'} · ${s.category||'General'}</div>
+        <div class="shop-actions">
+          ${s.status==='pending'?`<button class="btn-sm btn-approve-sm" onclick="updateShopStatus('${s.id}','approved',${i})">Approve</button>`:''}
+          ${s.status==='approved'?`<button class="btn-sm btn-suspend-sm" onclick="updateShopStatus('${s.id}','suspended',${i})">Suspend</button>`:''}
+          ${s.status==='suspended'?`<button class="btn-sm btn-approve-sm" onclick="updateShopStatus('${s.id}','approved',${i})">Reinstate</button>`:''}
+        </div>
+      </div>
+      <div class="shop-status status-${s.status||'pending'}">${s.status==='approved'?'Live':s.status==='pending'?'Pending':'Suspended'}</div>
+    </div>
+  `).join('');
+}
+
+function filterShops(filter,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderShops(filter);
+}
+
+async function updateShopStatus(id,status,idx){
+  await db.collection(C.shops).doc(id).update({status});
+  allShops[idx].status=status;
+  const activeTab=document.querySelector('#shopsPage .tab.active');
+  renderShops(activeTab?activeTab.textContent.toLowerCase().trim():'all');
+  document.getElementById('heroShops').textContent=allShops.filter(s=>s.status==='approved').length;
+  showToast(status==='approved'?'Shop approved — now live!':'Shop suspended');
+}
+
+function showRevenue(){
+  show('revenuePage');
+  const pr=planRevenue();
+  const mrr=allSocieties.reduce((s,soc)=>s+(pr[soc.plan||'basic']||3000),0);
+  const basic=allSocieties.filter(s=>s.plan==='basic'||!s.plan).length;
+  const pro=allSocieties.filter(s=>s.plan==='pro'||s.plan==='enterprise').length;
+  document.getElementById('revTotal').textContent='₹'+(mrr/1000).toFixed(0)+'k';
+  document.getElementById('revSocCount').textContent=allSocieties.length;
+  document.getElementById('revMRR').textContent='₹'+(mrr/1000).toFixed(0)+'k';
+  document.getElementById('revBasic').textContent=basic;
+  document.getElementById('revPro').textContent=pro;
+  const sorted=[...allSocieties].sort((a,b)=>(pr[b.plan||'basic']||3000)-(pr[a.plan||'basic']||3000));
+  document.getElementById('revBySociety').innerHTML=sorted.map(s=>`
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:500;">${s.name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.city||'—'} · ${s.plan||'basic'} plan</div></div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);">₹${((pr[s.plan||'basic']||3000)/1000).toFixed(0)}k</div>
+    </div>
+  `).join('');
+}
+
+async function addSociety(){
+  const name=document.getElementById('newSocName').value.trim();
+  const city=document.getElementById('newSocCity').value;
+  const flats=parseInt(document.getElementById('newSocFlats').value)||0;
+  const plan=document.getElementById('newSocPlan').value;
+  const phone=document.getElementById('newSocPhone').value.trim();
+  if(!name||!flats){showToast('Fill name and total flats');return;}
+  const code=name.substring(0,4).toUpperCase().replace(/\s/g,'')+'-'+city.substring(0,3).toUpperCase()+'-'+(allSocieties.length+1).toString().padStart(2,'0');
+  try{
+    const ref=await db.collection(C.societies).add({
+      name,city,code,totalFlats:flats,plan,adminPhone:phone,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    allSocieties.push({id:ref.id,name,city,code,totalFlats:flats,plan});
+    document.getElementById('heroSocieties').textContent=allSocieties.length;
+    document.getElementById('newSocName').value='';document.getElementById('newSocFlats').value='';document.getElementById('newSocPhone').value='';
+    hideAddSocModal();renderSocieties();
+    showToast(name+' added! Code: '+code);
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+function doLogout(){auth.signOut().then(()=>{allShops=[];allSocieties=[];show('login');showToast('Logged out');});}
+function showDash(){show('dashboard');loadPlatformData();}
+function showAddSocModal(){document.getElementById('addSocModal').classList.add('show');}
+function hideAddSocModal(){document.getElementById('addSocModal').classList.remove('show');}
+</script>
+</body>
+</html>

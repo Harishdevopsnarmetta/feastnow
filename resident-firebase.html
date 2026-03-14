@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NestMart — Resident</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0D0D0D;--surface:#161616;--surface2:#1E1E1E;--border:#2A2A2A;--accent:#C8F04D;--accent2:#FF6B35;--accent3:#7B8CFF;--text:#F0F0F0;--muted:#888;--danger:#FF4D4D;--radius:16px;--radius-sm:10px;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{font-family:'DM Sans',sans-serif;color:var(--text);}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  #splash{background:var(--bg);align-items:center;justify-content:center;gap:12px;}
+  .splash-logo{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--accent);letter-spacing:-2px;}
+  .splash-sub{font-size:13px;color:var(--muted);letter-spacing:0.1em;}
+  .splash-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+  #login{background:var(--bg);justify-content:flex-end;}
+  .login-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 20px;}
+  .login-logo{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-2px;margin-bottom:6px;}
+  .login-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .login-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-hint{font-size:13px;color:var(--muted);margin-bottom:24px;}
+  .field-group{margin-bottom:14px;}
+  .field-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+  .field-row{display:flex;gap:10px;}
+  .inp{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp::placeholder{color:var(--muted);}
+  .inp-sm{width:80px;text-align:center;text-transform:uppercase;}
+  .btn-main{width:100%;background:var(--accent);color:#0D0D0D;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-top:8px;transition:opacity 0.15s,transform 0.1s;}
+  .btn-main:active{opacity:0.85;transform:scale(0.98);}
+  .btn-main:disabled{opacity:0.5;cursor:not-allowed;}
+  .error-msg{font-size:12px;color:var(--danger);margin-top:8px;display:none;}
+  /* OTP screen */
+  #otp{background:var(--bg);justify-content:flex-end;}
+  .otp-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;}
+  .otp-icon{font-size:52px;margin-bottom:16px;}
+  .otp-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;text-align:center;}
+  .otp-sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .otp-phone{color:var(--accent);font-weight:600;}
+  .otp-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+  .otp-box{width:48px;height:56px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);text-align:center;font-size:22px;font-weight:700;color:var(--text);font-family:'Syne',sans-serif;outline:none;transition:border-color 0.2s;}
+  .otp-box:focus{border-color:var(--accent);}
+  .resend-txt{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;cursor:pointer;}
+  .resend-txt span{color:var(--accent);}
+  /* HOME */
+  #home{background:var(--bg);}
+  .topbar{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .topbar-left{}
+  .topbar-society{font-size:11px;color:var(--muted);}
+  .topbar-flat{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent);}
+  .topbar-name{font-size:13px;color:var(--text);}
+  .avatar{width:40px;height:40px;border-radius:50%;background:var(--surface2);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--accent);cursor:pointer;}
+  .search-wrap{padding:0 20px 14px;flex-shrink:0;}
+  .search-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;gap:10px;}
+  .search-box span{font-size:14px;color:var(--muted);}
+  .home-scroll{flex:1;overflow-y:auto;padding-bottom:80px;}
+  .home-scroll::-webkit-scrollbar{display:none;}
+  .section-head{padding:16px 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .cat-scroll{display:flex;gap:10px;padding:0 20px 4px;overflow-x:auto;flex-shrink:0;}
+  .cat-scroll::-webkit-scrollbar{display:none;}
+  .cat-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
+  .cat-icon{width:58px;height:58px;border-radius:16px;background:var(--surface);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;transition:border-color 0.15s,background 0.15s;}
+  .cat-chip.selected .cat-icon{background:var(--accent);border-color:var(--accent);}
+  .cat-name{font-size:11px;color:var(--muted);}
+  .cat-chip.selected .cat-name{color:var(--accent);}
+  .banner{margin:14px 20px;background:var(--surface);border-radius:var(--radius);border:0.5px solid var(--border);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative;}
+  .banner-accent{position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:var(--accent);opacity:0.08;}
+  .banner-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;line-height:1.3;}
+  .banner-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  .banner-pill{background:var(--accent);color:#0D0D0D;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .shops-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px;}
+  .shop-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+  .shop-card:active{border-color:var(--accent);}
+  .shop-thumb{height:90px;display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--surface2);}
+  .shop-info{padding:10px 12px 12px;}
+  .shop-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .shop-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .shop-rating{color:var(--accent);font-weight:500;}
+  .shop-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-top:6px;font-weight:500;}
+  .badge-open{background:rgba(200,240,77,0.12);color:var(--accent);}
+  .badge-new{background:rgba(123,140,255,0.15);color:var(--accent3);}
+  .badge-fast{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  /* SHOP DETAIL */
+  #shopDetail{background:var(--bg);}
+  .shop-hero{height:160px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:70px;flex-shrink:0;position:relative;}
+  .back-btn{position:absolute;top:16px;left:16px;width:36px;height:36px;background:rgba(0,0,0,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:var(--text);font-size:18px;}
+  .shop-detail-info{padding:16px 20px 12px;flex-shrink:0;}
+  .shop-detail-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+  .shop-detail-meta{font-size:13px;color:var(--muted);display:flex;gap:12px;}
+  .detail-scroll{flex:1;overflow-y:auto;padding-bottom:100px;}
+  .detail-scroll::-webkit-scrollbar{display:none;}
+  .menu-section{padding:14px 20px 0;}
+  .menu-section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0.05em;margin-bottom:10px;}
+  .menu-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+  .item-icon{font-size:28px;flex-shrink:0;}
+  .item-info{flex:1;min-width:0;}
+  .item-name{font-size:14px;font-weight:500;margin-bottom:2px;}
+  .item-desc{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item-price{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent);margin-top:4px;}
+  .item-add{width:32px;height:32px;border-radius:8px;background:var(--accent);color:#0D0D0D;border:none;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.1s;}
+  .item-add:active{transform:scale(0.9);}
+  .item-qty{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .qty-btn{width:28px;height:28px;border-radius:6px;background:var(--surface2);border:0.5px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .qty-num{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;min-width:18px;text-align:center;}
+  .cart-bar{position:absolute;bottom:0;left:0;right:0;background:var(--accent);color:#0D0D0D;padding:16px 20px;display:none;align-items:center;justify-content:space-between;cursor:pointer;border-radius:20px 20px 0 0;}
+  .cart-bar.visible{display:flex;}
+  .cart-bar-left{display:flex;flex-direction:column;}
+  .cart-bar-count{font-size:12px;font-weight:500;opacity:0.7;}
+  .cart-bar-total{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+  .cart-bar-cta{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+  /* CART */
+  #cartScreen{background:var(--bg);}
+  .page-header{padding:16px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border);}
+  .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .cart-scroll{flex:1;overflow-y:auto;padding:16px 20px;padding-bottom:200px;}
+  .cart-scroll::-webkit-scrollbar{display:none;}
+  .cart-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+  .cart-item-icon{font-size:28px;}
+  .cart-item-info{flex:1;}
+  .cart-item-name{font-size:14px;font-weight:500;}
+  .cart-item-price{font-size:13px;color:var(--accent);margin-top:2px;font-family:'Syne',sans-serif;}
+  .cart-footer{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);padding:16px 20px 32px;}
+  .bill-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px;}
+  .bill-total{display:flex;justify-content:space-between;font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:14px;}
+  /* ORDER PLACED */
+  #orderPlaced{background:var(--bg);align-items:center;justify-content:center;}
+  .order-success{text-align:center;padding:40px 32px;}
+  .success-ring{width:90px;height:90px;border-radius:50%;background:rgba(200,240,77,0.1);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 20px;animation:ring-in 0.4s ease;}
+  @keyframes ring-in{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+  .success-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:8px;}
+  .success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
+  .order-id-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 20px;display:inline-block;margin-bottom:24px;}
+  .order-id-label{font-size:11px;color:var(--muted);margin-bottom:2px;}
+  .order-id-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent);}
+  .track-steps{text-align:left;margin-bottom:24px;}
+  .track-step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+  .step-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .step-dot.done{background:var(--accent);}
+  .step-dot.pending{background:var(--border);}
+  .step-dot.active{background:var(--accent);animation:pulse 1s infinite;}
+  .step-text{font-size:13px;}
+  .step-text.done{color:var(--accent);}
+  .step-text.pending{color:var(--muted);}
+  /* ORDERS PAGE */
+  #orders{background:var(--bg);}
+  .order-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin:0 20px 12px;}
+  .order-card-top{display:flex;justify-content:space-between;margin-bottom:10px;}
+  .order-shop-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+  .order-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .status-delivered{background:rgba(200,240,77,0.12);color:var(--accent);}
+  .status-transit{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .status-preparing{background:rgba(123,140,255,0.15);color:var(--accent3);}
+  .order-items-text{font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .order-card-bottom{display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--border);padding-top:10px;}
+  .order-total{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;cursor:pointer;color:var(--muted);}
+  .nav-item.active{color:var(--accent);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;font-weight:500;}
+  .loading{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+  .toast{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0D0D0D;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- SPLASH -->
+<div class="screen active" id="splash">
+  <div class="splash-logo">NestMart</div>
+  <div class="splash-sub">YOUR SOCIETY STORE</div>
+  <div style="margin-top:24px;"><div class="splash-dot"></div></div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="login">
+  <div class="login-top">
+    <div style="font-size:52px;margin-bottom:16px;">🏢</div>
+    <div class="login-logo">NestMart</div>
+    <div class="login-tagline">Order from your favourite shops,<br>delivered to your flat door.</div>
+  </div>
+  <div class="login-sheet">
+    <div class="login-title">Sign in</div>
+    <div class="login-hint">Enter your society & flat details</div>
+    <div class="field-group">
+      <label class="field-label">SOCIETY CODE</label>
+      <input class="inp" id="societyCode" placeholder="e.g. GREE-HYD-01" style="text-transform:uppercase;">
+    </div>
+    <div class="field-group">
+      <label class="field-label">BLOCK & FLAT NUMBER</label>
+      <div class="field-row">
+        <input class="inp inp-sm" id="block" placeholder="B" maxlength="3">
+        <input class="inp" id="flatNum" placeholder="304" maxlength="6">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">PHONE NUMBER</label>
+      <div class="field-row">
+        <input class="inp inp-sm" value="+91" style="width:64px;" readonly>
+        <input class="inp" id="phone" placeholder="9876543210" maxlength="10" type="tel">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">YOUR NAME</label>
+      <input class="inp" id="residentName" placeholder="Harish Narmetta">
+    </div>
+    <div class="error-msg" id="loginError">Please fill all fields correctly.</div>
+    <button class="btn-main" id="loginBtn" onclick="sendOTP()">Send OTP →</button>
+  </div>
+</div>
+
+<!-- OTP -->
+<div class="screen" id="otp">
+  <div class="otp-top">
+    <div class="otp-icon">📱</div>
+    <div class="otp-title">Enter OTP</div>
+    <div class="otp-sub">Sent to <span class="otp-phone" id="otpPhone">+91 XXXXXXXXXX</span><br>via SMS</div>
+  </div>
+  <div class="otp-sheet">
+    <div class="otp-inputs">
+      <input class="otp-box" maxlength="1" id="o1" oninput="otpNext(this,'o2')">
+      <input class="otp-box" maxlength="1" id="o2" oninput="otpNext(this,'o3')">
+      <input class="otp-box" maxlength="1" id="o3" oninput="otpNext(this,'o4')">
+      <input class="otp-box" maxlength="1" id="o4" oninput="otpNext(this,'o5')">
+      <input class="otp-box" maxlength="1" id="o5" oninput="otpNext(this,'o6')">
+      <input class="otp-box" maxlength="1" id="o6" oninput="otpNext(this,null)">
+    </div>
+    <button class="btn-main" id="verifyBtn" onclick="verifyOTP()">Verify & Enter →</button>
+    <div class="resend-txt" id="resendTxt">Resend OTP in <span id="resendTimer">30</span>s</div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-society" id="homeSociety">—</div>
+      <div class="topbar-flat" id="homeFlat">—</div>
+      <div class="topbar-name" id="homeName">—</div>
+    </div>
+    <div class="avatar" id="homeAvatar">?</div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <span>🔍</span>
+      <span>Search shops, items…</span>
+    </div>
+  </div>
+  <div class="home-scroll">
+    <div class="cat-scroll">
+      <div class="cat-chip selected" onclick="filterCat('all',this)"><div class="cat-icon">🏪</div><div class="cat-name">All</div></div>
+      <div class="cat-chip" onclick="filterCat('food',this)"><div class="cat-icon">🍱</div><div class="cat-name">Food</div></div>
+      <div class="cat-chip" onclick="filterCat('grocery',this)"><div class="cat-icon">🛒</div><div class="cat-name">Grocery</div></div>
+      <div class="cat-chip" onclick="filterCat('pharmacy',this)"><div class="cat-icon">💊</div><div class="cat-name">Pharmacy</div></div>
+      <div class="cat-chip" onclick="filterCat('laundry',this)"><div class="cat-icon">👕</div><div class="cat-name">Laundry</div></div>
+      <div class="cat-chip" onclick="filterCat('services',this)"><div class="cat-icon">🔧</div><div class="cat-name">Services</div></div>
+    </div>
+    <div class="banner">
+      <div class="banner-accent"></div>
+      <div><div class="banner-text">Free delivery<br>this weekend</div><div class="banner-sub">All orders above ₹199</div></div>
+      <div class="banner-pill">Grab it</div>
+    </div>
+    <div class="section-head">
+      <div class="section-title">Shops near you</div>
+    </div>
+    <div class="shops-grid" id="shopsGrid"><div class="loading">Loading shops…</div></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showHome()"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item" onclick="showOrders()"><div class="nav-icon">📦</div><div class="nav-label">Orders</div></div>
+    <div class="nav-item" onclick="showCartScreen()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+  </div>
+</div>
+
+<!-- SHOP DETAIL -->
+<div class="screen" id="shopDetail">
+  <div class="shop-hero" id="shopHero">
+    <button class="back-btn" onclick="show('home')">←</button>
+    <span id="shopHeroEmoji">🏪</span>
+  </div>
+  <div class="shop-detail-info">
+    <div class="shop-detail-name" id="shopDetailName">Shop</div>
+    <div class="shop-detail-meta"><span id="shopDetailRating">⭐ 4.5</span><span>•</span><span id="shopDetailTime">20-30 min</span></div>
+  </div>
+  <div class="detail-scroll" id="menuContainer"><div class="loading">Loading menu…</div></div>
+  <div class="cart-bar" id="cartBar" onclick="showCartScreen()">
+    <div class="cart-bar-left">
+      <div class="cart-bar-count" id="cartBarCount">0 items</div>
+      <div class="cart-bar-total" id="cartBarTotal">₹0</div>
+    </div>
+    <div class="cart-bar-cta">View Cart →</div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="screen" id="cartScreen">
+  <div class="page-header">
+    <button class="back-btn" style="position:relative;top:auto;left:auto;background:var(--surface2);" onclick="show('shopDetail')">←</button>
+    <div class="page-title">Your Cart</div>
+  </div>
+  <div class="cart-scroll" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="bill-row"><span>Subtotal</span><span id="billSubtotal">₹0</span></div>
+    <div class="bill-row"><span>Delivery fee</span><span style="color:var(--accent)">FREE</span></div>
+    <div class="bill-row"><span>Platform fee</span><span>₹5</span></div>
+    <div class="bill-total"><span>Total</span><span id="billTotal">₹5</span></div>
+    <button class="btn-main" id="placeOrderBtn" onclick="placeOrder()">Place Order →</button>
+  </div>
+</div>
+
+<!-- ORDER PLACED -->
+<div class="screen" id="orderPlaced">
+  <div class="order-success">
+    <div class="success-ring">✓</div>
+    <div class="success-title">Order placed!</div>
+    <div class="success-sub">Your order is confirmed.<br>We'll deliver it to your flat door.</div>
+    <div class="order-id-box">
+      <div class="order-id-label">ORDER ID</div>
+      <div class="order-id-val" id="orderIdVal">#NM0001</div>
+    </div>
+    <div class="track-steps">
+      <div class="track-step"><div class="step-dot done"></div><div class="step-text done">Order confirmed</div></div>
+      <div class="track-step"><div class="step-dot active"></div><div class="step-text" style="color:var(--text)">Shop preparing your order</div></div>
+      <div class="track-step"><div class="step-dot pending"></div><div class="step-text pending">Delivery boy assigned</div></div>
+      <div class="track-step"><div class="step-dot pending"></div><div class="step-text pending">Out for delivery</div></div>
+      <div class="track-step" style="border:none"><div class="step-dot pending"></div><div class="step-text pending">Delivered to your flat</div></div>
+    </div>
+    <button class="btn-main" onclick="show('home')">Back to Home →</button>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="screen" id="orders">
+  <div class="page-header"><div class="page-title">My Orders</div></div>
+  <div style="flex:1;overflow-y:auto;padding:16px 0 80px;" id="ordersList"><div class="loading">Loading orders…</div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showHome()"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item active" onclick="showOrders()"><div class="nav-icon">📦</div><div class="nav-label">Orders</div></div>
+    <div class="nav-item" onclick="showCartScreen()"><div class="nav-icon">🛒</div><div class="nav-label">Cart</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-database-compat.min.js"></script>
+
+<script>
+// ─── Firebase Init ───────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+});
+const auth = firebase.auth();
+const db   = firebase.firestore();
+const rtdb = firebase.database();
+
+// ─── Collections ─────────────────────────────────────────────
+const C = {
+  societies: "nestmart_societies",
+  flats:     "nestmart_flats",
+  users:     "nestmart_users",
+  shops:     "nestmart_shops",
+  menu:      "nestmart_menu",
+  orders:    "nestmart_orders",
+};
+
+// ─── State ───────────────────────────────────────────────────
+let currentUser = null;
+let currentFlat = null;
+let currentSociety = null;
+let currentShop = null;
+let cart = {};
+let confirmationResult = null;
+let resendInterval = null;
+let allShops = [];
+
+// ─── Helpers ─────────────────────────────────────────────────
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function setBtn(id,txt,disabled=false){
+  const b=document.getElementById(id);
+  b.textContent=txt; b.disabled=disabled;
+}
+
+// ─── Auth State ──────────────────────────────────────────────
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    // load user profile from Firestore
+    try{
+      const snap = await db.collection(C.users).doc(user.uid).get();
+      if(snap.exists){
+        currentUser = {uid:user.uid, ...snap.data()};
+        await loadUserContext();
+        setupHome();
+        show('home');
+        return;
+      }
+    }catch(e){}
+  }
+  setTimeout(()=>show('login'),1400);
+});
+
+// ─── reCAPTCHA + OTP ─────────────────────────────────────────
+window.recaptchaVerifier = null;
+
+function initRecaptcha(){
+  if(window.recaptchaVerifier) return;
+  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('loginBtn',{
+    size:'invisible',
+    callback:()=>{}
+  });
+}
+
+async function sendOTP(){
+  const soc  = document.getElementById('societyCode').value.trim().toUpperCase();
+  const blk  = document.getElementById('block').value.trim().toUpperCase();
+  const flat = document.getElementById('flatNum').value.trim();
+  const ph   = document.getElementById('phone').value.trim();
+  const name = document.getElementById('residentName').value.trim();
+  if(!soc||!blk||!flat||!ph||!name||ph.length!==10){
+    document.getElementById('loginError').style.display='block'; return;
+  }
+  document.getElementById('loginError').style.display='none';
+
+  // Verify society exists
+  setBtn('loginBtn','Verifying…',true);
+  try{
+    const socSnap = await db.collection(C.societies).where('code','==',soc).limit(1).get();
+    if(socSnap.empty){
+      showToast('Society code not found. Contact admin.');
+      setBtn('loginBtn','Send OTP →',false); return;
+    }
+    currentSociety = {id:socSnap.docs[0].id, ...socSnap.docs[0].data()};
+    // store pending details
+    window._pendingLogin = {soc, blk, flat, ph, name, flatId:`${blk}-${flat}`};
+
+    initRecaptcha();
+    setBtn('loginBtn','Sending OTP…',true);
+    confirmationResult = await auth.signInWithPhoneNumber('+91'+ph, window.recaptchaVerifier);
+    document.getElementById('otpPhone').textContent = '+91 '+ph;
+    startResendTimer();
+    show('otp');
+    setBtn('loginBtn','Send OTP →',false);
+  }catch(err){
+    console.error(err);
+    showToast('Error: '+err.message);
+    setBtn('loginBtn','Send OTP →',false);
+    if(window.recaptchaVerifier){window.recaptchaVerifier.clear();window.recaptchaVerifier=null;}
+  }
+}
+
+function otpNext(el,nextId){
+  if(el.value&&nextId) document.getElementById(nextId).focus();
+}
+
+function startResendTimer(){
+  let t=30;
+  document.getElementById('resendTxt').innerHTML=`Resend OTP in <span id="resendTimer">${t}</span>s`;
+  clearInterval(resendInterval);
+  resendInterval=setInterval(()=>{
+    t--;
+    const el=document.getElementById('resendTimer');
+    if(el) el.textContent=t;
+    if(t<=0){
+      clearInterval(resendInterval);
+      document.getElementById('resendTxt').innerHTML=`<span onclick="sendOTP()">Resend OTP</span>`;
+    }
+  },1000);
+}
+
+async function verifyOTP(){
+  const code=['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
+  if(code.length!==6){showToast('Enter 6-digit OTP');return;}
+  setBtn('verifyBtn','Verifying…',true);
+  try{
+    const result = await confirmationResult.confirm(code);
+    const user = result.user;
+    const p = window._pendingLogin;
+    // Save user + flat to Firestore
+    const userData = {
+      uid:user.uid, name:p.name, phone:'+91'+p.ph,
+      societyId:currentSociety.id, societyCode:p.soc,
+      flatId:p.flatId, block:p.blk, flatNum:p.flat,
+      role:'resident', createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection(C.users).doc(user.uid).set(userData,{merge:true});
+    // Create flat record if not exists
+    const flatRef = db.collection(C.flats).doc(`${currentSociety.id}_${p.flatId}`);
+    await flatRef.set({
+      flatId:p.flatId, block:p.blk, flatNum:p.flat,
+      societyId:currentSociety.id, societyCode:p.soc,
+      residentUid:user.uid, residentName:p.name,
+      status:'occupied', updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    currentUser = userData;
+    await loadUserContext();
+    setupHome();
+    show('home');
+  }catch(err){
+    console.error(err);
+    showToast('Invalid OTP. Try again.');
+    setBtn('verifyBtn','Verify & Enter →',false);
+  }
+}
+
+async function loadUserContext(){
+  if(!currentUser) return;
+  const socSnap = await db.collection(C.societies).doc(currentUser.societyId).get();
+  if(socSnap.exists) currentSociety = {id:socSnap.id,...socSnap.data()};
+}
+
+function setupHome(){
+  document.getElementById('homeSociety').textContent = currentSociety?.name || currentUser?.societyCode || '—';
+  document.getElementById('homeFlat').textContent = 'Flat '+(currentUser?.flatId||'—');
+  document.getElementById('homeName').textContent = currentUser?.name||'—';
+  document.getElementById('homeAvatar').textContent = (currentUser?.name||'?')[0].toUpperCase();
+  loadShops();
+  listenOrders();
+}
+
+// ─── Shops ───────────────────────────────────────────────────
+async function loadShops(cat='all'){
+  const grid = document.getElementById('shopsGrid');
+  grid.innerHTML='<div class="loading">Loading shops…</div>';
+  try{
+    let q = db.collection(C.shops).where('status','==','approved');
+    const snap = await q.get();
+    allShops = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderShops(cat);
+  }catch(e){
+    // fallback to demo data if Firestore has no shops yet
+    allShops = [
+      {id:'s1',name:"Quick Grocery",emoji:"🛒",category:"grocery",rating:"4.6",deliveryTime:"15-25 min",badge:"fast",badgeLabel:"Fast delivery",status:'approved'},
+      {id:'s2',name:"Ravi's Kitchen",emoji:"🍱",category:"food",rating:"4.8",deliveryTime:"25-35 min",badge:"new",badgeLabel:"Highly rated",status:'approved'},
+      {id:'s3',name:"MedPlus Nearby",emoji:"💊",category:"pharmacy",rating:"4.4",deliveryTime:"20-30 min",badge:"open",badgeLabel:"Open now",status:'approved'},
+      {id:'s4',name:"Fresh Bakes",emoji:"🥐",category:"food",rating:"4.7",deliveryTime:"20-30 min",badge:"open",badgeLabel:"Open now",status:'approved'},
+      {id:'s5',name:"CleanFast Laundry",emoji:"👕",category:"laundry",rating:"4.3",deliveryTime:"Next day",badge:"open",badgeLabel:"Open now",status:'approved'},
+      {id:'s6',name:"HomeFixers",emoji:"🔧",category:"services",rating:"4.5",deliveryTime:"Scheduled",badge:"new",badgeLabel:"New",status:'approved'},
+    ];
+    renderShops(cat);
+  }
+}
+
+function renderShops(cat){
+  const grid = document.getElementById('shopsGrid');
+  const filtered = cat==='all' ? allShops : allShops.filter(s=>s.category===cat);
+  if(!filtered.length){grid.innerHTML='<div class="loading" style="grid-column:span 2">No shops in this category yet</div>';return;}
+  grid.innerHTML = filtered.map(s=>`
+    <div class="shop-card" onclick="openShop('${s.id}')">
+      <div class="shop-thumb">${s.emoji||'🏪'}</div>
+      <div class="shop-info">
+        <div class="shop-name">${s.name}</div>
+        <div class="shop-meta"><span class="shop-rating">★ ${s.rating||'4.5'}</span><span>•</span><span>${s.deliveryTime||'20-30 min'}</span></div>
+        <div class="shop-badge badge-${s.badge||'open'}">${s.badgeLabel||'Open'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCat(cat,el){
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  renderShops(cat);
+}
+
+// ─── Menu ────────────────────────────────────────────────────
+async function openShop(shopId){
+  currentShop = allShops.find(s=>s.id===shopId);
+  if(!currentShop) return;
+  document.getElementById('shopHeroEmoji').textContent = currentShop.emoji||'🏪';
+  document.getElementById('shopDetailName').textContent = currentShop.name;
+  document.getElementById('shopDetailRating').textContent = '★ '+(currentShop.rating||'4.5');
+  document.getElementById('shopDetailTime').textContent = currentShop.deliveryTime||'20-30 min';
+  document.getElementById('menuContainer').innerHTML='<div class="loading">Loading menu…</div>';
+  show('shopDetail');
+  try{
+    const snap = await db.collection(C.menu).where('shopId','==',shopId).where('available','==',true).get();
+    let items = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!items.length) items = getFallbackMenu(shopId);
+    renderMenu(items);
+  }catch(e){
+    renderMenu(getFallbackMenu(shopId));
+  }
+  updateCartBar();
+}
+
+function getFallbackMenu(shopId){
+  const menus = {
+    's1':[{id:'m1',name:'Amul Milk 1L',desc:'Full cream',price:68,emoji:'🥛',section:'Essentials'},{id:'m2',name:'Brown Bread',desc:'400g',price:45,emoji:'🍞',section:'Essentials'},{id:'m3',name:'Farm Eggs',desc:'Pack of 12',price:89,emoji:'🥚',section:'Essentials'}],
+    's2':[{id:'m4',name:'Hyderabadi Biryani',desc:'Dum-cooked',price:180,emoji:'🍛',section:'Rice & Biryani'},{id:'m5',name:'Veg Pulao',desc:'Serves 1',price:120,emoji:'🍚',section:'Rice & Biryani'},{id:'m6',name:'Raita',desc:'250ml',price:49,emoji:'🥛',section:'Sides'}],
+    's3':[{id:'m7',name:'Dolo 650',desc:'15 tabs',price:32,emoji:'💊',section:'Medicines'},{id:'m8',name:'Volini Gel',desc:'30g',price:85,emoji:'🧴',section:'Medicines'}],
+    's4':[{id:'m9',name:'Butter Croissant',desc:'Fresh baked',price:55,emoji:'🥐',section:'Baked'},{id:'m10',name:'Choco Muffin',desc:'Belgian chips',price:65,emoji:'🧁',section:'Baked'}],
+    's5':[{id:'m11',name:'Wash & Fold',desc:'Per kg',price:60,emoji:'👕',section:'Services'},{id:'m12',name:'Dry Clean Shirt',desc:'Pressed',price:80,emoji:'👔',section:'Services'}],
+    's6':[{id:'m13',name:'Plumber Visit',desc:'1hr basic',price:299,emoji:'🔧',section:'Services'},{id:'m14',name:'Electrician',desc:'1hr',price:349,emoji:'⚡',section:'Services'}],
+  };
+  return menus[shopId]||[];
+}
+
+function renderMenu(items){
+  const sections = [...new Set(items.map(i=>i.section||'Items'))];
+  const container = document.getElementById('menuContainer');
+  container.innerHTML = sections.map(sec=>`
+    <div class="menu-section">
+      <div class="menu-section-title">${sec.toUpperCase()}</div>
+      ${items.filter(i=>(i.section||'Items')===sec).map(item=>{
+        const key=item.id;
+        const qty=cart[key]?.qty||0;
+        return `<div class="menu-item">
+          <div class="item-icon">${item.emoji||'🛍️'}</div>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <div class="item-desc">${item.desc||''}</div>
+            <div class="item-price">₹${item.price}</div>
+          </div>
+          <div id="ctrl-${key}">
+            ${qty===0
+              ? `<button class="item-add" onclick="addItem('${key}','${item.name}',${item.price},'${item.emoji||'🛍️'}')">+</button>`
+              : `<div class="item-qty"><button class="qty-btn" onclick="changeQty('${key}',-1,'${item.name}',${item.price},'${item.emoji||'🛍️'}')">−</button><div class="qty-num">${qty}</div><button class="qty-btn" onclick="changeQty('${key}',1,'${item.name}',${item.price},'${item.emoji||'🛍️'}')">+</button></div>`
+            }
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+// ─── Cart ────────────────────────────────────────────────────
+function addItem(key,name,price,emoji){
+  cart[key]={name,price,emoji,qty:1};
+  refreshCtrl(key,name,price,emoji);
+  updateCartBar();
+}
+function changeQty(key,delta,name,price,emoji){
+  if(!cart[key]) cart[key]={name,price,emoji,qty:0};
+  cart[key].qty+=delta;
+  if(cart[key].qty<=0) delete cart[key];
+  refreshCtrl(key,name,price,emoji);
+  updateCartBar();
+}
+function refreshCtrl(key,name,price,emoji){
+  const qty=cart[key]?.qty||0;
+  const el=document.getElementById('ctrl-'+key);
+  if(!el) return;
+  el.innerHTML=qty===0
+    ?`<button class="item-add" onclick="addItem('${key}','${name}',${price},'${emoji}')">+</button>`
+    :`<div class="item-qty"><button class="qty-btn" onclick="changeQty('${key}',-1,'${name}',${price},'${emoji}')">−</button><div class="qty-num">${qty}</div><button class="qty-btn" onclick="changeQty('${key}',1,'${name}',${price},'${emoji}')">+</button></div>`;
+}
+function cartTotal(){return Object.values(cart).reduce((s,i)=>s+i.price*i.qty,0);}
+function cartCount(){return Object.values(cart).reduce((s,i)=>s+i.qty,0);}
+function updateCartBar(){
+  const total=cartTotal(),count=cartCount();
+  const bar=document.getElementById('cartBar');
+  if(count>0){bar.classList.add('visible');document.getElementById('cartBarCount').textContent=count+' item'+(count>1?'s':'');document.getElementById('cartBarTotal').textContent='₹'+total;}
+  else bar.classList.remove('visible');
+}
+function showCartScreen(){
+  const items=Object.values(cart);
+  if(!items.length){showToast('Cart is empty!');return;}
+  document.getElementById('cartItems').innerHTML=items.map(item=>`
+    <div class="cart-item">
+      <div class="cart-item-icon">${item.emoji}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">₹${item.price} × ${item.qty}</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent)">₹${item.price*item.qty}</div>
+    </div>
+  `).join('');
+  const sub=cartTotal();
+  document.getElementById('billSubtotal').textContent='₹'+sub;
+  document.getElementById('billTotal').textContent='₹'+(sub+5);
+  show('cartScreen');
+}
+
+// ─── Place Order ─────────────────────────────────────────────
+async function placeOrder(){
+  if(!currentUser){showToast('Not logged in');return;}
+  setBtn('placeOrderBtn','Placing order…',true);
+  try{
+    const items = Object.entries(cart).map(([id,v])=>({itemId:id,name:v.name,price:v.price,qty:v.qty,emoji:v.emoji}));
+    const total = cartTotal()+5;
+    const orderRef = await db.collection(C.orders).add({
+      residentUid:  currentUser.uid,
+      residentName: currentUser.name,
+      flatId:       currentUser.flatId,
+      societyId:    currentUser.societyId,
+      societyCode:  currentUser.societyCode,
+      shopId:       currentShop?.id||'unknown',
+      shopName:     currentShop?.name||'Shop',
+      items,
+      subtotal:     cartTotal(),
+      platformFee:  5,
+      total,
+      status:       'placed',
+      createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    // Mirror to RTDB for live updates
+    await rtdb.ref(`nestmart/liveOrders/${orderRef.id}`).set({
+      orderId:    orderRef.id,
+      status:     'placed',
+      shopId:     currentShop?.id||'unknown',
+      flatId:     currentUser.flatId,
+      societyId:  currentUser.societyId,
+      total,
+      updatedAt:  Date.now(),
+    });
+    document.getElementById('orderIdVal').textContent = '#'+orderRef.id.substring(0,8).toUpperCase();
+    cart={};
+    updateCartBar();
+    show('orderPlaced');
+    // listen for status updates
+    listenOrderStatus(orderRef.id);
+  }catch(err){
+    console.error(err);
+    showToast('Order failed: '+err.message);
+  }
+  setBtn('placeOrderBtn','Place Order →',false);
+}
+
+// ─── Live Order Status ────────────────────────────────────────
+function listenOrderStatus(orderId){
+  rtdb.ref(`nestmart/liveOrders/${orderId}/status`).on('value',snap=>{
+    const status=snap.val();
+    if(!status) return;
+    const map={placed:'Order confirmed',accepted:'Shop accepted',preparing:'Shop is preparing',ready:'Ready for pickup',picked:'Delivery boy on the way',delivered:'Delivered!'};
+    showToast(map[status]||status);
+  });
+}
+
+// ─── My Orders ───────────────────────────────────────────────
+function listenOrders(){
+  if(!currentUser) return;
+  db.collection(C.orders)
+    .where('residentUid','==',currentUser.uid)
+    .orderBy('createdAt','desc')
+    .limit(20)
+    .onSnapshot(snap=>{
+      const orders=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderOrdersList(orders);
+    });
+}
+
+function renderOrdersList(orders){
+  const el=document.getElementById('ordersList');
+  if(!orders.length){el.innerHTML='<div class="loading">No orders yet</div>';return;}
+  const statusColor={placed:'status-preparing',accepted:'status-preparing',preparing:'status-preparing',ready:'status-transit',picked:'status-transit',delivered:'status-delivered'};
+  const statusLabel={placed:'Placed',accepted:'Accepted',preparing:'Preparing',ready:'Ready',picked:'On the way',delivered:'Delivered'};
+  el.innerHTML=orders.map(o=>`
+    <div class="order-card">
+      <div class="order-card-top">
+        <div class="order-shop-name">${o.shopName||'Shop'}</div>
+        <div class="order-status ${statusColor[o.status]||'status-preparing'}">${statusLabel[o.status]||o.status}</div>
+      </div>
+      <div class="order-items-text">${(o.items||[]).map(i=>i.name+' × '+i.qty).join(', ')}</div>
+      <div class="order-card-bottom">
+        <div class="order-total">₹${o.total}</div>
+        <div style="font-size:12px;color:var(--muted)">#${o.id.substring(0,8).toUpperCase()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function doLogout(){
+  auth.signOut().then(()=>{currentUser=null;currentSociety=null;cart={};show('login');showToast('Logged out');});
+}
+function showHome(){show('home');}
+function showOrders(){show('orders');}
+</script>
+</body>
+</html>

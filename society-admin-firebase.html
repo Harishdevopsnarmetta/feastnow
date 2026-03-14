@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NestMart — Society Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0F0A14;--surface:#17101F;--surface2:#1F1628;--border:#2D2040;--accent:#C77DFF;--accent2:#FF6B35;--accent3:#FFD166;--green:#2DFF8F;--text:#F0EAF8;--muted:#7A6B8A;--danger:#FF4D6D;--radius:16px;--radius-sm:10px;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{font-family:'DM Sans',sans-serif;color:var(--text);}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  #splash{background:var(--bg);align-items:center;justify-content:center;gap:10px;}
+  .splash-logo{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-2px;}
+  .splash-sub{font-size:12px;color:var(--muted);letter-spacing:0.12em;}
+  .splash-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;margin-top:16px;}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+  #login{background:var(--bg);justify-content:flex-end;}
+  .login-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 20px;}
+  .login-icon{font-size:56px;margin-bottom:14px;}
+  .login-logo{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-1px;margin-bottom:6px;}
+  .login-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .login-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-hint{font-size:13px;color:var(--muted);margin-bottom:22px;}
+  .field-group{margin-bottom:13px;}
+  .field-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+  .inp{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp::placeholder{color:var(--muted);}
+  .btn-main{width:100%;background:var(--accent);color:#0F0A14;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-top:8px;transition:opacity 0.15s,transform 0.1s;}
+  .btn-main:active{opacity:0.85;transform:scale(0.98);}
+  .btn-main:disabled{opacity:0.5;cursor:not-allowed;}
+  #dashboard{background:var(--bg);}
+  .topbar{padding:16px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .society-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+  .society-code{font-size:12px;color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;margin-top:2px;}
+  .admin-badge{background:rgba(199,125,255,0.12);border:0.5px solid rgba(199,125,255,0.3);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--accent);font-weight:500;}
+  .stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 20px 14px;flex-shrink:0;}
+  .stat-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+  .dash-scroll{flex:1;overflow-y:auto;padding-bottom:80px;}
+  .dash-scroll::-webkit-scrollbar{display:none;}
+  .section-head{padding:14px 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .section-action{font-size:12px;color:var(--accent);cursor:pointer;}
+  .activity-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:0.5px solid var(--border);}
+  .activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .dot-order{background:var(--accent);}
+  .dot-resident{background:var(--green);}
+  .dot-payment{background:var(--accent3);}
+  .activity-text{font-size:13px;flex:1;line-height:1.5;}
+  .activity-time{font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px;}
+  .approval-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);margin:0 20px 10px;padding:14px;}
+  .approval-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .approval-name{font-size:15px;font-weight:500;}
+  .approval-type{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .type-owner{background:rgba(199,125,255,0.12);color:var(--accent);}
+  .type-tenant{background:rgba(255,209,102,0.12);color:var(--accent3);}
+  .approval-flat{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .approval-actions{display:flex;gap:8px;}
+  .btn-approve{flex:1;background:var(--accent);color:#0F0A14;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+  .btn-deny{background:transparent;color:var(--danger);border:0.5px solid var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;cursor:pointer;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;cursor:pointer;color:var(--muted);}
+  .nav-item.active{color:var(--accent);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;font-weight:500;}
+  #flatsPage{background:var(--bg);}
+  .page-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:0.5px solid var(--border);}
+  .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .flats-scroll{flex:1;overflow-y:auto;padding:0 20px 80px;}
+  .flats-scroll::-webkit-scrollbar{display:none;}
+  .flat-row{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+  .flat-num{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--accent);min-width:52px;}
+  .flat-info{flex:1;}
+  .flat-resident{font-size:14px;font-weight:500;}
+  .flat-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .flat-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .status-occupied{background:rgba(45,255,143,0.1);color:var(--green);}
+  .status-vacant{background:var(--surface2);color:var(--muted);}
+  #noticesPage{background:var(--bg);}
+  .notices-scroll{flex:1;overflow-y:auto;padding:14px 20px 80px;}
+  .notices-scroll::-webkit-scrollbar{display:none;}
+  .notice-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+  .notice-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .notice-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+  .notice-tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
+  .tag-urgent{background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .tag-info{background:rgba(199,125,255,0.12);color:var(--accent);}
+  .tag-maintenance{background:rgba(255,209,102,0.12);color:var(--accent3);}
+  .notice-body{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:8px;}
+  .notice-footer{display:flex;justify-content:space-between;}
+  .notice-date{font-size:11px;color:var(--muted);}
+  .compose-btn{position:absolute;bottom:90px;right:20px;background:var(--accent);color:#0F0A14;border:none;border-radius:50%;width:52px;height:52px;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:50;display:none;align-items:flex-end;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:24px;width:100%;border-top:0.5px solid var(--border);}
+  .modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:10px;margin-top:14px;}
+  .btn-cancel{flex:1;background:var(--surface2);color:var(--text);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:15px;cursor:pointer;}
+  select.inp{appearance:none;}
+  textarea.inp{resize:none;height:80px;}
+  .toast{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0F0A14;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .toast.show{opacity:1;}
+  .loading{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="screen active" id="splash">
+  <div class="splash-logo">NestMart</div>
+  <div class="splash-sub">SOCIETY ADMIN</div>
+  <div class="splash-dot"></div>
+</div>
+
+<div class="screen" id="login">
+  <div class="login-top">
+    <div class="login-icon">🏘️</div>
+    <div class="login-logo">Society Admin</div>
+    <div class="login-tagline">Manage residents, flats & notices.</div>
+  </div>
+  <div class="login-sheet">
+    <div class="login-title">Admin login</div>
+    <div class="login-hint">Enter your society credentials</div>
+    <div class="field-group"><label class="field-label">SOCIETY CODE</label><input class="inp" id="socCode" placeholder="GREE-HYD-01" style="text-transform:uppercase;"></div>
+    <div class="field-group"><label class="field-label">ADMIN NAME</label><input class="inp" id="adminName" placeholder="Ramesh Reddy"></div>
+    <div class="field-group"><label class="field-label">ADMIN PHONE</label><input class="inp" id="adminPhone" placeholder="9876543210" type="tel" maxlength="10"></div>
+    <button class="btn-main" id="adminLoginBtn" onclick="adminLogin()">Enter Admin Panel →</button>
+  </div>
+</div>
+
+<div class="screen" id="dashboard">
+  <div class="topbar">
+    <div><div class="society-name" id="dashSocName">—</div><div class="society-code" id="dashSocCode">—</div></div>
+    <div class="admin-badge" id="dashAdminName">Admin</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total flats</div><div class="stat-val" style="color:var(--accent)" id="statFlats">—</div></div>
+    <div class="stat-card"><div class="stat-label">Residents</div><div class="stat-val" style="color:var(--green)" id="statResidents">—</div></div>
+    <div class="stat-card"><div class="stat-label">Orders today</div><div class="stat-val" style="color:var(--accent3)" id="statOrders">0</div></div>
+    <div class="stat-card"><div class="stat-label">Notices sent</div><div class="stat-val" style="color:var(--accent)" id="statNotices">0</div></div>
+  </div>
+  <div class="dash-scroll">
+    <div class="section-head"><div class="section-title">Pending approvals</div><div class="section-action" id="approvalCount"></div></div>
+    <div id="approvalsList"><div class="loading">Loading…</div></div>
+    <div class="section-head"><div class="section-title">Recent activity</div></div>
+    <div id="activityFeed"><div class="loading">Loading…</div></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Dashboard</div></div>
+    <div class="nav-item" onclick="showFlats()"><div class="nav-icon">🏠</div><div class="nav-label">Flats</div></div>
+    <div class="nav-item" onclick="showNotices()"><div class="nav-icon">📢</div><div class="nav-label">Notices</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="flatsPage">
+  <div class="page-header"><div class="page-title">Flats & Residents</div></div>
+  <div class="flats-scroll" id="flatsList"><div class="loading">Loading flats…</div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Dashboard</div></div>
+    <div class="nav-item active" onclick="showFlats()"><div class="nav-icon">🏠</div><div class="nav-label">Flats</div></div>
+    <div class="nav-item" onclick="showNotices()"><div class="nav-icon">📢</div><div class="nav-label">Notices</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="noticesPage">
+  <div class="page-header" style="border-bottom:0.5px solid var(--border);"><div class="page-title">Notices</div></div>
+  <div class="notices-scroll" id="noticesList"><div class="loading">Loading notices…</div></div>
+  <button class="compose-btn" onclick="showComposeModal()">+</button>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="showDash()"><div class="nav-icon">📊</div><div class="nav-label">Dashboard</div></div>
+    <div class="nav-item" onclick="showFlats()"><div class="nav-icon">🏠</div><div class="nav-label">Flats</div></div>
+    <div class="nav-item active" onclick="showNotices()"><div class="nav-icon">📢</div><div class="nav-label">Notices</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="composeModal">
+  <div class="modal-sheet">
+    <div class="modal-title">Post a notice</div>
+    <div class="field-group"><label class="field-label">TITLE</label><input class="inp" id="noticeTitle" placeholder="e.g. Water supply shutdown"></div>
+    <div class="field-group"><label class="field-label">CATEGORY</label><select class="inp" id="noticeCat"><option value="info">📢 General info</option><option value="urgent">🚨 Urgent</option><option value="maintenance">🔧 Maintenance</option></select></div>
+    <div class="field-group"><label class="field-label">MESSAGE</label><textarea class="inp" id="noticeBody" placeholder="Write your notice here…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideComposeModal()">Cancel</button>
+      <button class="btn-main" style="flex:1;margin-top:0;" onclick="postNotice()">Post to all →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+const C={societies:"nestmart_societies",flats:"nestmart_flats",users:"nestmart_users",notices:"nestmart_notices",orders:"nestmart_orders"};
+
+let socDoc=null;
+let adminData=null;
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis;}
+
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    const snap=await db.collection(C.users).doc(user.uid).get();
+    if(snap.exists&&snap.data().role==='society_admin'){
+      adminData={uid:user.uid,...snap.data()};
+      await loadSociety(adminData.societyId);
+      setupDash();show('dashboard');return;
+    }
+  }
+  setTimeout(()=>show('login'),1200);
+});
+
+async function adminLogin(){
+  const code=document.getElementById('socCode').value.trim().toUpperCase();
+  const name=document.getElementById('adminName').value.trim();
+  const phone=document.getElementById('adminPhone').value.trim();
+  if(!code||!name||!phone){showToast('Fill all fields');return;}
+  setBtn('adminLoginBtn','Verifying…',true);
+  try{
+    const socSnap=await db.collection(C.societies).where('code','==',code).limit(1).get();
+    if(socSnap.empty){
+      // create society if doesn't exist
+      const newSoc=await db.collection(C.societies).add({
+        code,name:'Society '+code,adminName:name,adminPhone:phone,
+        city:'Hyderabad',totalFlats:0,plan:'basic',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      socDoc={id:newSoc.id,code,name:'Society '+code};
+    } else {
+      socDoc={id:socSnap.docs[0].id,...socSnap.docs[0].data()};
+    }
+    const cred=await auth.signInAnonymously();
+    const uid=cred.user.uid;
+    adminData={uid,name,phone,role:'society_admin',societyId:socDoc.id,societyCode:code};
+    await db.collection(C.users).doc(uid).set(adminData,{merge:true});
+    setupDash();show('dashboard');
+  }catch(err){showToast('Error: '+err.message);}
+  setBtn('adminLoginBtn','Enter Admin Panel →',false);
+}
+
+async function loadSociety(socId){
+  const snap=await db.collection(C.societies).doc(socId).get();
+  if(snap.exists) socDoc={id:snap.id,...snap.data()};
+}
+
+function setupDash(){
+  document.getElementById('dashSocName').textContent=socDoc?.name||'Society';
+  document.getElementById('dashSocCode').textContent=socDoc?.code||'—';
+  document.getElementById('dashAdminName').textContent=adminData?.name||'Admin';
+  loadStats();
+  loadPendingApprovals();
+  loadActivity();
+}
+
+async function loadStats(){
+  try{
+    const flatsSnap=await db.collection(C.flats).where('societyId','==',socDoc.id).get();
+    const occupied=flatsSnap.docs.filter(d=>d.data().status==='occupied').length;
+    document.getElementById('statFlats').textContent=flatsSnap.size;
+    document.getElementById('statResidents').textContent=occupied;
+    const noticesSnap=await db.collection(C.notices).where('societyId','==',socDoc.id).get();
+    document.getElementById('statNotices').textContent=noticesSnap.size;
+    // today orders
+    const today=new Date(); today.setHours(0,0,0,0);
+    const ordersSnap=await db.collection(C.orders).where('societyId','==',socDoc.id).where('createdAt','>=',today).get();
+    document.getElementById('statOrders').textContent=ordersSnap.size;
+  }catch(e){}
+}
+
+async function loadPendingApprovals(){
+  try{
+    const snap=await db.collection(C.flats).where('societyId','==',socDoc.id).where('status','==','pending').get();
+    const pending=snap.docs.map(d=>({id:d.id,...d.data()}));
+    document.getElementById('approvalCount').textContent=pending.length+' requests';
+    const el=document.getElementById('approvalsList');
+    if(!pending.length){el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">No pending approvals</div>`;return;}
+    el.innerHTML=pending.map(p=>`
+      <div class="approval-card">
+        <div class="approval-top">
+          <div class="approval-name">${p.residentName||'Resident'}</div>
+          <div class="approval-type type-${p.residentType||'tenant'}">${p.residentType==='owner'?'Owner':'Tenant'}</div>
+        </div>
+        <div class="approval-flat">Requesting Flat <strong style="color:var(--accent)">${p.flatId}</strong></div>
+        <div class="approval-actions">
+          <button class="btn-deny" onclick="handleApproval('${p.id}','rejected')">Deny</button>
+          <button class="btn-approve" onclick="handleApproval('${p.id}','occupied')">Approve →</button>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){}
+}
+
+async function handleApproval(flatDocId,status){
+  await db.collection(C.flats).doc(flatDocId).update({status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+  showToast(status==='occupied'?'Resident approved!':'Request denied');
+  loadPendingApprovals();
+  loadStats();
+}
+
+async function loadActivity(){
+  try{
+    const snap=await db.collection(C.orders)
+      .where('societyId','==',socDoc.id)
+      .orderBy('createdAt','desc').limit(10).get();
+    const orders=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const el=document.getElementById('activityFeed');
+    if(!orders.length){el.innerHTML=`<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">No activity yet</div>`;return;}
+    el.innerHTML=orders.map(o=>`
+      <div class="activity-item">
+        <div class="activity-dot dot-order"></div>
+        <div class="activity-text">Flat ${o.flatId} ordered from ${o.shopName||'Shop'} — ₹${o.total}</div>
+        <div class="activity-time">${timeAgo(o.createdAt)}</div>
+      </div>
+    `).join('');
+  }catch(e){}
+}
+
+async function showFlats(){
+  show('flatsPage');
+  const el=document.getElementById('flatsList');
+  el.innerHTML='<div class="loading">Loading flats…</div>';
+  try{
+    const snap=await db.collection(C.flats).where('societyId','==',socDoc.id).orderBy('flatId').get();
+    const flats=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!flats.length){el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">No flats registered yet.<br>Residents will appear here when they sign up.</div>`;return;}
+    el.innerHTML=flats.map(f=>`
+      <div class="flat-row">
+        <div class="flat-num">${f.flatId}</div>
+        <div class="flat-info">
+          <div class="flat-resident">${f.residentName||'Vacant'}</div>
+          <div class="flat-sub">${f.status==='occupied'?'Occupied':f.status==='pending'?'Pending approval':'Vacant'}</div>
+        </div>
+        <div class="flat-status status-${f.status==='occupied'?'occupied':'vacant'}">${f.status==='occupied'?'Occupied':f.status==='pending'?'Pending':'Vacant'}</div>
+      </div>
+    `).join('');
+  }catch(e){el.innerHTML='<div class="loading">Error loading flats</div>';}
+}
+
+async function showNotices(){
+  show('noticesPage');
+  const el=document.getElementById('noticesList');
+  el.innerHTML='<div class="loading">Loading notices…</div>';
+  try{
+    const snap=await db.collection(C.notices).where('societyId','==',socDoc.id).orderBy('createdAt','desc').get();
+    const notices=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!notices.length){el.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">No notices yet. Tap + to post one.</div>`;return;}
+    el.innerHTML=notices.map(n=>`
+      <div class="notice-card">
+        <div class="notice-top">
+          <div class="notice-title">${n.title}</div>
+          <div class="notice-tag tag-${n.category||'info'}">${n.category==='urgent'?'Urgent':n.category==='maintenance'?'Maintenance':'Info'}</div>
+        </div>
+        <div class="notice-body">${n.body}</div>
+        <div class="notice-footer">
+          <div class="notice-date">${n.createdAt?.toDate?.()?.toLocaleDateString('en-IN',{day:'numeric',month:'short'})||'Today'}</div>
+          <div style="font-size:11px;color:var(--green)">✓ Posted</div>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){el.innerHTML='<div class="loading">Error loading notices</div>';}
+}
+
+async function postNotice(){
+  const title=document.getElementById('noticeTitle').value.trim();
+  const category=document.getElementById('noticeCat').value;
+  const body=document.getElementById('noticeBody').value.trim();
+  if(!title||!body){showToast('Fill title and message');return;}
+  try{
+    await db.collection(C.notices).add({
+      title,body,category,
+      societyId:socDoc.id,societyCode:socDoc.code,
+      postedBy:adminData.name,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('noticeTitle').value='';document.getElementById('noticeBody').value='';
+    hideComposeModal();
+    showToast('Notice posted!');
+    showNotices();
+    loadStats();
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+function timeAgo(ts){
+  if(!ts) return '';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const diff=Math.floor((Date.now()-d)/60000);
+  if(diff<1) return 'just now';
+  if(diff<60) return diff+'m ago';
+  return Math.floor(diff/60)+'h ago';
+}
+
+function doLogout(){auth.signOut().then(()=>{socDoc=null;adminData=null;show('login');showToast('Logged out');});}
+function showDash(){show('dashboard');setupDash();}
+function showComposeModal(){document.getElementById('composeModal').classList.add('show');}
+function hideComposeModal(){document.getElementById('composeModal').classList.remove('show');}
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NestMart — Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#08080F;--surface:#10101A;--surface2:#181824;--border:#22223A;--accent:#7B8CFF;--accent2:#FF6B35;--accent3:#FFD166;--green:#2DFF8F;--text:#F0F0FF;--muted:#6B6B8A;--danger:#FF4D6D;--radius:16px;--radius-sm:10px;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);}
+  body{font-family:'DM Sans',sans-serif;color:var(--text);}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .screen.active{display:flex;}
+  #splash{background:var(--bg);align-items:center;justify-content:center;gap:10px;}
+  .splash-logo{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--accent);letter-spacing:-2px;}
+  .splash-sub{font-size:12px;color:var(--muted);letter-spacing:0.12em;}
+  .splash-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite;margin-top:16px;}
+  @keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+  #login{background:var(--bg);justify-content:flex-end;}
+  .login-top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 20px;}
+  .login-icon{font-size:56px;margin-bottom:14px;}
+  .login-logo{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-1px;margin-bottom:6px;}
+  .login-tagline{font-size:13px;color:var(--muted);text-align:center;line-height:1.6;}
+  .login-sheet{background:var(--surface);border-radius:28px 28px 0 0;padding:28px 24px 40px;border-top:0.5px solid var(--border);}
+  .login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;}
+  .login-hint{font-size:13px;color:var(--muted);margin-bottom:22px;}
+  .field-group{margin-bottom:13px;}
+  .field-label{font-size:11px;color:var(--muted);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+  .inp{width:100%;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+  .inp:focus{border-color:var(--accent);}
+  .inp::placeholder{color:var(--muted);}
+  select.inp{appearance:none;}
+  .btn-main{width:100%;background:var(--accent);color:#08080F;border:none;border-radius:var(--radius-sm);padding:16px;font-size:16px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;margin-top:8px;transition:opacity 0.15s,transform 0.1s;}
+  .btn-main:active{opacity:0.85;transform:scale(0.98);}
+  .btn-main:disabled{opacity:0.5;cursor:not-allowed;}
+  #home{background:var(--bg);}
+  .topbar{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .rider-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;}
+  .rider-zone{font-size:12px;color:var(--muted);margin-top:2px;}
+  .online-toggle{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;cursor:pointer;border:0.5px solid;transition:all 0.2s;}
+  .online-toggle.on{background:rgba(45,255,143,0.1);border-color:var(--green);color:var(--green);}
+  .online-toggle.off{background:var(--surface);border-color:var(--border);color:var(--muted);}
+  .online-dot{width:8px;height:8px;border-radius:50%;}
+  .online-toggle.on .online-dot{background:var(--green);animation:pulse 1.2s infinite;}
+  .online-toggle.off .online-dot{background:var(--muted);}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px 14px;flex-shrink:0;}
+  .stat-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+  .home-scroll{flex:1;overflow-y:auto;padding-bottom:80px;}
+  .home-scroll::-webkit-scrollbar{display:none;}
+  .section-head{padding:4px 20px 10px;display:flex;align-items:center;justify-content:space-between;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .task-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);margin:0 20px 12px;overflow:hidden;}
+  .task-card.urgent{border-color:var(--accent2);}
+  .task-header{padding:12px 16px 10px;display:flex;justify-content:space-between;align-items:center;}
+  .task-id{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);}
+  .task-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;background:rgba(255,107,53,0.15);color:var(--accent2);}
+  .task-route{padding:0 16px 12px;}
+  .route-point{display:flex;align-items:flex-start;gap:10px;padding:5px 0;}
+  .route-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .route-dot.pickup{background:var(--accent3);}
+  .route-dot.dropoff{background:var(--green);}
+  .route-label{font-size:11px;color:var(--muted);}
+  .route-val{font-size:13px;font-weight:500;}
+  .task-meta{display:flex;gap:16px;padding:0 16px 12px;}
+  .task-meta-item{font-size:12px;color:var(--muted);}
+  .task-meta-item span{color:var(--text);font-weight:500;}
+  .task-actions{padding:10px 16px 14px;display:flex;gap:10px;border-top:0.5px solid var(--border);}
+  .btn-accept{flex:1;background:var(--accent);color:#08080F;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;}
+  .btn-skip{background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:8px;padding:12px 16px;font-size:14px;cursor:pointer;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-icon{font-size:48px;margin-bottom:12px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,8px);z-index:10;}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;cursor:pointer;color:var(--muted);}
+  .nav-item.active{color:var(--accent);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-size:10px;font-weight:500;}
+  #activeDelivery{background:var(--bg);}
+  .delivery-header{padding:16px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border);}
+  .delivery-sheet{flex:1;overflow-y:auto;padding:16px 20px 120px;}
+  .delivery-sheet::-webkit-scrollbar{display:none;}
+  .delivery-order-id{font-family:'Syne',sans-serif;font-size:13px;color:var(--accent);margin-bottom:4px;}
+  .delivery-shop-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:16px;}
+  .d-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;}
+  .d-step-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:2px;}
+  .d-step-dot.done{background:var(--green);}
+  .d-step-dot.active{background:var(--accent);animation:pulse 1s infinite;}
+  .d-step-dot.pending{background:var(--border);}
+  .d-step-info{}
+  .d-step-title{font-size:14px;font-weight:500;}
+  .d-step-title.done{color:var(--green);}
+  .d-step-title.pending{color:var(--muted);}
+  .d-step-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .addr-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin:16px 0;}
+  .addr-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .addr-val{font-size:14px;font-weight:500;}
+  .addr-flat{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent3);}
+  .delivery-action-bar{position:absolute;bottom:0;left:0;right:0;padding:16px 20px 32px;background:var(--surface);border-top:0.5px solid var(--border);}
+  #earningsPage{background:var(--bg);}
+  .earn-scroll{flex:1;overflow-y:auto;padding:16px 20px 80px;}
+  .earn-scroll::-webkit-scrollbar{display:none;}
+  .earn-hero{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:14px;}
+  .earn-amount{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--accent);}
+  .earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .eg-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;}
+  .eg-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .eg-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;}
+  .toast{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#08080F;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:'Syne',sans-serif;}
+  .toast.show{opacity:1;}
+  .loading{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div class="screen active" id="splash">
+  <div class="splash-logo">NestMart</div>
+  <div class="splash-sub">DELIVERY</div>
+  <div class="splash-dot"></div>
+</div>
+
+<div class="screen" id="login">
+  <div class="login-top">
+    <div class="login-icon">🛵</div>
+    <div class="login-logo">Delivery</div>
+    <div class="login-tagline">Accept tasks, deliver fast,<br>earn more every day.</div>
+  </div>
+  <div class="login-sheet">
+    <div class="login-title">Rider login</div>
+    <div class="login-hint">Register to start delivering</div>
+    <div class="field-group"><label class="field-label">YOUR NAME</label><input class="inp" id="riderName" placeholder="Suresh Kumar"></div>
+    <div class="field-group"><label class="field-label">PHONE</label><input class="inp" id="riderPhone" placeholder="9876543210" maxlength="10" type="tel"></div>
+    <div class="field-group">
+      <label class="field-label">ZONE</label>
+      <select class="inp" id="riderZone">
+        <option>Kondapur — Zone A</option><option>Gachibowli — Zone B</option>
+        <option>Manikonda — Zone C</option><option>Jubilee Hills — Zone D</option><option>Madhapur — Zone E</option>
+      </select>
+    </div>
+    <button class="btn-main" id="riderLoginBtn" onclick="riderLogin()">Start Delivering →</button>
+  </div>
+</div>
+
+<div class="screen" id="home">
+  <div class="topbar">
+    <div><div class="rider-name" id="homeRiderName">—</div><div class="rider-zone" id="homeZone">—</div></div>
+    <div class="online-toggle on" id="onlineToggle" onclick="toggleOnline()">
+      <div class="online-dot"></div>
+      <div style="font-size:13px;font-weight:600;font-family:'Syne',sans-serif;" id="onlineText">Online</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Trips today</div><div class="stat-val" style="color:var(--accent)" id="statTrips">0</div></div>
+    <div class="stat-card"><div class="stat-label">Earned</div><div class="stat-val" style="color:var(--green)" id="statEarned">₹0</div></div>
+    <div class="stat-card"><div class="stat-label">Rating</div><div class="stat-val" style="color:var(--accent3)" id="statRating">5.0</div></div>
+  </div>
+  <div class="home-scroll">
+    <div class="section-head"><div class="section-title">Available tasks</div></div>
+    <div id="tasksList"><div class="loading">Scanning for orders…</div></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="show('home')"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item" onclick="showEarnings()"><div class="nav-icon">💰</div><div class="nav-label">Earnings</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<div class="screen" id="activeDelivery">
+  <div class="delivery-header">
+    <div style="font-size:20px;">🛵</div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Active Delivery</div>
+      <div style="font-size:12px;color:var(--muted);" id="deliveryEta">Calculating ETA…</div>
+    </div>
+  </div>
+  <div class="delivery-sheet">
+    <div class="delivery-order-id" id="activeOrderId"></div>
+    <div class="delivery-shop-name" id="activeShopName"></div>
+    <div id="deliverySteps"></div>
+    <div class="addr-box">
+      <div class="addr-label">DELIVER TO</div>
+      <div class="addr-val" id="deliverSociety"></div>
+      <div class="addr-flat" id="deliverFlat"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;cursor:pointer;" onclick="showToast('Calling resident…')">
+      📞 Call resident
+    </div>
+  </div>
+  <div class="delivery-action-bar">
+    <button class="btn-main" id="deliveryActionBtn" onclick="nextStep()">Picked up from shop →</button>
+  </div>
+</div>
+
+<div class="screen" id="earningsPage">
+  <div style="padding:16px 20px;border-bottom:0.5px solid var(--border);flex-shrink:0;"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;">My Earnings</div></div>
+  <div class="earn-scroll">
+    <div class="earn-hero"><div class="earn-amount" id="earnTotal">₹0</div><div style="font-size:13px;color:var(--muted);margin-top:4px;">Total earned today</div></div>
+    <div class="earn-grid">
+      <div class="eg-card"><div class="eg-label">Trips done</div><div class="eg-val" id="earnTrips" style="color:var(--accent)">0</div></div>
+      <div class="eg-card"><div class="eg-label">Per trip avg</div><div class="eg-val" id="earnAvg" style="color:var(--accent3)">₹0</div></div>
+    </div>
+    <div id="tripHistory"></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="show('home')"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+    <div class="nav-item active" onclick="showEarnings()"><div class="nav-icon">💰</div><div class="nav-label">Earnings</div></div>
+    <div class="nav-item" onclick="doLogout()"><div class="nav-icon">🚪</div><div class="nav-label">Logout</div></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.0/firebase-database-compat.min.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyD2jdY8IbFon3HTBzLLDrcfJwaIPfyzjO4",
+  authDomain:"feastnow-10576.firebaseapp.com",
+  databaseURL:"https://feastnow-10576-default-rtdb.firebaseio.com",
+  projectId:"feastnow-10576",
+  storageBucket:"feastnow-10576.firebasestorage.app",
+  messagingSenderId:"59738911240",
+  appId:"1:59738911240:web:727b247d12630566bf97bd"
+});
+const auth=firebase.auth();
+const db=firebase.firestore();
+const rtdb=firebase.database();
+const C={riders:"nestmart_riders",orders:"nestmart_orders"};
+
+let riderDoc=null;
+let isOnline=true;
+let activeOrder=null;
+let deliveryStep=0;
+let trips=[];
+let totalEarned=0;
+let locationInterval=null;
+let unsubTasks=null;
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function setBtn(id,txt,dis=false){const b=document.getElementById(id);b.textContent=txt;b.disabled=dis;}
+
+auth.onAuthStateChanged(async user=>{
+  if(user){
+    const snap=await db.collection(C.riders).where('uid','==',user.uid).limit(1).get();
+    if(!snap.empty){riderDoc={id:snap.docs[0].id,...snap.docs[0].data()};setupHome();show('home');return;}
+  }
+  setTimeout(()=>show('login'),1200);
+});
+
+async function riderLogin(){
+  const name=document.getElementById('riderName').value.trim();
+  const phone=document.getElementById('riderPhone').value.trim();
+  const zone=document.getElementById('riderZone').value;
+  if(!name||!phone){showToast('Fill all fields');return;}
+  setBtn('riderLoginBtn','Registering…',true);
+  try{
+    const cred=await auth.signInAnonymously();
+    const uid=cred.user.uid;
+    const existing=await db.collection(C.riders).where('phone','==',phone).limit(1).get();
+    let riderId;
+    if(existing.empty){
+      const ref=await db.collection(C.riders).add({uid,name,phone,zone,isOnline:true,trips:0,earned:0,rating:5.0,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      riderId=ref.id;
+    } else {
+      riderId=existing.docs[0].id;
+      await db.collection(C.riders).doc(riderId).update({uid,isOnline:true});
+    }
+    riderDoc={id:riderId,uid,name,phone,zone};
+    setupHome();show('home');
+  }catch(err){showToast('Error: '+err.message);}
+  setBtn('riderLoginBtn','Start Delivering →',false);
+}
+
+function setupHome(){
+  document.getElementById('homeRiderName').textContent=riderDoc.name;
+  document.getElementById('homeZone').textContent=riderDoc.zone;
+  startLocationTracking();
+  listenForTasks();
+}
+
+function startLocationTracking(){
+  if(!navigator.geolocation) return;
+  clearInterval(locationInterval);
+  locationInterval=setInterval(()=>{
+    if(!isOnline||!riderDoc) return;
+    navigator.geolocation.getCurrentPosition(pos=>{
+      rtdb.ref(`nestmart/riderLocation/${riderDoc.id}`).set({
+        lat:pos.coords.latitude,
+        lng:pos.coords.longitude,
+        updatedAt:Date.now(),
+        isOnline,
+        name:riderDoc.name,
+        zone:riderDoc.zone
+      });
+    },()=>{});
+  },10000);
+}
+
+function listenForTasks(){
+  if(unsubTasks) unsubTasks();
+  if(!isOnline){document.getElementById('tasksList').innerHTML=`<div class="empty-state"><div class="empty-icon">😴</div><div>You are offline</div></div>`;return;}
+  unsubTasks=db.collection(C.orders)
+    .where('status','==','ready')
+    .where('riderId','==',null)
+    .limit(5)
+    .onSnapshot(snap=>{
+      const tasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderTasks(tasks);
+    },err=>{
+      // fallback if index not ready
+      document.getElementById('tasksList').innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>No tasks available</div><div style="font-size:11px;margin-top:6px;opacity:0.5;">Orders marked "ready" will appear here</div></div>`;
+    });
+}
+
+function renderTasks(tasks){
+  const el=document.getElementById('tasksList');
+  if(!tasks.length){el.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div>No tasks right now</div><div style="font-size:11px;margin-top:6px;opacity:0.5;">New orders will appear here</div></div>`;return;}
+  el.innerHTML=tasks.map((t,i)=>`
+    <div class="task-card ${i===0?'urgent':''}">
+      <div class="task-header"><div class="task-id">#${t.id.substring(0,8).toUpperCase()}</div><div class="task-badge">Ready</div></div>
+      <div class="task-route">
+        <div class="route-point"><div class="route-dot pickup"></div><div><div class="route-label">PICKUP FROM</div><div class="route-val">${t.shopName||'Shop'}</div></div></div>
+        <div style="padding-left:4px;margin:-2px 0;"><div style="width:1px;height:12px;background:var(--border);"></div></div>
+        <div class="route-point"><div class="route-dot dropoff"></div><div><div class="route-label">DELIVER TO</div><div class="route-val">${t.societyCode||''} · Flat ${t.flatId}</div></div></div>
+      </div>
+      <div class="task-meta">
+        <div class="task-meta-item">Order <span>₹${t.total}</span></div>
+        <div class="task-meta-item">Earn <span style="color:var(--green)">₹${Math.round(t.total*0.15)}</span></div>
+      </div>
+      <div class="task-actions">
+        <button class="btn-skip" onclick="skipTask('${t.id}')">Skip</button>
+        <button class="btn-accept" onclick="acceptTask('${t.id}')">Accept ₹${Math.round(t.total*0.15)} →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function acceptTask(orderId){
+  try{
+    await db.collection(C.orders).doc(orderId).update({
+      riderId:riderDoc.id,
+      riderName:riderDoc.name,
+      status:'picked',
+      pickedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await rtdb.ref(`nestmart/liveOrders/${orderId}`).update({status:'picked',riderId:riderDoc.id,updatedAt:Date.now()});
+    const snap=await db.collection(C.orders).doc(orderId).get();
+    activeOrder={id:orderId,...snap.data()};
+    deliveryStep=0;
+    setupActiveDelivery();
+    show('activeDelivery');
+    showToast('Task accepted! Head to '+activeOrder.shopName);
+  }catch(e){showToast('Error: '+e.message);}
+}
+
+function skipTask(orderId){showToast('Task skipped');}
+
+function setupActiveDelivery(){
+  document.getElementById('activeOrderId').textContent='#'+activeOrder.id.substring(0,8).toUpperCase();
+  document.getElementById('activeShopName').textContent=activeOrder.shopName||'Shop';
+  document.getElementById('deliverSociety').textContent=activeOrder.societyCode||activeOrder.societyId||'—';
+  document.getElementById('deliverFlat').textContent='Flat '+activeOrder.flatId;
+  renderDeliverySteps();
+}
+
+function renderDeliverySteps(){
+  const steps=[
+    {title:'Head to shop',sub:activeOrder.shopName,state:deliveryStep>0?'done':deliveryStep===0?'active':'pending'},
+    {title:'Pick up order',sub:'Collect from shop',state:deliveryStep>1?'done':deliveryStep===1?'active':'pending'},
+    {title:'Head to society',sub:activeOrder.societyCode||'Society',state:deliveryStep>2?'done':deliveryStep===2?'active':'pending'},
+    {title:'Deliver to flat',sub:'Flat '+activeOrder.flatId,state:deliveryStep>3?'done':deliveryStep===3?'active':'pending'},
+  ];
+  document.getElementById('deliverySteps').innerHTML=steps.map(s=>`
+    <div class="d-step">
+      <div class="d-step-dot ${s.state}"></div>
+      <div class="d-step-info">
+        <div class="d-step-title ${s.state}">${s.title}</div>
+        <div class="d-step-sub">${s.sub}</div>
+      </div>
+    </div>
+  `).join('');
+  const btnLabels=['Picked up from shop →','Heading to flat →','Mark as Delivered ✓'];
+  if(deliveryStep<3) document.getElementById('deliveryActionBtn').textContent=btnLabels[deliveryStep]||'Next →';
+  const etaArr=[8,12,5];
+  document.getElementById('deliveryEta').textContent='ETA ~'+(etaArr[deliveryStep]||5)+' min';
+}
+
+async function nextStep(){
+  deliveryStep++;
+  if(deliveryStep>=3){
+    await completeDelivery(); return;
+  }
+  renderDeliverySteps();
+  showToast(['','Order picked up! Head to society','Almost there!'][deliveryStep]||'');
+}
+
+async function completeDelivery(){
+  const earn=Math.round((activeOrder.total||0)*0.15);
+  try{
+    await db.collection(C.orders).doc(activeOrder.id).update({status:'delivered',deliveredAt:firebase.firestore.FieldValue.serverTimestamp()});
+    await rtdb.ref(`nestmart/liveOrders/${activeOrder.id}`).update({status:'delivered',updatedAt:Date.now()});
+    await db.collection(C.riders).doc(riderDoc.id).update({
+      trips:firebase.firestore.FieldValue.increment(1),
+      earned:firebase.firestore.FieldValue.increment(earn)
+    });
+  }catch(e){console.error(e);}
+  totalEarned+=earn;
+  trips.push({id:activeOrder.id,flat:activeOrder.flatId,earn,time:'Just now'});
+  document.getElementById('statTrips').textContent=trips.length;
+  document.getElementById('statEarned').textContent='₹'+totalEarned;
+  showToast('Delivered! ₹'+earn+' earned 🎉');
+  activeOrder=null;
+  setTimeout(()=>show('home'),1200);
+}
+
+function toggleOnline(){
+  isOnline=!isOnline;
+  const tog=document.getElementById('onlineToggle');
+  tog.className='online-toggle '+(isOnline?'on':'off');
+  document.getElementById('onlineText').textContent=isOnline?'Online':'Offline';
+  if(riderDoc) db.collection(C.riders).doc(riderDoc.id).update({isOnline});
+  if(riderDoc) rtdb.ref(`nestmart/riderLocation/${riderDoc.id}`).update({isOnline});
+  showToast(isOnline?'You are Online':'You are Offline');
+  listenForTasks();
+}
+
+function showEarnings(){
+  document.getElementById('earnTotal').textContent='₹'+totalEarned;
+  document.getElementById('earnTrips').textContent=trips.length;
+  document.getElementById('earnAvg').textContent=trips.length?'₹'+Math.round(totalEarned/trips.length):'₹0';
+  document.getElementById('tripHistory').innerHTML=trips.length
+    ?[...trips].reverse().map(t=>`<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent)">#${t.id.substring(0,8).toUpperCase()}</div><div style="font-size:11px;color:var(--muted)">Flat ${t.flat} · ${t.time}</div></div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--green)">+₹${t.earn}</div></div>`).join('')
+    :`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;">No trips yet</div>`;
+  show('earningsPage');
+}
+
+function doLogout(){
+  clearInterval(locationInterval);
+  if(unsubTasks) unsubTasks();
+  if(riderDoc) db.collection(C.riders).doc(riderDoc.id).update({isOnline:false});
+  auth.signOut().then(()=>{riderDoc=null;show('login');showToast('Logged out');});
+}
+</script>
+</body>
+</html>
